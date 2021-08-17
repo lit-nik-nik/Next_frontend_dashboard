@@ -13,18 +13,10 @@ export default function Home() {
       <Container fluid>
         <Row className='mb-3'>
             <Col>
-                <Link href='/packages/1'>
-                    <a className='btn btn-dark w-100 text-uppercase' style={{height: 100, paddingTop: 30, fontSize: 24}}>
-                      Журнал упаковки
-                    </a>
-                </Link>
+
             </Col>
             <Col>
-                <Link href='/orders/'>
-                    <a className='btn btn-dark w-100 text-uppercase' style={{height: 100, paddingTop: 30, fontSize: 24}}>
-                        Журнал заказов
-                    </a>
-                </Link>
+
             </Col>
             <Col>
 

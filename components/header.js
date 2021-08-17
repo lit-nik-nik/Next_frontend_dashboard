@@ -5,17 +5,15 @@ const Header = (props) => {
 
     return (
         <>
-            <Row className='bg-dark mb-3'>
-                <Col>
-                    <h1 className='text-left text-uppercase m-3' style={{fontSize: 16}}>
-                        <Link href='/'>
-                            <a className='text-white text-decoration-none'>
-                                Система управления заказами | {props.title}
-                            </a>
-                        </Link>
-                    </h1>
-                </Col>
-            </Row>
+            <div className='bg-light p-3 mb-3 sticky-top' style={{boxShadow: '5px 0px 5px 1px #ccc'}}>
+                <h1 className='text-end text-uppercase mb-0' style={{fontSize: 16}}>
+                    <Link href='/'>
+                        <a className='text-dark text-decoration-none'>
+                            Система управления заказами | {props.title}
+                        </a>
+                    </Link>
+                </h1>
+            </div>
         </>
     )
 }
