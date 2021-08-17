@@ -4,7 +4,7 @@ import PaginationTable from "../../modules/pagination";
 import Thead from "../../modules/tables/thead";
 import Tbody from "../../modules/tables/tbody";
 import { MainLyout } from "../../components/layout/main";
-import {getPageOrder} from "../../services/packages/get-services";
+import {getPageOrders} from "../../services/packages/get";
 import ModalWindow from "../../components/modal";
 
 export default class PageOrder extends Component {
@@ -109,8 +109,6 @@ export default class PageOrder extends Component {
 
 export async function getServerSideProps({query}) {
 
-    const data = getPageOrder(query.page, 100);
-
-    return data
+    return getPageOrders(query.page, 100);
 
 }
