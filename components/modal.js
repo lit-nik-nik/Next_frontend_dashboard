@@ -1,9 +1,9 @@
 import {Button, Col, Form, Modal, Row} from "react-bootstrap"
 import style from '../styles/modal.module.css'
 import {Component} from "react";
-import {getOrder} from "../services/get-services";
+import {getOrder} from "../services/packages/get-services";
 import {changeDate} from "../modules/change-data";
-import {patchOrder} from "../services/patch-services";
+import {patchOrder} from "../services/packages/patch-services";
 
 export default class ModalWindow extends Component {
 

@@ -1,10 +1,10 @@
 import { Button, Col, Row, Table, Form } from "react-bootstrap"
-import { getOrder } from "../../../services/get-services"
+import { getOrder } from "../../../services/packages/get-services"
 import { MainLyout } from "../../../components/layout/main"
 import { withRouter } from 'next/router'
 import {changeDate} from "../../../modules/change-data";
 import {Component } from 'react'
-import {patchOrder} from "../../../services/patch-services";
+import {patchOrder} from "../../../services/packages/patch-services";
 
 export default withRouter(class ChangeOrder extends Component {
 

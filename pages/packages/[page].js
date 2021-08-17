@@ -4,7 +4,7 @@ import PaginationTable from "../../modules/pagination";
 import Thead from "../../modules/tables/thead";
 import Tbody from "../../modules/tables/tbody";
 import { MainLyout } from "../../components/layout/main";
-import {getPageOrder} from "../../services/get-services";
+import {getPageOrder} from "../../services/packages/get-services";
 import ModalWindow from "../../components/modal";
 
 export default class PageOrder extends Component {

@@ -3,7 +3,7 @@ import axios from "axios";
 const API_URI =' http://localhost:3100'
 
 
-export const getAllOrder = async () => {
+export const getAllOrders = async () => {
     let data;
 
     await axios.get(`${API_URI}/orders?_sort=ORDER_ID&_order=desc`)
@@ -25,7 +25,7 @@ export const getTotalCountOrders = async () => {
     }
 }
 
-export const getPageOrder = async (page, limit) => {
+export const getPageOrders = async (page, limit) => {
     let data
 
     await axios.get(`${API_URI}/orders?_sort=ORDER_ID&_order=desc&_page=${page}&_limit=${limit}`)
