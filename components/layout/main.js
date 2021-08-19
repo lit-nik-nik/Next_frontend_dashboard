@@ -6,18 +6,18 @@ export function MainLyout({children, title}) {
 
     return (
         <>
-            <Row>
-                <Col sm={2} className='pe-0'>
-                    <Navbar/>
-                </Col>
-                <Col className='ps-0'>
-                    <Header title={title} />
+            <Header />
 
-                    <Container fluid>
+            <Container fluid className='p-0'>
+                <Row>
+                    <Col lg={2}>
+                        <Navbar/>
+                    </Col>
+                    <Col lg={10} className='py-3 px-4'>
                         {children}
-                    </Container>
-                </Col>
-            </Row>
+                    </Col>
+                </Row>
+            </Container>
         </>
     )
 }

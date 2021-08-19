@@ -1,0 +1,9 @@
+.searchPanel::placeholder {
+    color: #c1c1c1;
+    opacity: 1;
+}
+.searchPanel {
+    background-color: #383b3f;
+    border: 0;
+    padding: 1rem;
+}

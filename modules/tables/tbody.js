@@ -38,7 +38,7 @@ export default class Tbody extends Component {
                         {changeDate(order.DATE_PACK)}
                     </td>
                     <td className='align-middle text-center' style={{width: 200}}>
-                        <Link href={`/order/change/${order.ORDER_ID}`}>
+                        <Link href={`/order/${order.ORDER_ID}`}>
                             <a>
                                 {order.ITM_ORDERNUM}
                             </a>

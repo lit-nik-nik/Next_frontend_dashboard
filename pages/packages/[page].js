@@ -61,7 +61,7 @@ export default class PageOrder extends Component {
 
         return (
             <MainLyout title='Журнал упаковки'>
-                <Row className='mb-3'>
+                <Row className=''>
                     <Col>
                         <p className='text-muted m-0'><small>Всего заказов - {totalCount}</small></p>
                     </Col>

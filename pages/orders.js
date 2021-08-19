@@ -9,7 +9,7 @@ import {getAllOrders} from "../services/orders/get";
 export default class Orders extends Component {
 
     state = {
-        orders: this.props.data,
+        orders: this.props.data.orders,
         titleTable: [
             'Дата упаковки',
             'Заказ',
