@@ -4,111 +4,130 @@ import { MainLyout } from "../../components/layout/main"
 import { withRouter } from 'next/router'
 import {Component } from 'react'
 import Thead from "../../modules/tables/thead";
+import {parseRelativeUrl} from "next/dist/next-server/lib/router/utils/parse-relative-url";
 
 export default withRouter(class ChangeOrder extends Component {
 
     state = {
         order: this.props.order,
-        nameHead: [
+        bodyTitle: [
             '№',
             'Номенклатура',
             'Длина',
             'Ширина',
             'Кол-во',
+            'Площадь',
             'Ед.изм.',
             'Цена',
             'Стоимость',
             'Примечание'
         ],
+        headTitle: [
+            {
+                id: 1,
+                label: '№ заказа на производстве',
+                params: ['ITM_ORDERNUM']
+            },
+            {
+                id: 2,
+                label: 'Массив',
+                params: ['FASAD_MAT']
+            },
+            {
+                id: 3,
+                label: 'Цвет',
+                params: ['COLOR', 'COLOR_TYPE']
+            },
+            {
+                id: 4,
+                label: 'Модель профиля',
+                params: ['FASAD_MODEL', 'FASAD_PG_WIDTH']
+            },
+            {
+                id: 5,
+                label: 'Патина',
+                params: ['COLOR_PATINA', 'COLOR_PATINA_COMMENT']
+            },
+            {
+                id: 6,
+                label: 'Филенка',
+                params: ['FIL_MODEL', 'FIL_MAT']
+            },
+            {
+                id: 7,
+                label: 'Лак',
+                params: ['COLOR_LAK']
+            },
+            {
+                id: 8,
+                label: 'Материал филенки',
+                params: ['FIL_MAT']
+            },
+            {
+                id: 9,
+                label: 'Присадка',
+                params: ['PRISAD']
+            },
+            {
+                id: 10,
+                label: 'Текстура',
+                params: ['TEXTURE']
+            },
+            {
+                id: 11,
+                label: 'Термошов',
+                params: ['TERMOSHOV']
+            },
+            {
+                id: 12,
+                label: 'Комментарий к заказу',
+                params: ['PRIMECH']
+            }
+        ]
     }
 
     headerRender = (obj) => {
+        let header = []
 
-        const header =
-            <Row>
-                <Col lg={12}>
-                    <InputGroup className="mb-3">
-                        <InputGroup.Text><b>№ заказа на производстве:</b></InputGroup.Text>
-                        <FormControl value={obj.ITM_ORDERNUM} readOnly className='text-center' />
-                    </InputGroup>
-                </Col>
+        const {headTitle} = this.state
 
-                <Col lg={6}>
-                    <InputGroup className="mb-3">
-                        <InputGroup.Text><b>Массив:</b></InputGroup.Text>
-                        <FormControl value={obj.FASAD_MAT} readOnly className='text-center' />
-                    </InputGroup>
-                </Col>
+        headTitle.map(item => {
+            const dataOne = obj[`${item.params[0]}`] ? obj[`${item.params[0]}`] : '',
+                dataTwo = obj[`${item.params[1]}`] ? ' (' + obj[`${item.params[1]}`] + ')' : '',
+                dataAll = item.params[1] ? dataOne + dataTwo : dataOne
 
-                <Col lg={6}>
-                    <InputGroup className="mb-3">
-                        <InputGroup.Text><b>Цвет:</b></InputGroup.Text>
-                        <FormControl value={`${obj.COLOR} (${obj.COLOR_TYPE})`} readOnly className='text-center' />
-                    </InputGroup>
-                </Col>
-                <Col lg={6}>
-                    <InputGroup className="mb-3">
-                        <InputGroup.Text><b>Модель профиля:</b></InputGroup.Text>
-                        <FormControl value={`${obj.FASAD_MODEL} (${obj.FASAD_PG_WIDTH} мм)`} readOnly className='text-center' />
-                    </InputGroup>
-                </Col>
+            if (obj[`${item.params[0]}`]) {
+                if (item.id === 1 || item.id === 12) {
+                    header.push(
+                        <>
+                            <Col lg={3} className='text-end fw-bold'>
+                                {item.label}:
+                            </Col>
+                            <Col lg={9} className='border-bottom text-start'>
+                                {dataAll}
+                            </Col>
+                        </>
+                    )
+                } else {
+                    header.push(
+                        <>
+                            <Col lg={2} className='text-end fw-bold'>
+                                {item.label}:
+                            </Col>
+                            <Col lg={4} className='border-bottom text-start'>
+                                {dataAll}
+                            </Col>
+                        </>
+                    )
+                }
+            } else header.push(<Col lg={6}/>)
+        })
 
-                <Col lg={6}>
-                    <InputGroup className="mb-3">
-                        <InputGroup.Text><b>Патина:</b></InputGroup.Text>
-                        <FormControl value={`${obj.COLOR_PATINA} (${obj.COLOR_PATINA_COMMENT})`} readOnly className='text-center' />
-                    </InputGroup>
-                </Col>
-                <Col lg={6}>
-                    <InputGroup className="mb-3">
-                        <InputGroup.Text><b>Филенка:</b></InputGroup.Text>
-                        <FormControl value={`${obj.FIL_MODEL} (${obj.FIL_MAT})`} readOnly className='text-center' />
-                    </InputGroup>
-                </Col>
-
-                <Col lg={6}>
-                    <InputGroup className="mb-3">
-                        <InputGroup.Text><b>Лак:</b></InputGroup.Text>
-                        <FormControl value={`${obj.COLOR_LAK}`} readOnly className='text-center' />
-                    </InputGroup>
-                </Col>
-                <Col lg={6}>
-                    <InputGroup className="mb-3">
-                        <InputGroup.Text><b>Материал филенки:</b></InputGroup.Text>
-                        <FormControl value={`${obj.FIL_MAT}`} readOnly className='text-center' />
-                    </InputGroup>
-                </Col>
-
-                <Col lg={6}>
-                    <InputGroup className="mb-3">
-                        <InputGroup.Text><b>Присадка:</b></InputGroup.Text>
-                        <FormControl value={`${obj.PRISAD}`} readOnly className='text-center' />
-                    </InputGroup>
-                </Col>
-
-                <Col lg={6}>
-                    <InputGroup className="mb-3">
-                        <InputGroup.Text><b>Текстура:</b></InputGroup.Text>
-                        <FormControl value={`${obj.TEXTURE}`} readOnly className='text-center' />
-                    </InputGroup>
-                </Col>
-
-                <Col lg={6}>
-                    <InputGroup className="mb-3">
-                        <InputGroup.Text><b>Термошов:</b></InputGroup.Text>
-                        <FormControl value={`${obj.TERMOSHOV}`} readOnly className='text-center' />
-                    </InputGroup>
-                </Col>
-
-                <Col lg={12}>
-                    <InputGroup className="mb-3">
-                        <InputGroup.Text><b>Комментарий к заказу:</b></InputGroup.Text>
-                        <FormControl as="textarea" value={obj.PRIMECH} readOnly className='text-center' />
-                    </InputGroup>
-                </Col>
+        return (
+            <Row className='mb-3' style={{fontSize: 18}}>
+                {header}
             </Row>
-
-        return header
+        )
     }
 
     addLineBody = (obj, lineNumber) => {
@@ -118,23 +137,30 @@ export default withRouter(class ChangeOrder extends Component {
         cells.push(<td key={Math.floor(Math.random() * 101)}>{lineNumber}</td>)
 
         for (let key in obj) {
+            if (key === 'NAME') cells.push(<td className='text-start ps-3' key={Math.floor(Math.random() * 101)}>{obj[key]}</td>)
+
             if (
-                key === 'NAME' ||
                 key === 'HEIGHT' ||
                 key === 'WIDTH' ||
                 key === 'EL_COUNT'
             ) cells.push(<td key={Math.floor(Math.random() * 101)}>{obj[key]}</td>)
-
         }
 
-        cells.push(<td key={Math.floor(Math.random() * 101)}>...</td>)
+        for (let key in obj) {
+            if (key === 'SQUARE') cells.push(<td key={Math.floor(Math.random() * 101)}>{Math.round(obj[key] * 1000) / 1000}</td>)
+        }
+
+        for (let key in obj) {
+            if (key === 'MEASURE_UNIT') cells.push(<td key={Math.floor(Math.random() * 101)}>{obj[key]}</td>)
+        }
 
         for (let key in obj) {
             if (
                 key === 'PRICE_COST' ||
-                key === 'COST' ||
-                key === 'CALC_COMMENT'
-            ) cells.push(<td key={Math.floor(Math.random() * 101)}>{obj[key]}</td>)
+                key === 'COST'
+            ) cells.push(<td key={Math.floor(Math.random() * 101)}>{Math.round(+obj[key] * 100) / 100}</td>)
+
+            if (key === 'CALC_COMMENT') cells.push(<td className='text-start ps-3' key={Math.floor(Math.random() * 101)}>{obj[key]}</td>)
         }
 
         return cells
@@ -152,8 +178,8 @@ export default withRouter(class ChangeOrder extends Component {
         })
 
         return (
-            <Table responsive hover size='sm' className='small text-center' style={{fontSize: 14}}>
-                <Thead title={this.state.nameHead} />
+            <Table responsive hover size='sm' className='small text-center' style={{fontSize: 20}}>
+                <Thead title={this.state.bodyTitle} />
                 <tbody>
                     {bodyLines}
                 </tbody>
@@ -204,13 +230,17 @@ export default withRouter(class ChangeOrder extends Component {
                     </Col>
 
 
-                    <Col lg={8}>
+                    <Col lg={9}>
                         {this.headerRender(header[0])}
                         {this.bodyRender(body)}
                     </Col>
-                    <Col lg={4}>
-                        <h3 className='text-center fw-bold'>План изготовления заказа:</h3>
+                    <Col lg={3}>
+                        <h4 className='text-center fw-bold'>План изготовления заказа:</h4>
                         {this.planRender(plans)}
+                        <div className='text-center'>
+                            <h4 className='fw-bold my-3'>Изображение товара</h4>
+                            <img src="//192.168.2.10:3131/testimage" alt="test" width={300} height={300} className='rounded-3 shadow'/>
+                        </div>
                     </Col>
                 </Row>
             </MainLyout>
