@@ -1,27 +1,17 @@
 import {Button, Col, Row, InputGroup, FormControl, Table, ListGroup} from "react-bootstrap"
-import { getOrder } from "../../services/orders/get"
+import {getImageOrder, getOrder} from "../../services/orders/get"
 import { MainLyout } from "../../components/layout/main"
 import { withRouter } from 'next/router'
 import {Component } from 'react'
 import Thead from "../../modules/tables/thead";
-import {parseRelativeUrl} from "next/dist/next-server/lib/router/utils/parse-relative-url";
+import ModalWindow from "../../modules/modals/modal";
 
 export default withRouter(class ChangeOrder extends Component {
 
     state = {
-        order: this.props.order,
-        bodyTitle: [
-            '№',
-            'Номенклатура',
-            'Длина',
-            'Ширина',
-            'Кол-во',
-            'Площадь',
-            'Ед.изм.',
-            'Цена',
-            'Стоимость',
-            'Примечание'
-        ],
+        order: this.props.data.order,
+        image: this.props.data.image,
+        bodyTitle: [],
         headTitle: [
             {
                 id: 1,
@@ -83,7 +73,37 @@ export default withRouter(class ChangeOrder extends Component {
                 label: 'Комментарий к заказу',
                 params: ['PRIMECH']
             }
-        ]
+        ],
+        modalView: false
+    }
+
+    componentDidMount() {
+        this.filterBodyHeader()
+    }
+
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        if (this.props !== prevProps) {
+            this.setState({
+                order: this.props.data.order
+            })
+        }
+    }
+
+    filterBodyHeader = () => {
+        let bodyHeader = ['№']
+
+        for (let key in this.state.order.body[0]) {
+            if (key === 'NAME') bodyHeader.push('Номенклатура')
+            if (key === 'HEIGHT') bodyHeader.push('Длина')
+            if (key === 'WIDTH') bodyHeader.push('Ширина')
+            if (key === 'EL_COUNT') bodyHeader.push('Кол-во')
+            if (key === 'SQUARE') bodyHeader.push('S')
+            if (key === 'PRICE_COST') bodyHeader.push('Цена')
+            if (key === 'COST') bodyHeader.push('Стоимость')
+            if (key === 'CALC_COMMENT') bodyHeader.push('Примечание')
+        }
+
+        this.setState({bodyTitle: bodyHeader})
     }
 
     headerRender = (obj) => {
@@ -100,10 +120,10 @@ export default withRouter(class ChangeOrder extends Component {
                 if (item.id === 1 || item.id === 12) {
                     header.push(
                         <>
-                            <Col lg={3} className='text-end fw-bold'>
+                            <Col lg={2} className='text-end fw-bold'>
                                 {item.label}:
                             </Col>
-                            <Col lg={9} className='border-bottom text-start'>
+                            <Col lg={10} className='border-bottom text-start'>
                                 {dataAll}
                             </Col>
                         </>
@@ -131,36 +151,39 @@ export default withRouter(class ChangeOrder extends Component {
     }
 
     addLineBody = (obj, lineNumber) => {
-
         let cells = []
 
-        cells.push(<td key={Math.floor(Math.random() * 101)}>{lineNumber}</td>)
+        cells.push(<td>{lineNumber}</td>)
 
         for (let key in obj) {
-            if (key === 'NAME') cells.push(<td className='text-start ps-3' key={Math.floor(Math.random() * 101)}>{obj[key]}</td>)
+            if (key === 'NAME') cells.push(<td className='text-start ps-3'>{obj[key]}</td>)
 
             if (
                 key === 'HEIGHT' ||
                 key === 'WIDTH' ||
                 key === 'EL_COUNT'
-            ) cells.push(<td key={Math.floor(Math.random() * 101)}>{obj[key]}</td>)
+            ) cells.push(<td>{obj[key]}</td>)
         }
 
         for (let key in obj) {
-            if (key === 'SQUARE') cells.push(<td key={Math.floor(Math.random() * 101)}>{Math.round(obj[key] * 1000) / 1000}</td>)
-        }
+            if (key === 'SQUARE') {
+                const MEASURE_UNIT = obj.MEASURE_UNIT ? obj.MEASURE_UNIT : ''
+                let SQUARE
 
-        for (let key in obj) {
-            if (key === 'MEASURE_UNIT') cells.push(<td key={Math.floor(Math.random() * 101)}>{obj[key]}</td>)
+                if (obj.SQUARE === 0) SQUARE = ''
+                else SQUARE = Math.round(obj[key] * 1000) / 1000
+
+                cells.push(<td>{`${SQUARE} ${MEASURE_UNIT}`}</td>)
+            }
         }
 
         for (let key in obj) {
             if (
                 key === 'PRICE_COST' ||
                 key === 'COST'
-            ) cells.push(<td key={Math.floor(Math.random() * 101)}>{Math.round(+obj[key] * 100) / 100}</td>)
+            ) cells.push(<td>{Math.round(+obj[key] * 100) / 100}</td>)
 
-            if (key === 'CALC_COMMENT') cells.push(<td className='text-start ps-3' key={Math.floor(Math.random() * 101)}>{obj[key]}</td>)
+            if (key === 'CALC_COMMENT') cells.push(<td className='text-start ps-3'>{obj[key]}</td>)
         }
 
         return cells
@@ -213,7 +236,9 @@ export default withRouter(class ChangeOrder extends Component {
     }
 
     render () {
-        const {header, body, plans} = this.state.order
+        const {order, image} = this.state
+
+        const {header, body, plans} = order
 
         return (
             <MainLyout title={`Заказ № ${header[0].ID}`}>
@@ -223,11 +248,15 @@ export default withRouter(class ChangeOrder extends Component {
                             Вернуться назад
                         </Button>
                     </Col>
-                    <Col lg={10} className='mb-4'>
+                    <Col lg={5} className='mb-4'>
                         <h4 className='text-center fw-bold text-uppercase fst-italic'>
                             Заказ № {header[0].ID}
                         </h4>
                     </Col>
+                    <Col lg={2}>
+                        <p className='text-end mb-4 text-muted'><b>Менеджер:</b> {header[0].MANAGER}</p>
+                    </Col>
+                    <Col lg={3}/>
 
 
                     <Col lg={9}>
@@ -239,16 +268,39 @@ export default withRouter(class ChangeOrder extends Component {
                         {this.planRender(plans)}
                         <div className='text-center'>
                             <h4 className='fw-bold my-3'>Изображение товара</h4>
-                            <img src="//192.168.2.10:3131/testimage" alt="test" width={300} height={300} className='rounded-3 shadow'/>
+                            <img
+                                src={`data:image/jpeg;base64,${image}`}
+                                alt="test"
+                                width={300}
+                                className='rounded-3 shadow'
+                                onClick={() => this.setState({modalView: true})}
+                            />
                         </div>
                     </Col>
                 </Row>
+
+                <ModalWindow
+                    show={this.state.modalView}
+                    onHide={()=> this.setState({modalView: false})}
+                    data={this.state.image}
+                />
             </MainLyout>
         )
     }
 })
 
 export async function getServerSideProps({query}) {
+    let data;
 
-    return await getOrder(query.id);
+    const order = await getOrder(query.id)
+    const image = await getImageOrder()
+
+    data = {
+        order: order,
+        image: image
+    }
+
+    return {
+        props: { data }
+    }
 }

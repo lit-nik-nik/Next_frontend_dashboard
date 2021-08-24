@@ -1,35 +1,36 @@
 import { Col, Container, Row } from "react-bootstrap"
 import { MainLyout } from '../components/layout/main'
-import { useRouter } from 'next/router'
-import Link from "next/link"
-
+import Router from 'next/router'
 
 export default function Home() {
-  const router = useRouter()
+    //
+    // const {pathname} = Router
+    //
+    // if(pathname === '/' ){
+    //     Router.push('/auth')
+    // }
 
-  return (
-    <MainLyout>
+    return (
+        <MainLyout>
+            <Container fluid>
+                <Row className='mb-3'>
+                    <Col>
 
-      <Container fluid>
-        <Row className='mb-3'>
-            <Col>
+                    </Col>
+                    <Col>
 
-            </Col>
-            <Col>
+                    </Col>
+                    <Col>
 
-            </Col>
-            <Col>
+                    </Col>
+                    <Col>
 
-            </Col>
-            <Col>
+                    </Col>
+                    <Col>
 
-            </Col>
-            <Col>
-
-            </Col>
-        </Row>
-      </Container>
-      
-    </MainLyout>
-  )
+                    </Col>
+                </Row>
+            </Container>
+        </MainLyout>
+    )
 }

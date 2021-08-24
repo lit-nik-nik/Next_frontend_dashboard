@@ -5,7 +5,7 @@ import Thead from "../../modules/tables/thead";
 import Tbody from "../../modules/tables/tbody";
 import { MainLyout } from "../../components/layout/main";
 import {getPageOrders} from "../../services/packages/get";
-import ModalWindow from "../../components/modal";
+import ModalForm from "../../modules/modals/modal-form";
 
 export default class PageOrder extends Component {
 
@@ -97,7 +97,7 @@ export default class PageOrder extends Component {
                     </Col>
                 </Row>
 
-                <ModalWindow
+                <ModalForm
                     show={this.state.modalView}
                     onHide={()=> this.setState({modalView: false})}
                 />

@@ -5,18 +5,18 @@ import Link from "next/link"
 export default class PaginationTable extends Component {
 
     render() {
-        const {pagesCount, acitvePage, lastPage} = this.props
+        const {pagesCount, activePage, lastPage} = this.props
 
         const pageCount = pagesCount.map((page, i) => {
-            if (page < acitvePage + 10) {
-                if (page > acitvePage - 10) {
+            if (page < activePage + 10) {
+                if (page > activePage - 10) {
                     let active = '';
 
-                    if (page === acitvePage) active = 'active'
+                    if (page === activePage) active = 'active'
 
                     return (
                         <li key={i} className={"page-item " + active}>
-                            <Link  href={`/packages/${page}`} >
+                            <Link  href={`${page}`} >
                                 <a className="page-link">
                                     {page}
                                 </a>
@@ -34,7 +34,7 @@ export default class PaginationTable extends Component {
         return (
             <Pagination className='text-right'>
                 <li className={"page-item"}>
-                    <Link  href={`/packages/1`} >
+                    <Link  href={`1`} >
                         <a className="page-link">
                             &laquo;
                         </a>
@@ -46,7 +46,7 @@ export default class PaginationTable extends Component {
                 {pageEllipsis}
 
                 <li className={"page-item"}>
-                    <Link  href={`/packages/${lastPage}`} >
+                    <Link  href={`${lastPage}`} >
                         <a className="page-link">
                             &raquo;
                         </a>

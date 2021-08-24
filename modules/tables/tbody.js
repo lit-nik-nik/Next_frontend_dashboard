@@ -7,21 +7,28 @@ export default class Tbody extends Component {
 
     state = {
         orders: [],
+        tableParams: []
     }
 
     async componentDidMount() {
-        await this.setState({orders: this.props.orders})
+        await this.setState({
+            orders: this.props.orders,
+            tableParams: this.props.params
+        })
     }
 
     async componentDidUpdate(prevProps, prevState, snapshot) {
-        if (this.props !== prevProps) await this.setState({orders: this.props.orders})
+        if (this.props !== prevProps) await this.setState({
+            orders: this.props.orders,
+            tableParams: this.props.params
+        })
     }
 
     delOrder = async (id) => {
         let newArr = []
 
         this.state.orders.map((order, i) => {
-            if (order.ORDER_ID !== id) {
+            if (order.ID !== id) {
                 newArr.push(order)
             }
         })
@@ -29,64 +36,53 @@ export default class Tbody extends Component {
         await this.setState({orders: newArr})
     }
 
-    orderLine = (arr) => {
+    addOrderLine = () => {
+        const {orders, tableParams} = this.state
+        let line = []
 
-        return arr.map((order, index) => {
-            return (
-                <tr key={index}>
-                    <td className='align-middle text-center'>
-                        {changeDate(order.DATE_PACK)}
-                    </td>
-                    <td className='align-middle text-center' style={{width: 200}}>
-                        <Link href={`/order/${order.ORDER_ID}`}>
+        orders.map((order, i) => {
+            let cell = []
+
+            tableParams.map(param => {
+
+                if(param === 'FACT_DATE_FIRSTSAVE') cell.push(
+                        <td className='align-middle text-center' style={{width: '10%'}}>
+                            {order[param]}
+                        </td>
+                    )
+                else if (param === 'ITM_ORDERNUM') cell.push(
+                    <td className='align-middle text-center' style={{width: '16%'}}>
+                        <Link href={`/order/${order.ID}`}>
                             <a>
-                                {order.ITM_ORDERNUM}
+                                {order[param]}
                             </a>
                         </Link>
+                    </td>
+                )
+                else  {
+                    cell.push(
+                        <td className='align-middle text-center' style={{width: '14%'}}>
+                            {order[param]}
+                        </td>
+                    )
+                }
 
-                    </td>
-                    <td className='align-middle text-center' style={{width: 150}}>
-                        {order.PACK_TYPE}
-                    </td>
-                    <td className='align-middle text-center' style={{width: 100}}>
-                        {order.BOX_COUNT}
-                    </td>
-                    <td className='align-middle text-center'>
-                        {changeDate(order.PLAN_DATE)}
-                    </td>
-                    {colorDelay(order.DELAY)}
-                    <td className='align-middle text-center' style={{width: 100}}>
-                        {order.ORDER_TOTAL_COST} Р
-                    </td>
-                    <td className='align-middle text-center' style={{width: 100}}>
-                        {order.ORDER_DEBT} Р
-                    </td>
-                    <td className='align-middle text-center' style={{width: 350}}>
-                        {order.COMMENT}
-                    </td>
-                    <td className='align-middle text-center' style={{width: 100}}>
-                        {order.CITY}
-                    </td>
-                    <td className='align-middle text-center' style={{width: 150}}>
-                        {order.STATUS_DESCRIPTION}
-                    </td>
-                    <td className='align-middle text-center'>
-                        {changeDate(order.TS)}
-                    </td>
-                    <td className='align-middle text-center'>
-                        <a onClick={() => this.delOrder(order.ORDER_ID)}>
-                            <i className="bi bi-x-octagon text-danger" style={{fontSize: 16}}/>
-                        </a>
-                    </td>
+            })
+
+            line.push(
+                <tr key={i}>
+                    {cell}
                 </tr>
             )
         })
+
+        return line;
     }
 
     render() {
         return (
             <tbody>
-                {this.orderLine(this.state.orders)}
+                {this.addOrderLine()}
             </tbody>
         );
     }
