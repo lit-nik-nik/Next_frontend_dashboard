@@ -1,6 +1,4 @@
 import Link from "next/link"
-import {changeDate} from "../change-data";
-import {colorDelay} from "../color-delay";
 import {Component} from "react";
 
 export default class Tbody extends Component {
@@ -12,15 +10,15 @@ export default class Tbody extends Component {
 
     async componentDidMount() {
         await this.setState({
-            orders: this.props.orders,
-            tableParams: this.props.params
+            orders: this.props.orders ? this.props.orders : [],
+            tableParams: this.props.params ? this.props.params : []
         })
     }
 
     async componentDidUpdate(prevProps, prevState, snapshot) {
         if (this.props !== prevProps) await this.setState({
-            orders: this.props.orders,
-            tableParams: this.props.params
+            orders: this.props.orders ? this.props.orders : [],
+            tableParams: this.props.params ? this.props.params : []
         })
     }
 

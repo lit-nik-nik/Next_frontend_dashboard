@@ -84,7 +84,8 @@ export default withRouter(class ChangeOrder extends Component {
     componentDidUpdate(prevProps, prevState, snapshot) {
         if (this.props !== prevProps) {
             this.setState({
-                order: this.props.data.order
+                order: this.props.data.order,
+                image: this.props.data.image
             })
         }
     }
@@ -293,7 +294,7 @@ export async function getServerSideProps({query}) {
     let data;
 
     const order = await getOrder(query.id)
-    const image = await getImageOrder()
+    const image = await getImageOrder(query.id)
 
     data = {
         order: order,

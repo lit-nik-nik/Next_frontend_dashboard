@@ -5,7 +5,7 @@ const API_URI =' http://192.168.2.10:3131'
 export const getImageOrder = async (id) => {
     let image;
 
-    await axios.get(`${API_URI}/testimage`, {responseType: 'arraybuffer'})
+    await axios.get(`${API_URI}/orders/sample/${id}`, {responseType: 'arraybuffer'})
         .then(res => image = Buffer.from(res.data, 'binary').toString('base64'))
 
     return image
