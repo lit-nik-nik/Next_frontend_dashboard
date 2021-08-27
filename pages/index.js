@@ -1,14 +1,8 @@
 import { Col, Container, Row } from "react-bootstrap"
 import { MainLyout } from '../components/layout/main'
-import Router from 'next/router'
+import Router from "next/router";
 
 export default function Home() {
-    //
-    // const {pathname} = Router
-    //
-    // if(pathname === '/' ){
-    //     Router.push('/auth')
-    // }
 
     return (
         <MainLyout>

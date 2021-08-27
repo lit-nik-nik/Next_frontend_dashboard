@@ -1,20 +1,30 @@
-import {MainLyout} from "../components/layout/main"
 import style from '../styles/auth.module.css'
 import {Component} from "react";
-import {Row, Col, FloatingLabel, Form} from "react-bootstrap";
+import {Row, Col, FloatingLabel, Form, Button} from "react-bootstrap";
 import {getUsers} from "../services/auth/get";
+import {authUser} from "../services/auth/post";
+import bcrypt from 'bcryptjs';
+import Router from "next/router";
+import Link from "next/link";
 
-export default class Home extends Component {
+export default class Auth extends Component {
 
     state = {
         users: this.props.users,
-        filterUser: [],
         login: {
             user: '',
             pass: ''
         },
-        activeUser: '',
-        pass: ''
+        error: {
+            active: false,
+            message: '',
+        }
+    }
+
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        if (this.state.error !== prevState.error) {
+            this.render()
+        }
     }
 
     renderListUser = () => {
@@ -27,30 +37,57 @@ export default class Home extends Component {
         })
     }
 
-    render() {
-        const {login} = this.state
+    redirect = () => {
+        Router.push('/')
+    }
 
+    autorization = async (e) => {
+        e.preventDefault()
+
+        const {user, pass} = this.state.login
+
+        let salt = bcrypt.genSaltSync(10),
+            hash = bcrypt.hashSync(pass, salt)
+
+        await authUser(user, hash)
+            .then(res => {
+                if (res.status === 200) {
+                    localStorage.setItem('token', res.token)
+                    localStorage.setItem('userId', res.userId)
+
+                    setTimeout(this.redirect, 1000)
+                } else {
+                    console.log(res)
+                    this.setState(({error}) => {
+                        error.active = true,
+                        error.message = res.data.message
+                    })
+                }
+            })
+    }
+
+    render() {
+        const {login, error} = this.state
+
+        let divError
+
+        if (this.state.error.active) {
+            divError = <div className={`text-danger text-center`}>
+                {error.message}
+            </div>
+        }
 
         return (
-            <MainLyout>
+            <>
                 <Row>
                     <Col lg={12}>
                         <div className={style.authBody}>
                             <main className={`form-signin ${style.formSign}`}>
-                                <form onSubmit={e => {
-                                    e.preventDefault()
-                                    console.log(login)
-                                    this.setState(({login}) => {
-                                        return (
-                                            login.user = '',
-                                            login.pass = ''
-                                        )
-                                    })
-                                }}>
+                                <form onSubmit={e => this.autorization(e)}>
                                     <h1 className="h3 mb-3 fw-normal text-center">Авторизация</h1>
 
                                     <FloatingLabel
-                                        controlId="user"
+                                        controlId="login"
                                         label="Логин"
                                         className="mb-3"
                                     >
@@ -88,13 +125,24 @@ export default class Home extends Component {
                                         />
                                     </FloatingLabel>
 
-                                    <button className="w-100 btn btn-lg btn-primary" type="submit">Войти</button>
+                                    <Col className='text-end mb-3'>
+                                        <Link href='/reg'>
+                                            <a>
+                                                У меня нет учетки
+                                            </a>
+                                        </Link>
+                                    </Col>
+
+                                    <Button type='submit' className="w-100 btn btn-lg btn-primary">Войти</Button>
+
+                                    {divError}
+
                                 </form>
                             </main>
                         </div>
                     </Col>
                 </Row>
-            </MainLyout>
+            </>
         )
     }
 

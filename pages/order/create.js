@@ -4,6 +4,7 @@ import {Component} from "react";
 import {getListsOrder} from "../../services/order/get";
 import Thead from "../../modules/tables/thead";
 import Tbody from "../../modules/tables/tbody";
+import {loadGetInitialProps} from "next/dist/next-server/lib/utils";
 
 export default class CreateOrder extends Component {
 
@@ -155,22 +156,16 @@ export default class CreateOrder extends Component {
             termoshov: '',
             comment: '',
             data: []
-        }
+        },
+        indexData: 0
     }
 
-    componentDidMount() {}
-
-    componentDidUpdate(prevState) {
-        if (this.state !== prevState) {
-            this.renderTable()
-            this.renderInputBody()
-        }
+    changeOrderValue = (id, value) => {
+        this.setState(({order}) => order[id] = value)
     }
 
-    changeState = (id, value) => {
-        this.setState(({order}) => {
-            return order[id] = value
-        })
+    changeBodyValue = (id, value) => {
+        this.setState(({body}) => body.fields[id].value = value)
     }
 
     renderDatalist = (arr) => {
@@ -198,7 +193,7 @@ export default class CreateOrder extends Component {
                         <Col lg={10} className='mb-3'>
                             <Form.Control
                                 value={order[item.id]}
-                                onChange={e => this.changeState(item.id, e.target.value)}
+                                onChange={e => this.changeOrderValue(item.id, e.target.value)}
                                 type="text"
                                 id={item.id}
                                 placeholder={item.label}
@@ -223,7 +218,7 @@ export default class CreateOrder extends Component {
                                     isValid={order[item.id]}
                                     isInvalid={!order[item.id]}
                                     value={order[item.id]}
-                                    onChange={e => this.changeState(item.id, e.target.value)}
+                                    onChange={e => this.changeOrderValue(item.id, e.target.value)}
                                     type="text"
                                     id={item.id}
                                     placeholder={item.label}
@@ -250,7 +245,7 @@ export default class CreateOrder extends Component {
                                     isValid={order[item.id]}
                                     isInvalid={!order[item.id]}
                                     value={order[item.id]}
-                                    onChange={e => this.changeState(item.id, e.target.value)}
+                                    onChange={e => this.changeOrderValue(item.id, e.target.value)}
                                     type="text"
                                     id={item.id}
                                     placeholder={item.label}
@@ -272,6 +267,7 @@ export default class CreateOrder extends Component {
 
     renderTable = () => {
         let head = [],
+            data = this.state.order.data,
             params = []
 
         this.state.body.fields.map((item) => {
@@ -282,7 +278,7 @@ export default class CreateOrder extends Component {
         return (
             <>
                 <Thead title={head}/>
-                <Tbody orders={this.state.order.data} params={params}/>
+                <Tbody orders={data} params={params}/>
             </>
         )
     }
@@ -295,7 +291,6 @@ export default class CreateOrder extends Component {
                 list.push(
                     <Col lg={3} key={i}>
                         <Form.Control
-                            required
                             isValid={item.value}
                             value={item.value}
                             type="text"
@@ -314,7 +309,6 @@ export default class CreateOrder extends Component {
                 list.push(
                     <Col lg={3} key={i}>
                         <Form.Control
-                            required
                             isValid={item.value}
                             value={item.value}
                             type="text"
@@ -335,20 +329,18 @@ export default class CreateOrder extends Component {
         )
     }
 
-    changeBodyValue = (id, value) => {
-        this.setState(({body}) => body.fields[id].value = value)
-    }
-
     addOrderData = () => {
-        this.setState(({body, order}) => {
-            let dataLine = {}
+        let dataLine = {}
 
-            body.fields.map(item => dataLine[item.id] = item.value)
+        const {indexData} = this.state
 
-            body.fields.map(item => item.value = '')
+        this.setState(({body}) => body.fields.map(item => dataLine[item.id] = item.value))
 
-            return order.data.push(dataLine)
-        })
+        this.setState(({order}) => order.data[indexData] = dataLine)
+
+        this.setState(({body}) => body.fields.map(item => item.value = ''))
+
+        this.setState({indexData: indexData+1})
     }
 
     render() {
@@ -357,7 +349,10 @@ export default class CreateOrder extends Component {
             <MainLyout>
                 <h2 className='text-center fw-bold mb-3'>Форма создания заказ</h2>
                 <hr/>
-                <Form>
+                <Form onSubmit={e => {
+                    e.preventDefault()
+                    console.log(this.state.order)
+                }}>
                     <Row>
                         <Col lg={1}/>
                         <Col lg={10}>

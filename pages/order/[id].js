@@ -4,7 +4,7 @@ import { MainLyout } from "../../components/layout/main"
 import { withRouter } from 'next/router'
 import {Component } from 'react'
 import Thead from "../../modules/tables/thead";
-import ModalWindow from "../../modules/modals/modal";
+import ModalImage from "../../modules/modals/modal-images";
 
 export default withRouter(class ChangeOrder extends Component {
 
@@ -237,6 +237,7 @@ export default withRouter(class ChangeOrder extends Component {
     }
 
     render () {
+
         const {order, image} = this.state
 
         const {header, body, plans} = order
@@ -280,7 +281,7 @@ export default withRouter(class ChangeOrder extends Component {
                     </Col>
                 </Row>
 
-                <ModalWindow
+                <ModalImage
                     show={this.state.modalView}
                     onHide={()=> this.setState({modalView: false})}
                     data={this.state.image}

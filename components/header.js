@@ -1,4 +1,4 @@
-import {Col, Form} from "react-bootstrap"
+import {Button, Col, Form} from "react-bootstrap"
 import Link from "next/link"
 import style from '../styles/header.module.css'
 import Router from 'next/router'
@@ -12,6 +12,14 @@ const Header = () => {
         e.preventDefault();
         Router.push(`/order/${value}`)
         setValue('')
+    }
+
+    const exitUser = (e) => {
+        e.preventDefault()
+        localStorage.removeItem('token')
+        localStorage.removeItem('userId')
+
+        Router.push('/auth')
     }
 
     return (
@@ -37,9 +45,13 @@ const Header = () => {
             <Col lg={1} className='bg-dark py-3 px-3 text-center text-white'>
                 <ul className="navbar-nav">
                     <li className="nav-item text-nowrap">
-                        <Link href="/auth">
-                            <a className="nav-link py-0">Выход</a>
-                        </Link>
+                        <Button
+                            variant='link'
+                            className="py-0 text-decoration-none text-warning"
+                            onClick={e => exitUser(e)}
+                        >
+                            Выход
+                        </Button>
                     </li>
                 </ul>
             </Col>
