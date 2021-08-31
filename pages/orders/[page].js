@@ -92,7 +92,7 @@ export default class PageOrder extends Component {
         const {countOrders, orders, pagesCount, lastPage, activePage, tableHeader, tableParams} = this.state
 
         return (
-            <MainLyout title='Журнал упаковки'>
+            <MainLyout title={`Журнал упаковки - страница ${activePage}`}>
                 <Row className=''>
                     <Col>
                         <p className='text-muted m-0'><small>Всего заказов - {countOrders}</small></p>

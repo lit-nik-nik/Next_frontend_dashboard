@@ -1,115 +1,132 @@
 import {MainLyout} from "../../components/layout/main";
-import {Form, Row, Col, Button, Table} from 'react-bootstrap'
+import {Form, Row, Col, Button, Table, InputGroup} from 'react-bootstrap'
 import {Component} from "react";
 import {getListsOrder} from "../../services/order/get";
-import Thead from "../../modules/tables/thead";
-import Tbody from "../../modules/tables/tbody";
-import {loadGetInitialProps} from "next/dist/next-server/lib/utils";
 
 export default class CreateOrder extends Component {
 
     state = {
+        typeOrder: {
+            label: 'Тип заказа',
+            id: 'type-order',
+            type: 'select',
+            list: ['Стандарт', 'Фасады', 'Лестницы', 'Профиль', 'Фасады без отделки'],
+            value: 'Стандарт'
+        },
         header: [
             {
                 label: 'Контрагент',
                 id: 'client',
-                value: '',
+                type: 'select',
                 list: {
                     name: 'clients',
-                    data: this.props.lists.clients ? this.props.lists.clients : []
-                }
+                    data: ['']
+                },
+                active: true
             },
             {
                 label: 'Название заказа',
                 id: 'name',
-                value: ''
+                type: 'text',
+                active: true
             },
             {
                 label: 'Массив',
                 id: 'massiv',
-                value: '',
+                type: 'select',
                 list: {
-                    name: 'materials',
-                    data: this.props.lists.material ? this.props.lists.material : []
-                }
+                    name: 'material',
+                    data: ['']
+                },
+                active: true
             },
             {
                 label: 'Модель профиля',
                 id: 'model',
-                value: ''
+                type: 'text',
+                active: true
             },
             {
                 label: 'Филенка',
                 id: 'fil',
-                value: '',
+                type: 'select',
                 list: {
                     name: 'filenki',
-                    data: this.props.lists.filenki ? this.props.lists.filenki : []
-                }
+                    data: ['']
+                },
+                active: true
             },
             {
                 label: 'Материал филенки',
                 id: 'materialFil',
-                value: '',
+                type: 'select',
                 list: {
-                    name: 'materialsFilenki',
-                    data: this.props.lists.materialFilenki ? this.props.lists.materialFilenki : []
-                }
+                    name: 'materialFilenki',
+                    data: ['']
+                },
+                active: true
             },
             {
                 label: 'Текстура',
                 id: 'texture',
-                value: '',
+                type: 'select',
                 list: {
-                    name: 'textures',
-                    data: this.props.lists.texture ? this.props.lists.texture : []
-                }
+                    name: 'texture',
+                    data: ['']
+                },
+                active: true
             },
             {
                 label: 'Цвет',
                 id: 'color',
-                value: ''
+                type: 'text',
+                active: true
             },
             {
                 label: 'Патина',
                 id: 'patina',
-                value: '',
+                type: 'select',
                 list: {
-                    name: 'patiny',
-                    data: this.props.lists.patina ? this.props.lists.patina : []
-                }
+                    name: 'patina',
+                    data: ['']
+                },
+                active: true
             },
             {
                 label: 'Лак',
                 id: 'lak',
-                value: '',
+                type: 'select',
                 list: {
-                    name: 'lacks',
-                    data: this.props.lists.lack ? this.props.lists.lack : []
-                }
+                    name: 'lack',
+                    data: ['']
+                },
+                active: true
             },
             {
                 label: 'Присадка',
                 id: 'prisadka',
-                value: '',
+                type: 'select',
                 list: {
-                    name: 'prisadki',
-                    data: this.props.lists.prisadka ? this.props.lists.prisadka : []
-                }
+                    name: 'prisadka',
+                    data: ['']
+                },
+                active: true
             },
             {
                 label: 'Термошов',
                 id: 'termoshov',
-                value: '',
+                type: 'select',
                 list: {
-                    name: 'termoshvi',
-                    data: this.props.lists.termoshov ? this.props.lists.termoshov : []
-                }
+                    name: 'termoshov',
+                    data: ['']
+                },
+                active: true
             },
             {
                 label: 'Комментарий',
                 id: 'comment',
-                value: ''
+                type: 'text',
+                active: true
             }
         ],
         body: {
@@ -118,26 +135,22 @@ export default class CreateOrder extends Component {
                 {
                     label: 'Номенклатура',
                     id: 'nomenklatura',
-                    value: '',
                     list: {
                         name: 'nomenclature',
-                        data: this.props.lists.nomenclature ? this.props.lists.nomenclature : []
+                        data: ['']
                     }
                 },
                 {
                     label: 'Длина',
                     id: 'width',
-                    value: ''
                 },
                 {
                     label: 'Ширина',
                     id: 'height',
-                    value: ''
                 },
                 {
                     label: 'Кол-во',
                     id: 'kolVo',
-                    value: ''
                 }
             ]
         },
@@ -155,9 +168,54 @@ export default class CreateOrder extends Component {
             prisadka: '',
             termoshov: '',
             comment: '',
-            data: []
+            data: [
+                {
+                nomenklatura: '',
+                width: '',
+                height: '',
+                kolVo: ''
+                }
+            ]
         },
         indexData: 0
+    }
+
+    async componentDidMount() {
+        const token = localStorage.getItem('token')
+        let lists
+
+        await getListsOrder(token)
+            .then(res => lists = res)
+
+        this.addList(lists)
+    }
+
+    addList = (lists) => {
+        const {header, body} = this.state,
+            arr = ['clients', 'material', 'filenki', 'materialFilenki', 'texture', 'patina', 'lack', 'prisadka', 'termoshov'],
+            arr2 = 'nomenclature'
+
+        header.map((head, index) => {
+            arr.map(item => {
+                if (head.list) {
+                    if (head.list.name === item) {
+                        this.setState(({header}) => header[index].list.data = ['', ...lists[item]])
+                    }
+                }
+            })
+        })
+
+        body.fields.map((field, i) => {
+            if (field.list) {
+                this.setState(({body}) =>  body.fields[i].list.data = ['', ...lists[arr2]])
+            }
+        })
+
+
+    }
+
+    changeTypeOrder = (value) => {
+        this.setState(({typeOrder}) => typeOrder.value = value)
     }
 
     changeOrderValue = (id, value) => {
@@ -169,19 +227,54 @@ export default class CreateOrder extends Component {
     }
 
     renderDatalist = (arr) => {
-        return arr.map((user, i) => {
+        return arr.map((item, i) => {
             return (
-                <option key={i}>{user}</option>
+                <option key={i} value={item}>{item}</option>
             )
         })
+    }
+
+    ControlInput = (item) => {
+        const {order} = this.state
+
+        return (
+            <Form.Control
+                required
+                isValid={order[item.id]}
+                isInvalid={!order[item.id]}
+                value={order[item.id]}
+                onChange={e => this.changeOrderValue(item.id, e.target.value)}
+                type={item.type}
+                id={item.id}
+                className='border-0 border-bottom border-end border-start rounded-0'
+            />
+        )
+    }
+
+    SelectInput = (item) => {
+        const {order} = this.state
+
+        return (
+            <Form.Select
+                required
+                isValid={order[item.id]}
+                isInvalid={!order[item.id]}
+                value={order[item.id]}
+                onChange={e => this.changeOrderValue(item.id, e.target.value)}
+                id={item.id}
+                className='border-0 border-bottom border-end border-start rounded-0'
+            >
+                {this.renderDatalist(item.list.data)}
+            </Form.Select>
+        )
     }
 
     renderInputHeader = () => {
         let list = []
 
-        const {header, order} = this.state
+        const {header} = this.state
 
-        header.map(item => {
+        header.map((item, i) => {
             if (item.id === 'comment') {
                 list.push(
                     <>
@@ -191,19 +284,16 @@ export default class CreateOrder extends Component {
                             </Form.Label>
                         </Col>
                         <Col lg={10} className='mb-3'>
-                            <Form.Control
-                                value={order[item.id]}
-                                onChange={e => this.changeOrderValue(item.id, e.target.value)}
-                                type="text"
-                                id={item.id}
-                                placeholder={item.label}
-                                list={item.list}
-                                className='border-0 border-bottom rounded-0'
-                            />
+                            {this.ControlInput(item)}
                         </Col>
                     </>
                 )
-            } else {
+            } else if (
+                item.id === 'color' ||
+                item.id === 'model' ||
+                item.id === 'fil' ||
+                item.id === 'patina'
+            ) {
                 if (item.list) {
                     list.push(
                         <>
@@ -213,21 +303,13 @@ export default class CreateOrder extends Component {
                                 </Form.Label>
                             </Col>
                             <Col lg={4} className='mb-3'>
-                                <Form.Control
-                                    required
-                                    isValid={order[item.id]}
-                                    isInvalid={!order[item.id]}
-                                    value={order[item.id]}
-                                    onChange={e => this.changeOrderValue(item.id, e.target.value)}
-                                    type="text"
-                                    id={item.id}
-                                    placeholder={item.label}
-                                    list={item.list.name}
-                                    className='border-0 border-bottom rounded-0'
-                                />
-                                <datalist id={item.list.name}>
-                                    {this.renderDatalist(item.list.data)}
-                                </datalist>
+                                <InputGroup>
+                                    {this.SelectInput(item)}
+                                    <Form.Control
+                                        required
+                                        className='border-0 border-bottom rounded-0'
+                                    />
+                                </InputGroup>
                             </Col>
                         </>
                     )
@@ -240,17 +322,41 @@ export default class CreateOrder extends Component {
                                 </Form.Label>
                             </Col>
                             <Col lg={4} className='mb-3'>
-                                <Form.Control
-                                    required
-                                    isValid={order[item.id]}
-                                    isInvalid={!order[item.id]}
-                                    value={order[item.id]}
-                                    onChange={e => this.changeOrderValue(item.id, e.target.value)}
-                                    type="text"
-                                    id={item.id}
-                                    placeholder={item.label}
-                                    className='border-0 border-bottom rounded-0'
-                                />
+                                <InputGroup>
+                                    {this.ControlInput(item)}
+                                    <Form.Control
+                                        required
+                                        className='border-0 border-bottom rounded-0'
+                                    />
+                                </InputGroup>
+                            </Col>
+                        </>
+                    )
+                }
+            } else {
+                if (item.list) {
+                    list.push(
+                        <>
+                            <Col lg={2} className='mb-3 text-end'>
+                                <Form.Label>
+                                    {item.label}
+                                </Form.Label>
+                            </Col>
+                            <Col lg={4} className='mb-3'>
+                                {this.SelectInput(item)}
+                            </Col>
+                        </>
+                    )
+                } else {
+                    list.push(
+                        <>
+                            <Col lg={2} className='mb-3 text-end'>
+                                <Form.Label>
+                                    {item.label}
+                                </Form.Label>
+                            </Col>
+                            <Col lg={4} className='mb-3'>
+                                {this.ControlInput(item)}
                             </Col>
                         </>
                     )
@@ -265,69 +371,51 @@ export default class CreateOrder extends Component {
         )
     }
 
-    renderTable = () => {
-        let head = [],
-            data = this.state.order.data,
-            params = []
-
-        this.state.body.fields.map((item) => {
-            head.push(item.label)
-            params.push(item.id)
-        })
-
-        return (
-            <>
-                <Thead title={head}/>
-                <Tbody orders={data} params={params}/>
-            </>
-        )
-    }
-
-    renderInputBody = () => {
-        let list = []
-
-        this.state.body.fields.map((item, i) => {
-            if (item.id === 'nomenklatura') {
-                list.push(
-                    <Col lg={3} key={i}>
-                        <Form.Control
-                            isValid={item.value}
-                            value={item.value}
-                            type="text"
-                            id={item.id}
-                            onChange={(e) => this.changeBodyValue(i, e.target.value)}
-                            list={item.list.name}
-                            placeholder={item.label}
-                            className='border-0 border-bottom rounded-0'
-                        />
-                        <datalist id={item.list.name}>
-                            {this.renderDatalist(item.list.data)}
-                        </datalist>
-                    </Col>
-                )
-            } else {
-                list.push(
-                    <Col lg={3} key={i}>
-                        <Form.Control
-                            isValid={item.value}
-                            value={item.value}
-                            type="text"
-                            onChange={(e) => this.changeBodyValue(i, e.target.value)}
-                            id={item.id}
-                            placeholder={item.label}
-                            className='border-0 border-bottom rounded-0'
-                        />
-                    </Col>
-                )
-            }
-        })
-
-        return (
-            <Row className={`mb-3`}>
-                {list}
-            </Row>
-        )
-    }
+    // renderInputBody = () => {
+    //     let list = []
+    //
+    //     this.state.body.fields.map((item, i) => {
+    //         if (item.id === 'nomenklatura') {
+    //             list.push(
+    //                 <Col lg={3} key={i}>
+    //                     <Form.Control
+    //                         isValid={item.value}
+    //                         value={item.value}
+    //                         type="text"
+    //                         id={item.id}
+    //                         onChange={(e) => this.changeBodyValue(i, e.target.value)}
+    //                         list={item.list.name}
+    //                         placeholder={item.label}
+    //                         className='border-0 border-bottom rounded-0'
+    //                     />
+    //                     <datalist id={item.list.name}>
+    //                         {this.renderDatalist(item.list.data)}
+    //                     </datalist>
+    //                 </Col>
+    //             )
+    //         } else {
+    //             list.push(
+    //                 <Col lg={3} key={i}>
+    //                     <Form.Control
+    //                         isValid={item.value}
+    //                         value={item.value}
+    //                         type="text"
+    //                         onChange={(e) => this.changeBodyValue(i, e.target.value)}
+    //                         id={item.id}
+    //                         placeholder={item.label}
+    //                         className='border-0 border-bottom rounded-0'
+    //                     />
+    //                 </Col>
+    //             )
+    //         }
+    //     })
+    //
+    //     return (
+    //         <Row className={`mb-3`}>
+    //             {list}
+    //         </Row>
+    //     )
+    // }
 
     addOrderData = () => {
         let dataLine = {}
@@ -344,16 +432,38 @@ export default class CreateOrder extends Component {
     }
 
     render() {
-
+        const {typeOrder} = this.state
         return (
-            <MainLyout>
+            <MainLyout title={`Форма создания заказа`}>
                 <h2 className='text-center fw-bold mb-3'>Форма создания заказ</h2>
-                <hr/>
                 <Form onSubmit={e => {
                     e.preventDefault()
                     console.log(this.state.order)
-                }}>
+                }} autoComplete="off">
                     <Row>
+
+                        <hr/>
+
+                        <Col lg={1}/>
+                        <Col lg={2} className='mb-3 text-end'>
+                            <Form.Label style={{fontSize: 18}}>
+                                {typeOrder.label}
+                            </Form.Label>
+                        </Col>
+                        <Col lg={8} className='mb-4'>
+                            <Form.Select
+                                value={typeOrder.value}
+                                onChange={e => this.changeTypeOrder(e.target.value)}
+                                id={typeOrder.id}
+                                className='border-0 border-bottom border-end border-start rounded-0'
+                            >
+                                {this.renderDatalist(typeOrder.list)}
+                            </Form.Select>
+                        </Col>
+                        <Col lg={1}/>
+
+                        <hr/>
+
                         <Col lg={1}/>
                         <Col lg={10}>
                             {this.renderInputHeader()}
@@ -362,14 +472,8 @@ export default class CreateOrder extends Component {
 
                         <hr/>
 
-                        <Table>
-                            {this.renderTable()}
-                        </Table>
-
-                        <hr/>
-
                         <Col lg={12}>
-                            {this.renderInputBody()}
+                            {/*{this.renderInputBody()}*/}
                             <Col lg={12} className='text-center my-3'>
                                 <Button
                                     variant='outline-dark'
@@ -393,12 +497,12 @@ export default class CreateOrder extends Component {
     }
 }
 
-export async function getServerSideProps() {
-
-    return {
-        props: {
-            lists: await getListsOrder()
-        }
-    }
-
-}
+// export async function getServerSideProps() {
+//
+//     return {
+//         props: {
+//             lists: await getListsOrder()
+//         }
+//     }
+//
+// }

@@ -3,6 +3,7 @@ import Header from "../header";
 import Navbar from "../navbar";
 import Router from "next/router";
 import {Component} from "react";
+import Head from "next/head";
 
 export class MainLyout extends Component {
 
@@ -21,11 +22,15 @@ export class MainLyout extends Component {
     render() {
         const {check} = this.state
 
-        const {children} = this.props
+        const {children, title} = this.props
 
         if (check) {
             return (
                 <>
+                    <Head>
+                        <title>{title} - Массив-Юг</title>
+                    </Head>
+
                     <Header />
 
                     <Container fluid className='p-0'>

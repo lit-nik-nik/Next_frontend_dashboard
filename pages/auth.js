@@ -6,6 +6,8 @@ import {authUser} from "../services/auth/post";
 import bcrypt from 'bcryptjs';
 import Router from "next/router";
 import Link from "next/link";
+import ModalError from "../modules/modals/modal-error";
+import Head from "next/head";
 
 export default class Auth extends Component {
 
@@ -15,16 +17,7 @@ export default class Auth extends Component {
             user: '',
             pass: ''
         },
-        error: {
-            active: false,
-            message: '',
-        }
-    }
-
-    componentDidUpdate(prevProps, prevState, snapshot) {
-        if (this.state.error !== prevState.error) {
-            this.render()
-        }
+        error: ''
     }
 
     renderListUser = () => {
@@ -51,17 +44,16 @@ export default class Auth extends Component {
 
         await authUser(user, hash)
             .then(res => {
+                console.log(hash)
+                console.log(res)
                 if (res.status === 200) {
-                    localStorage.setItem('token', res.token)
-                    localStorage.setItem('userId', res.userId)
+                    localStorage.setItem('token', res.data.token)
+                    localStorage.setItem('userId', res.data.userId)
 
                     setTimeout(this.redirect, 1000)
                 } else {
-                    console.log(res)
-                    this.setState(({error}) => {
-                        error.active = true,
-                        error.message = res.data.message
-                    })
+                    this.setState({error: res.data.message})
+                    this.setState({login: {user: user, pass: ''}})
                 }
             })
     }
@@ -69,21 +61,16 @@ export default class Auth extends Component {
     render() {
         const {login, error} = this.state
 
-        let divError
-
-        if (this.state.error.active) {
-            divError = <div className={`text-danger text-center`}>
-                {error.message}
-            </div>
-        }
-
         return (
             <>
+                <Head>
+                    <title>Авторизация пользователя - Массив-Юг</title>
+                </Head>
                 <Row>
                     <Col lg={12}>
                         <div className={style.authBody}>
                             <main className={`form-signin ${style.formSign}`}>
-                                <form onSubmit={e => this.autorization(e)}>
+                                <form onSubmit={e => this.autorization(e)} autoComplete="off">
                                     <h1 className="h3 mb-3 fw-normal text-center">Авторизация</h1>
 
                                     <FloatingLabel
@@ -135,7 +122,11 @@ export default class Auth extends Component {
 
                                     <Button type='submit' className="w-100 btn btn-lg btn-primary">Войти</Button>
 
-                                    {divError}
+                                    <ModalError
+                                        show={error}
+                                        onHide={()=> this.setState({error: ''})}
+                                        error={error}
+                                    />
 
                                 </form>
                             </main>
@@ -149,11 +140,9 @@ export default class Auth extends Component {
 }
 
 export async function getServerSideProps() {
-
     return {
         props: {
             users: await getUsers()
         }
     }
-
 }

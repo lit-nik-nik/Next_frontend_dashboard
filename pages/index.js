@@ -5,7 +5,7 @@ import Router from "next/router";
 export default function Home() {
 
     return (
-        <MainLyout>
+        <MainLyout title='Панель управления'>
             <Container fluid>
                 <Row className='mb-3'>
                     <Col>

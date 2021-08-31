@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URI =' http://192.168.2.10:3131'
+const API_URI = process.env.API_DB_URI
 
 export const getUsers = async () => {
     let users;

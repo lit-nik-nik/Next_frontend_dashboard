@@ -11,7 +11,7 @@ class MyDocument extends Document {
       <Html>
         <Head >
             <meta name="description" content="Система управления заказами" />
-            <link rel="icon" href="/favicon.ico" />
+            <link rel="shortcut icon" href="/favicon.ico" />
         </Head>
         <body>
           <Main />
