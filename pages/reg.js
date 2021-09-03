@@ -1,8 +1,6 @@
 import style from '../styles/auth.module.css'
 import {Component} from "react";
 import {Row, Col, Form, Button, FormGroup} from "react-bootstrap";
-import { FioSuggestions } from 'react-dadata';
-import 'react-dadata/dist/react-dadata.css';
 import Link from "next/link";
 import {getUsers} from "../services/auth/get";
 import ModalError from "../modules/modals/modal-error";
@@ -13,6 +11,7 @@ import Router from "next/router";
 export default class Reg extends Component {
 
     state = {
+        users: [],
         inputs: [
             {
                 id: 'fio',
@@ -62,12 +61,28 @@ export default class Reg extends Component {
                 value: '',
                 compare: false
             }],
-        formMessage: ''
+        formMessage: '',
+        error: false,
+        errorMessage: ''
+    }
+
+    componentDidMount() {
+        if (this.props.error) {
+            if (JSON.parse(this.props.error).code === "ECONNREFUSED") {
+                this.setState({
+                    error: false,
+                    errorMessage: 'Сервер БД не отвечает. Авторизация не возможна.'
+                })
+            }
+        }
+
+        if (this.props.users) {
+            this.setState({users: this.props.users})
+        }
     }
 
     compareLogin = (i) => {
-        const {users} = this.props
-        const {inputs} = this.state
+        const {inputs, users} = this.state
 
         if (inputs[i].value === '') {
             this.setState(({inputs}) => inputs[i].compare = false)
@@ -313,9 +328,26 @@ export default class Reg extends Component {
 }
 
 export async function getServerSideProps() {
-    return {
-        props: {
-            users: await getUsers()
+
+    let users, error
+
+    await getUsers()
+        .then(res  => users = res.data.lists.employers)
+        .catch(err => error = JSON.stringify(err))
+
+    if (users) {
+        return {
+            props: {
+                users
+            }
+        }
+    }
+
+    if (error) {
+        return {
+            props: {
+                error
+            }
         }
     }
 }

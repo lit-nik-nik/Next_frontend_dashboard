@@ -52,12 +52,4 @@ export class MainLyout extends Component {
 
     }
 
-
-
-
-
-
-
-
-
 }

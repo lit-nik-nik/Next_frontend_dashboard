@@ -1,7 +1,7 @@
 import {MainLyout} from "../../components/layout/main";
-import {Form, Row, Col, Button, Table, InputGroup} from 'react-bootstrap'
+import {Form, Row, Col, Button, InputGroup} from 'react-bootstrap'
 import {Component} from "react";
-import {getListsOrder} from "../../services/order/get";
+import {getListsOrder} from "../../services/order/create/get";
 
 export default class CreateOrder extends Component {
 
@@ -10,26 +10,61 @@ export default class CreateOrder extends Component {
             label: 'Тип заказа',
             id: 'type-order',
             type: 'select',
-            list: ['Стандарт', 'Фасады', 'Лестницы', 'Профиль', 'Фасады без отделки'],
-            value: 'Стандарт'
+            list: ['', 'Стандарт', 'Фасады', 'Лестницы', 'Профиль', 'Фасады без отделки'],
+            role: [
+                {
+                    id: 1,
+                    name: 'Стандарт',
+                    activeHeader: ['client', 'name', 'massiv', 'model', 'fil', 'materialFil', 'texture', 'color', 'patina', 'lak', 'prisadka', 'termoshov', 'comment']
+                }, {
+                    id: 2,
+                    name: 'Фасады',
+                    activeHeader: ['client', 'name', 'massiv', 'model', 'fil', 'materialFil', 'texture', 'color', 'patina', 'lak', 'prisadka', 'termoshov', 'comment']
+                }, {
+                    id: 3,
+                    name: 'Лестницы',
+                    activeHeader: ['client', 'name', 'massiv', 'texture', 'color', 'patina', 'lak', 'comment']
+                }, {
+                    id: 4,
+                    name: 'Профиль',
+                    activeHeader: ['client', 'name', 'massiv', 'comment']
+                }, {
+                    id: 5,
+                    name: 'Фасады без отделки',
+                    activeHeader: ['client', 'name', 'massiv', 'model', 'fil', 'materialFil', 'texture', 'prisadka', 'termoshov', 'comment']
+                }
+            ],
+            value: '',
+            required: true
         },
-        header: [
+        nameOrder: [
             {
-                label: 'Контрагент',
+                label: 'Клиент',
                 id: 'client',
                 type: 'select',
                 list: {
                     name: 'clients',
                     data: ['']
                 },
-                active: true
-            },
-            {
+                active: true,
+                required: true
+            },{
                 label: 'Название заказа',
                 id: 'name',
                 type: 'text',
-                active: true
+                active: true,
+                required: true
             },
+            {
+                label: 'Комментарий',
+                id: 'comment',
+                type: 'text',
+                active: true,
+                required: false
+            }
+
+        ],
+        header: [
             {
                 label: 'Массив',
                 id: 'massiv',
@@ -38,79 +73,15 @@ export default class CreateOrder extends Component {
                     name: 'material',
                     data: ['']
                 },
-                active: true
+                active: false,
+                required: false
             },
             {
                 label: 'Модель профиля',
                 id: 'model',
                 type: 'text',
-                active: true
-            },
-            {
-                label: 'Филенка',
-                id: 'fil',
-                type: 'select',
-                list: {
-                    name: 'filenki',
-                    data: ['']
-                },
-                active: true
-            },
-            {
-                label: 'Материал филенки',
-                id: 'materialFil',
-                type: 'select',
-                list: {
-                    name: 'materialFilenki',
-                    data: ['']
-                },
-                active: true
-            },
-            {
-                label: 'Текстура',
-                id: 'texture',
-                type: 'select',
-                list: {
-                    name: 'texture',
-                    data: ['']
-                },
-                active: true
-            },
-            {
-                label: 'Цвет',
-                id: 'color',
-                type: 'text',
-                active: true
-            },
-            {
-                label: 'Патина',
-                id: 'patina',
-                type: 'select',
-                list: {
-                    name: 'patina',
-                    data: ['']
-                },
-                active: true
-            },
-            {
-                label: 'Лак',
-                id: 'lak',
-                type: 'select',
-                list: {
-                    name: 'lack',
-                    data: ['']
-                },
-                active: true
-            },
-            {
-                label: 'Присадка',
-                id: 'prisadka',
-                type: 'select',
-                list: {
-                    name: 'prisadka',
-                    data: ['']
-                },
-                active: true
+                active: false,
+                required: false
             },
             {
                 label: 'Термошов',
@@ -120,13 +91,81 @@ export default class CreateOrder extends Component {
                     name: 'termoshov',
                     data: ['']
                 },
-                active: true
+                active: false,
+                required: false
             },
             {
-                label: 'Комментарий',
-                id: 'comment',
+                label: 'Филенка',
+                id: 'fil',
+                type: 'select',
+                list: {
+                    name: 'filenki',
+                    data: ['']
+                },
+                active: false,
+                required: false
+            },
+            {
+                label: 'Материал филенки',
+                id: 'materialFil',
+                type: 'select',
+                list: {
+                    name: 'materialFilenki',
+                    data: ['']
+                },
+                active: false,
+                required: false
+            },
+            {
+                label: 'Текстура',
+                id: 'texture',
+                type: 'select',
+                list: {
+                    name: 'texture',
+                    data: ['']
+                },
+                active: false,
+                required: false
+            },
+            {
+                label: 'Цвет',
+                id: 'color',
                 type: 'text',
-                active: true
+                active: false,
+                required: false
+            },
+            {
+                label: 'Патина',
+                id: 'patina',
+                type: 'select',
+                list: {
+                    name: 'patina',
+                    data: ['']
+                },
+                active: false,
+                required: false
+            },
+            {
+                label: 'Лак',
+                id: 'lak',
+                type: 'select',
+                list: {
+                    name: 'lack',
+                    data: ['']
+                },
+                active: false,
+                required: false
+            },
+            {
+                label: 'Присадка',
+                id: 'prisadka',
+                type: 'select',
+                list: {
+                    name: 'prisadka',
+                    data: ['']
+                },
+                active: false,
+                required: false
             }
         ],
         body: {
@@ -184,16 +223,49 @@ export default class CreateOrder extends Component {
         const token = localStorage.getItem('token')
         let lists
 
-        await getListsOrder(token)
-            .then(res => lists = res)
+        this.viewHeader(this.state.typeOrder.value)
 
-        this.addList(lists)
+        await getListsOrder(token)
+            .then(res => {
+                if (res) return lists = res
+            })
+
+        if (lists.clients) this.addList(lists)
+    }
+
+    viewHeader = (value) => {
+        const {typeOrder, header} = this.state
+
+        this.setState(({typeOrder}) => typeOrder.value = value)
+
+        header.map((head, i) => {
+            this.setState(({header}) => {
+                header[i].required = false
+                header[i].active = false
+            })
+        })
+
+        typeOrder.role.map(type => {
+            if (type.name === value) {
+                header.map((head, i) => {
+                    type.activeHeader.map(active => {
+                        if (active === head.id) {
+                            this.setState(({header}) => {
+                                header[i].required = true
+                                header[i].active = true
+                            })
+                        }
+                    })
+                })
+            }
+        })
     }
 
     addList = (lists) => {
-        const {header, body} = this.state,
-            arr = ['clients', 'material', 'filenki', 'materialFilenki', 'texture', 'patina', 'lack', 'prisadka', 'termoshov'],
-            arr2 = 'nomenclature'
+        const {header, body, nameOrder} = this.state,
+            arr = ['material', 'filenki', 'materialFilenki', 'texture', 'patina', 'lack', 'prisadka', 'termoshov'],
+            arr2 = 'nomenclature',
+            arr3 = 'clients'
 
         header.map((head, index) => {
             arr.map(item => {
@@ -205,17 +277,15 @@ export default class CreateOrder extends Component {
             })
         })
 
+        nameOrder.map((name, i) => {
+            if (name.list) this.setState(({nameOrder}) =>  nameOrder[i].list.data = ['', ...lists[arr3]])
+        })
+
         body.fields.map((field, i) => {
-            if (field.list) {
-                this.setState(({body}) =>  body.fields[i].list.data = ['', ...lists[arr2]])
-            }
+            if (field.list) this.setState(({body}) =>  body.fields[i].list.data = ['', ...lists[arr2]])
         })
 
 
-    }
-
-    changeTypeOrder = (value) => {
-        this.setState(({typeOrder}) => typeOrder.value = value)
     }
 
     changeOrderValue = (id, value) => {
@@ -234,188 +304,179 @@ export default class CreateOrder extends Component {
         })
     }
 
-    ControlInput = (item) => {
-        const {order} = this.state
-
-        return (
-            <Form.Control
-                required
-                isValid={order[item.id]}
-                isInvalid={!order[item.id]}
-                value={order[item.id]}
-                onChange={e => this.changeOrderValue(item.id, e.target.value)}
-                type={item.type}
-                id={item.id}
-                className='border-0 border-bottom border-end border-start rounded-0'
-            />
-        )
-    }
-
-    SelectInput = (item) => {
-        const {order} = this.state
-
-        return (
-            <Form.Select
-                required
-                isValid={order[item.id]}
-                isInvalid={!order[item.id]}
-                value={order[item.id]}
-                onChange={e => this.changeOrderValue(item.id, e.target.value)}
-                id={item.id}
-                className='border-0 border-bottom border-end border-start rounded-0'
-            >
-                {this.renderDatalist(item.list.data)}
-            </Form.Select>
-        )
-    }
-
     renderInputHeader = () => {
-        let list = []
+        let list = [],
+            list2 = [],
+            list3 = [],
+            orderList = []
 
-        const {header} = this.state
+        const {header, order, nameOrder} = this.state,
+            classInput = 'border rounded-0'
 
-        header.map((item, i) => {
-            if (item.id === 'comment') {
-                list.push(
-                    <>
-                        <Col lg={2} className='mb-3 text-end'>
-                            <Form.Label>
-                                {item.label}
-                            </Form.Label>
-                        </Col>
-                        <Col lg={10} className='mb-3'>
-                            {this.ControlInput(item)}
-                        </Col>
-                    </>
-                )
-            } else if (
-                item.id === 'color' ||
+        const input = (item) => {
+            if (item.id === 'color' ||
                 item.id === 'model' ||
                 item.id === 'fil' ||
-                item.id === 'patina'
-            ) {
-                if (item.list) {
-                    list.push(
-                        <>
-                            <Col lg={2} className='mb-3 text-end'>
-                                <Form.Label>
-                                    {item.label}
-                                </Form.Label>
-                            </Col>
-                            <Col lg={4} className='mb-3'>
-                                <InputGroup>
-                                    {this.SelectInput(item)}
-                                    <Form.Control
-                                        required
-                                        className='border-0 border-bottom rounded-0'
-                                    />
-                                </InputGroup>
-                            </Col>
-                        </>
-                    )
-                } else {
-                    list.push(
-                        <>
-                            <Col lg={2} className='mb-3 text-end'>
-                                <Form.Label>
-                                    {item.label}
-                                </Form.Label>
-                            </Col>
-                            <Col lg={4} className='mb-3'>
-                                <InputGroup>
-                                    {this.ControlInput(item)}
-                                    <Form.Control
-                                        required
-                                        className='border-0 border-bottom rounded-0'
-                                    />
-                                </InputGroup>
-                            </Col>
-                        </>
-                    )
-                }
+                item.id === 'patina') {
+                return <Form.Control className={classInput} />
+            }
+        }
+
+        const comment = (item, index, col = 12) => {
+            return (
+                <Row className={`mb-2 ${item.active ? '' : 'd-none'}`} key={index}>
+                    <Col lg={col}>
+                        <InputGroup>
+                            <InputGroup.Text className='text-end d-block' style={{width: `180px`}}>{item.label}</InputGroup.Text>
+                            <Form.Control
+                                value={order[item.id]}
+                                onChange={e => this.changeOrderValue(item.id, e.target.value)}
+                                type={item.type}
+                                id={item.id}
+                                className={classInput}
+                            />
+                        </InputGroup>
+                    </Col>
+                </Row>
+            )
+        }
+
+        const select = (item, index, col = 12) => {
+            if (item.id === 'client') {
+                return (
+                    <Col lg={col} key={index}>
+                        <InputGroup>
+                            <InputGroup.Text className='text-end d-block' style={{width: `180px`}}>{item.label}</InputGroup.Text>
+                            <Form.Control
+                                required={item.required}
+                                isValid={order[item.id]}
+                                isInvalid={!order[item.id]}
+                                value={order[item.id]}
+                                onChange={e => this.changeOrderValue(item.id, e.target.value)}
+                                id={item.id}
+                                list={item.list.name}
+                                className={classInput} />
+                            <datalist id={item.list.name}>
+                                {this.renderDatalist(item.list.data)}
+                            </datalist>
+                        </InputGroup>
+                    </Col>
+                )
             } else {
+                return (
+                    <Row className={`mb-2 ${item.active ? '' : 'd-none'}`} key={index}>
+                        <Col lg={col}>
+                            <InputGroup>
+                                <InputGroup.Text className='text-end d-block' style={{width: `180px`}}>{item.label}</InputGroup.Text>
+                                <Form.Control
+                                    required={item.required}
+                                    isValid={order[item.id]}
+                                    isInvalid={!order[item.id]}
+                                    value={order[item.id]}
+                                    onChange={e => this.changeOrderValue(item.id, e.target.value)}
+                                    id={item.id}
+                                    list={item.list.name}
+                                    className={classInput} />
+                                <datalist id={item.list.name}>
+                                    {this.renderDatalist(item.list.data)}
+                                </datalist>
+                                {input(item)}
+                            </InputGroup>
+                        </Col>
+                    </Row>
+                )
+            }
+        }
+
+        const text = (item, index, col = 12) => {
+            if (item.id === 'name') {
+                return (
+                    <Col lg={col} key={index}>
+                        <InputGroup>
+                            <InputGroup.Text className='text-end d-block' style={{width: `180px`}}>{item.label}</InputGroup.Text>
+                            <Form.Control
+                                required={item.required}
+                                isValid={order[item.id]}
+                                isInvalid={!order[item.id]}
+                                value={order[item.id]}
+                                onChange={e => this.changeOrderValue(item.id, e.target.value)}
+                                type={item.type}
+                                id={item.id}
+                                className={classInput}
+                            />
+                        </InputGroup>
+                    </Col>
+                )
+            } else {
+                return (
+                    <Row className={`mb-2 ${item.active ? '' : 'd-none'}`} key={index}>
+                        <Col lg={col}>
+                            <InputGroup>
+                                <InputGroup.Text className='text-end d-block' style={{width: `180px`}}>{item.label}</InputGroup.Text>
+                                <Form.Control
+                                    required={item.required}
+                                    isValid={order[item.id]}
+                                    isInvalid={!order[item.id]}
+                                    value={order[item.id]}
+                                    onChange={e => this.changeOrderValue(item.id, e.target.value)}
+                                    type={item.type}
+                                    id={item.id}
+                                    className={classInput}
+                                />
+                                {input(item)}
+                            </InputGroup>
+                        </Col>
+                    </Row>
+                )
+            }
+        }
+
+        nameOrder.map((item, i)=> {
+            if (item.list) {
+                orderList.push(select(item, i,6))
+            } else if (item.id === 'comment') {
+                list3.push(comment(item, i))
+            } else {
+                orderList.push(text(item, i, 6))
+            }
+
+        })
+
+        header.map((item, i) => {
+            if (i < 5) {
                 if (item.list) {
-                    list.push(
-                        <>
-                            <Col lg={2} className='mb-3 text-end'>
-                                <Form.Label>
-                                    {item.label}
-                                </Form.Label>
-                            </Col>
-                            <Col lg={4} className='mb-3'>
-                                {this.SelectInput(item)}
-                            </Col>
-                        </>
-                    )
+                    list.push(select(item, i,))
                 } else {
-                    list.push(
-                        <>
-                            <Col lg={2} className='mb-3 text-end'>
-                                <Form.Label>
-                                    {item.label}
-                                </Form.Label>
-                            </Col>
-                            <Col lg={4} className='mb-3'>
-                                {this.ControlInput(item)}
-                            </Col>
-                        </>
-                    )
+                    list.push(text(item, i))
+                }
+            } else if (i > 4 && i < 10) {
+                if (item.list) {
+                    list2.push(select(item, i))
+                } else {
+                    list2.push(text(item, i))
                 }
             }
         })
 
         return (
             <Row className="mb-3" style={{fontSize: 18}}>
-                {list}
+                <Col lg={12}>
+                    <Row className='mb-2'>
+                        {orderList}
+                    </Row>
+                </Col>
+                <Col lg={6}>
+                    {list}
+                </Col>
+                <Col lg={6}>
+                    {list2}
+                </Col>
+                <Col lg={12}>
+                    {list3}
+                </Col>
             </Row>
         )
     }
-
-    // renderInputBody = () => {
-    //     let list = []
-    //
-    //     this.state.body.fields.map((item, i) => {
-    //         if (item.id === 'nomenklatura') {
-    //             list.push(
-    //                 <Col lg={3} key={i}>
-    //                     <Form.Control
-    //                         isValid={item.value}
-    //                         value={item.value}
-    //                         type="text"
-    //                         id={item.id}
-    //                         onChange={(e) => this.changeBodyValue(i, e.target.value)}
-    //                         list={item.list.name}
-    //                         placeholder={item.label}
-    //                         className='border-0 border-bottom rounded-0'
-    //                     />
-    //                     <datalist id={item.list.name}>
-    //                         {this.renderDatalist(item.list.data)}
-    //                     </datalist>
-    //                 </Col>
-    //             )
-    //         } else {
-    //             list.push(
-    //                 <Col lg={3} key={i}>
-    //                     <Form.Control
-    //                         isValid={item.value}
-    //                         value={item.value}
-    //                         type="text"
-    //                         onChange={(e) => this.changeBodyValue(i, e.target.value)}
-    //                         id={item.id}
-    //                         placeholder={item.label}
-    //                         className='border-0 border-bottom rounded-0'
-    //                     />
-    //                 </Col>
-    //             )
-    //         }
-    //     })
-    //
-    //     return (
-    //         <Row className={`mb-3`}>
-    //             {list}
-    //         </Row>
-    //     )
-    // }
 
     addOrderData = () => {
         let dataLine = {}
@@ -445,44 +506,30 @@ export default class CreateOrder extends Component {
                         <hr/>
 
                         <Col lg={1}/>
-                        <Col lg={2} className='mb-3 text-end'>
-                            <Form.Label style={{fontSize: 18}}>
-                                {typeOrder.label}
-                            </Form.Label>
-                        </Col>
-                        <Col lg={8} className='mb-4'>
-                            <Form.Select
-                                value={typeOrder.value}
-                                onChange={e => this.changeTypeOrder(e.target.value)}
-                                id={typeOrder.id}
-                                className='border-0 border-bottom border-end border-start rounded-0'
-                            >
-                                {this.renderDatalist(typeOrder.list)}
-                            </Form.Select>
+                        <Col lg={10} className='mb-2'>
+                            <InputGroup>
+                                <InputGroup.Text className='text-end d-block' style={{width: `180px`}}>{typeOrder.label}</InputGroup.Text>
+                                <Form.Select
+                                    required={typeOrder.required}
+                                    isInvalid={!typeOrder.value}
+                                    isValid={typeOrder.value}
+                                    value={typeOrder.value}
+                                    onChange={e => this.viewHeader(e.target.value)}
+                                    id={typeOrder.id}
+                                    className='border rounded-0'
+                                >
+                                    {this.renderDatalist(typeOrder.list)}
+                                </Form.Select>
+                            </InputGroup>
+
                         </Col>
                         <Col lg={1}/>
-
-                        <hr/>
 
                         <Col lg={1}/>
                         <Col lg={10}>
                             {this.renderInputHeader()}
                         </Col>
                         <Col lg={1}/>
-
-                        <hr/>
-
-                        <Col lg={12}>
-                            {/*{this.renderInputBody()}*/}
-                            <Col lg={12} className='text-center my-3'>
-                                <Button
-                                    variant='outline-dark'
-                                    type='button'
-                                    className='w-25'
-                                    onClick={() => this.addOrderData()}
-                                >Добавить строку</Button>
-                            </Col>
-                        </Col>
 
                         <hr/>
 
@@ -496,13 +543,3 @@ export default class CreateOrder extends Component {
         )
     }
 }
-
-// export async function getServerSideProps() {
-//
-//     return {
-//         props: {
-//             lists: await getListsOrder()
-//         }
-//     }
-//
-// }

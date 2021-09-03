@@ -59,7 +59,7 @@ export default class Tbody extends Component {
                 )
                 else  {
                     cell.push(
-                        <td className='align-middle text-center' style={{width: '14%'}}>
+                        <td className='align-middle text-center' style={{width: 'auto'}}>
                             {order[param]}
                         </td>
                     )

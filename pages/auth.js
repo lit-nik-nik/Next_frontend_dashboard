@@ -12,12 +12,29 @@ import Head from "next/head";
 export default class Auth extends Component {
 
     state = {
-        users: this.props.users,
+        users: [''],
         login: {
             user: '',
             pass: ''
         },
-        error: ''
+        error: false,
+        errorMessage: ''
+    }
+
+    componentDidMount() {
+        if (this.props.error) {
+            if (JSON.parse(this.props.error).code === "ECONNREFUSED") {
+                this.setState({
+                    error: false,
+                    errorMessage: 'Сервер БД не отвечает. Авторизация не возможна.'
+                })
+            }
+        }
+
+        if (this.props.users) {
+            this.setState({users: this.props.users})
+        }
+
     }
 
     renderListUser = () => {
@@ -52,14 +69,17 @@ export default class Auth extends Component {
 
                     setTimeout(this.redirect, 1000)
                 } else {
-                    this.setState({error: res.data.message})
+                    this.setState({
+                        error: true,
+                        errorMessage: res.data.message
+                    })
                     this.setState({login: {user: user, pass: ''}})
                 }
             })
     }
 
     render() {
-        const {login, error} = this.state
+        const {login, error, errorMessage} = this.state
 
         return (
             <>
@@ -124,8 +144,8 @@ export default class Auth extends Component {
 
                                     <ModalError
                                         show={error}
-                                        onHide={()=> this.setState({error: ''})}
-                                        error={error}
+                                        onHide={()=> this.setState({error: false})}
+                                        error={errorMessage}
                                     />
 
                                 </form>
@@ -140,9 +160,26 @@ export default class Auth extends Component {
 }
 
 export async function getServerSideProps() {
-    return {
-        props: {
-            users: await getUsers()
+
+    let users, error
+
+    await getUsers()
+        .then(res  => users = res.data.lists.employers)
+        .catch(err => error = JSON.stringify(err))
+
+    if (users) {
+        return {
+            props: {
+                users
+            }
+        }
+    }
+
+    if (error) {
+        return {
+            props: {
+                error
+            }
         }
     }
 }

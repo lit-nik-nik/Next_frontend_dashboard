@@ -14,6 +14,10 @@ export default class Navbar extends Component {
                 link: '/orders/1'
             },
             {
+                label: 'Прием-передача заказа',
+                link: '/at-order'
+            },
+            {
                 label: 'Добавить заказ',
                 link: '/order/create'
             }

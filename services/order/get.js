@@ -2,21 +2,20 @@ import axios from "axios";
 
 const API_URI = process.env.API_DB_URI
 
-export const getListsOrder = async (token) => {
-    const options = {
-        headers: {
-            'Authorization': token
-        }
-    }
+export const getOrder = async (id) => {
+    let order;
 
-    let listOrder = {}
+    await axios.get(`${API_URI}/orders/${id}`)
+        .then(res  =>  order = res.data.order)
 
-    await axios.get(`${API_URI}/lists`, options)
-        .then(res  => {
-            for (let key in res.data.lists) {
-                if (key !== 'employers') listOrder[key] = res.data.lists[key]
-            }
-        })
+    return order
+}
 
-    return listOrder
+export const getImageOrder = async (id) => {
+    let image;
+
+    await axios.get(`${API_URI}/orders/sample/${id}`, {responseType: 'arraybuffer'})
+        .then(res => image = Buffer.from(res.data, 'binary').toString('base64'))
+
+    return image
 }

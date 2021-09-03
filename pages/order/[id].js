@@ -1,12 +1,12 @@
 import {Button, Col, Row, InputGroup, FormControl, Table, ListGroup} from "react-bootstrap"
-import {getImageOrder, getOrder} from "../../services/orders/get"
+import {getImageOrder, getOrder} from "../../services/order/get"
 import { MainLyout } from "../../components/layout/main"
 import { withRouter } from 'next/router'
 import {Component } from 'react'
 import Thead from "../../modules/tables/thead";
 import ModalImage from "../../modules/modals/modal-images";
 
-export default withRouter(class ChangeOrder extends Component {
+export default withRouter(class Order extends Component {
 
     state = {
         order: this.props.data.order,
