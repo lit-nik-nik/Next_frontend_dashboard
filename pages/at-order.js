@@ -4,7 +4,6 @@ import React, {Component} from "react";
 import Thead from "../modules/tables/thead";
 import Tbody from "../modules/tables/tbody";
 import {getOrder} from "../services/order/get";
-import ModalError from "../modules/modals/modal-error";
 
 export default class AccTransOrder extends Component {
 
@@ -118,31 +117,33 @@ export default class AccTransOrder extends Component {
     handledTransfer = (value) => {
         const {users} = this.state
 
-        if (value === this.state.data.accepted.value) {
-            this.setState(({data}) => {
-                data.transfer.value=''
-            })
-            this.addError('Участок был выбран ранее')
-        } else {
-            users.map(user => {
-                if(value === user.code) {
-                    if(!this.state.data.accepted.name) {
-                        this.setState(({data}) => {
-                            data.transfer.name = user.name,
-                                data.transfer.disabled = true,
-                                data.accepted.disabled = false
-                        })
-                        this.setState({hint: 'Принимающий участок'})
-                    } else {
-                        this.setState(({data, hint}) => {
-                            data.transfer.name = user.name,
-                            data.transfer.disabled = true,
-                            data.order.disabled = false
-                        })
-                        this.setState({hint: 'Заказы'})
+        if (value) {
+            if (value === this.state.data.accepted.value) {
+                this.setState(({data}) => {
+                    data.transfer.value=''
+                })
+                this.addError('Участок был выбран ранее')
+            } else {
+                users.map(user => {
+                    if(value === user.code) {
+                        if(!this.state.data.accepted.name) {
+                            this.setState(({data}) => {
+                                data.transfer.name = user.name,
+                                    data.transfer.disabled = true,
+                                    data.accepted.disabled = false
+                            })
+                            this.setState({hint: 'Принимающий участок'})
+                        } else {
+                            this.setState(({data, hint}) => {
+                                data.transfer.name = user.name,
+                                    data.transfer.disabled = true,
+                                    data.order.disabled = false
+                            })
+                            this.setState({hint: 'Заказы'})
+                        }
                     }
-                }
-            })
+                })
+            }
         }
     }
 
@@ -150,22 +151,24 @@ export default class AccTransOrder extends Component {
     handledAccept = (value) => {
         const {users} = this.state
 
-        if (value === this.state.data.transfer.value) {
-            this.setState(({data}) => {
-                data.accepted.value = ''
-            })
-            this.addError('Участок был выбран ранее')
-        } else {
-            users.map(user => {
-                if(value === user.code) {
-                    this.setState(({data, hint}) => {
-                        data.accepted.name = user.name,
-                        data.accepted.disabled = true,
-                        data.order.disabled = false
-                    })
-                    this.setState({hint: 'Заказы'})
-                }
-            })
+        if(value) {
+            if (value === this.state.data.transfer.value) {
+                this.setState(({data}) => {
+                    data.accepted.value = ''
+                })
+                this.addError('Участок был выбран ранее')
+            } else {
+                users.map(user => {
+                    if(value === user.code) {
+                        this.setState(({data, hint}) => {
+                            data.accepted.name = user.name,
+                                data.accepted.disabled = true,
+                                data.order.disabled = false
+                        })
+                        this.setState({hint: 'Заказы'})
+                    }
+                })
+            }
         }
     }
 
@@ -374,10 +377,10 @@ export default class AccTransOrder extends Component {
                     </Col>
                     <Col lg={5} className='text-center text-secondary'>
                         <Alert
-                            className={transfer.name ? 'p-1' : ''}
+                            className={'p-1'}
                             variant={transfer.name ? 'success' : 'warning'}
                         >
-                            {transfer.name}
+                            {transfer.name ? transfer.name : '...'}
                         </Alert>
                     </Col>
                     <Col lg={2} className='mb-3'>
@@ -412,10 +415,10 @@ export default class AccTransOrder extends Component {
                     </Col>
                     <Col lg={5} className='text-center'>
                         <Alert
-                            className={accepted.name ? 'p-1' : ''}
+                            className={'p-1'}
                             variant={accepted.name ? 'success' : 'warning'}
                         >
-                            {accepted.name}
+                            {accepted.name ? accepted.name : '...'}
                         </Alert>
                     </Col>
                     <Col lg={2} className='mb-3'>
