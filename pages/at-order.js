@@ -78,7 +78,40 @@ export default class AccTransOrder extends Component {
         } else {
             this.orderInput.current.focus()
         }
+    }
 
+    // ререндер страницы
+    rerenderPage = () => {
+        this.setState({renderID: this.state.renderID + 1})
+    }
+
+    addError = (message) => {
+        this.setState(({error}) => {
+            error.type = true,
+            error.message = message
+        })
+        setTimeout(this.clearError, 2000)
+    }
+
+    // очистка ошибки
+    clearError = () => {
+        this.setState(({error}) => {
+            error.type = false,
+                error.message = ''
+        })
+        this.rerenderPage()
+    }
+
+    // удаление заказа из объекта заказов
+    deleteOrder = (id) => {
+        let newArr = this.state.orders
+
+        this.state.orders.map((item, i) => {
+            if (item.idOrder === id) {
+                newArr.splice(i, 1)
+                this.setState({orders: newArr})
+            }
+        })
     }
 
     //поиск и проверка передающей стороны
@@ -89,6 +122,7 @@ export default class AccTransOrder extends Component {
             this.setState(({data}) => {
                 data.transfer.value=''
             })
+            this.addError('Участок был выбран ранее')
         } else {
             users.map(user => {
                 if(value === user.code) {
@@ -120,6 +154,7 @@ export default class AccTransOrder extends Component {
             this.setState(({data}) => {
                 data.accepted.value = ''
             })
+            this.addError('Участок был выбран ранее')
         } else {
             users.map(user => {
                 if(value === user.code) {
@@ -152,14 +187,14 @@ export default class AccTransOrder extends Component {
             })
         } else {
             this.setState(({data}) => {
-                data.order.nameOrder = '',
+                data.order.nameOrder = `Заказ с № ${value} не существует в базе`,
                 data.order.idOrder = '',
                 data.order.commentOrder = '',
                 data.order.statusOrder = ''
             })
         }
 
-        this.setState({renderID: this.state.renderID + 1})
+        this.rerenderPage()
     }
 
     // отправка объекта с данными в базу
@@ -191,6 +226,9 @@ export default class AccTransOrder extends Component {
         })
 
         console.log(form)
+
+        alert('Заказы успешно переданы на следующи этап обработки')
+        this.rerenderPage()
     }
 
     //очистка данных сохраненных в вводе
@@ -235,7 +273,7 @@ export default class AccTransOrder extends Component {
             })
         }
 
-        this.setState({renderID: this.state.renderID + 1})
+        this.rerenderPage()
     }
 
     // Добавление заказа в объект для таблицы
@@ -264,10 +302,7 @@ export default class AccTransOrder extends Component {
             } else {
                 orders.map(item => {
                     if (item.idOrder === arrOrder.idOrder) {
-                        this.setState(({error}) => {
-                            error.type = true,
-                            error.message = 'Данный заказ уже находится в таблице'
-                        })
+                        this.addError('Данный заказ уже находится в таблице')
                         compare = true
                     }
                 })
@@ -281,19 +316,7 @@ export default class AccTransOrder extends Component {
 
         this.clearValue('order')
 
-        this.setState({renderID: this.state.renderID + 1})
-    }
-
-    // удаление заказа из объекта заказов
-    deleteOrder = (id) => {
-        let newArr = this.state.orders
-
-        this.state.orders.map((item, i) => {
-            if (item.idOrder === id) {
-                newArr.splice(i, 1)
-                this.setState({orders: newArr})
-            }
-        })
+        this.rerenderPage()
     }
 
     // Отображение страницы
@@ -305,7 +328,26 @@ export default class AccTransOrder extends Component {
             <MainLyout title='Форма приема-передачи заказа'>
                 <h2 className='text-center fw-bold mb-3'>Форма приема-передачи заказа</h2>
 
-                <p className='text-muted text-center'>{`Заполните - ${hint}`}</p>
+                <Row>
+                    <Col/>
+                    <Col lg={5}>
+                        <Alert
+                            className={`p-1 mb-3 text-center ${error.type ? 'd-none' : ''}`}
+                            variant='secondary'
+                        >
+                            {`Заполните - ${hint}`}
+                        </Alert>
+                        <Alert
+                            className={`p-1 mb-3 text-center ${error.type ? '' : 'd-none'}`}
+                            variant='danger'
+                        >
+                            {error.message ? error.message : '...'}
+                        </Alert>
+                    </Col>
+                    <Col/>
+                </Row>
+
+
 
                 <Row>
                     <Col lg={5} className='mb-3'>
@@ -410,10 +452,10 @@ export default class AccTransOrder extends Component {
                     </Col>
                     <Col lg={5} className='text-center'>
                         <Alert
-                            className={order.nameOrder ? 'p-1' : ''}
-                            variant={order.nameOrder ? 'success' : 'warning'}
+                            className={`p-1`}
+                            variant={order.idOrder ? 'success' : 'warning'}
                         >
-                            {order.nameOrder}
+                            {order.nameOrder ? order.nameOrder : '...'}
                         </Alert>
                     </Col>
                     <Col lg={2}>
@@ -446,12 +488,6 @@ export default class AccTransOrder extends Component {
                         >Сохранить данные</Button>
                     </Col>
                 </Row>
-
-                <ModalError
-                    show={error.type}
-                    onHide={()=> this.setState(({error}) => error.type = false)}
-                    error={error.message}
-                />
             </MainLyout>
         )
     }
