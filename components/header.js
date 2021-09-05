@@ -1,10 +1,12 @@
-import {Button, Col, Form} from "react-bootstrap"
+import {Button, Row, Col, Form} from "react-bootstrap"
 import Link from "next/link"
 import style from '../styles/header.module.css'
 import Router from 'next/router'
 import {useState} from "react";
+import logo from '../public/logo.png'
+import Image from "next/image";
 
-const Header = () => {
+const Header = (props) => {
 
     const [value, setValue] = useState('')
 
@@ -24,12 +26,25 @@ const Header = () => {
 
     return (
         <header className='navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow' style={{fontSize: 16}}>
-            <Col lg={2} className='bg-dark py-3 text-center'>
-                <Link href='/'>
-                    <a className="text-white mb-3 text-decoration-none text-uppercase">
-                        Массив-Юг
-                    </a>
-                </Link>
+            <Col lg={2}>
+                <Row>
+                    <Col lg={2} className='text-center'>
+                        <Button
+                            type='button'
+                            variant="link"
+                            onClick={() => props.onCollapseNav()}
+                        >
+                            <i className="bi bi-list fw-bold text-white " style={{fontSize: 30}} />
+                        </Button>
+                    </Col>
+                    <Col lg={10} className='bg-dark text-center' style={{fontSize: 16, height: `60px`}}>
+                        <Link href='/'>
+                            <a className="text-white text-decoration-none text-uppercase">
+                                <Image src={logo} alt="Массив-Юг" width={160} height={60}/>
+                            </a>
+                        </Link>
+                    </Col>
+                </Row>
             </Col>
             <Col>
                 <Form onSubmit={e => searchOrder(e)}>

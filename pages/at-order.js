@@ -4,8 +4,9 @@ import React, {Component} from "react";
 import Thead from "../modules/tables/thead";
 import Tbody from "../modules/tables/tbody";
 import {getOrder} from "../services/order/get";
+import {withRouter} from "next/router";
 
-export default class AccTransOrder extends Component {
+class AccTransOrder extends Component {
 
     constructor(props) {
         super(props);
@@ -62,7 +63,8 @@ export default class AccTransOrder extends Component {
         error: {
             type: false,
             message: ''
-        }
+        },
+        link: this.props.router.pathname
     }
 
     componentDidMount() {
@@ -173,9 +175,9 @@ export default class AccTransOrder extends Component {
     }
 
     //поиск и проверка заказа
-    handledOrder = async (value) => {
-        const {users} = this.state
-        let order, error
+    handledOrder = async () => {
+        let value = this.state.data.order.value,
+            order, error
 
         await getOrder(value)
             .then(res => order = res)
@@ -280,11 +282,13 @@ export default class AccTransOrder extends Component {
     }
 
     // Добавление заказа в объект для таблицы
-    addOrder = () => {
+    addOrder = async () => {
         const {orders, data} = this.state,
             {order} = data
         let arrOrder = {},
             compare = false
+
+        await this.handledOrder()
 
         for (let key in order) {
             if (key === 'idOrder' ||
@@ -328,7 +332,7 @@ export default class AccTransOrder extends Component {
             {accepted, transfer, order} = data
 
         return (
-            <MainLyout title='Форма приема-передачи заказа'>
+            <MainLyout title='Форма приема-передачи заказа' link={this.state.link}>
                 <h2 className='text-center fw-bold mb-3'>Форма приема-передачи заказа</h2>
 
                 <Row>
@@ -430,7 +434,7 @@ export default class AccTransOrder extends Component {
                     </Col>
 
                     <hr/>
-                    <Col lg={5}>
+                    <Col lg={5} className='mb-3'>
                         <InputGroup>
                             <InputGroup.Text className='text-end d-block' style={{width: `225px`}}>{order.label}</InputGroup.Text>
                             <Form.Control
@@ -445,7 +449,6 @@ export default class AccTransOrder extends Component {
                                 readOnly={order.disabled}
                                 onChange={e => {
                                     this.setState(({data}) => data.order.value = e.target.value)
-                                    this.handledOrder(e.target.value)
                                 }}
                                 onKeyPress={e => {
                                     if (e.key === 'Enter') this.addOrder()
@@ -453,15 +456,8 @@ export default class AccTransOrder extends Component {
                             />
                         </InputGroup>
                     </Col>
-                    <Col lg={5} className='text-center'>
-                        <Alert
-                            className={`p-1`}
-                            variant={order.idOrder ? 'success' : 'warning'}
-                        >
-                            {order.nameOrder ? order.nameOrder : '...'}
-                        </Alert>
-                    </Col>
-                    <Col lg={2}>
+                    <Col lg={5} className='text-center'/>
+                    <Col lg={2} className='mb-3'>
                         <Button
                             variant='outline-danger'
                             type='button'
@@ -495,3 +491,5 @@ export default class AccTransOrder extends Component {
         )
     }
 }
+
+export default withRouter(AccTransOrder)

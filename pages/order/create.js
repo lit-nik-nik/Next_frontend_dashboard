@@ -2,8 +2,9 @@ import {MainLyout} from "../../components/layout/main";
 import {Form, Row, Col, Button, InputGroup} from 'react-bootstrap'
 import {Component} from "react";
 import {getListsOrder} from "../../services/order/create/get";
+import {withRouter} from "next/router";
 
-export default class CreateOrder extends Component {
+class CreateOrder extends Component {
 
     state = {
         typeOrder: {
@@ -216,7 +217,8 @@ export default class CreateOrder extends Component {
                 }
             ]
         },
-        indexData: 0
+        indexData: 0,
+        link: this.props.router.pathname
     }
 
     async componentDidMount() {
@@ -493,9 +495,9 @@ export default class CreateOrder extends Component {
     }
 
     render() {
-        const {typeOrder} = this.state
+        const {typeOrder, link} = this.state
         return (
-            <MainLyout title={`Форма создания заказа`}>
+            <MainLyout title={`Форма создания заказа`} link={link}>
                 <h2 className='text-center fw-bold mb-3'>Форма создания заказ</h2>
                 <Form onSubmit={e => {
                     e.preventDefault()
@@ -536,10 +538,11 @@ export default class CreateOrder extends Component {
                         <Col lg={12} className='text-end me-5'>
                             <Button variant='outline-success' type="submit" className='w-25'>Сохранить данные</Button>
                         </Col>
-
                     </Row>
                 </Form>
             </MainLyout>
         )
     }
 }
+
+export default withRouter(CreateOrder)

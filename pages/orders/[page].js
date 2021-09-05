@@ -5,8 +5,9 @@ import Thead from "../../modules/tables/thead";
 import Tbody from "../../modules/tables/tbody";
 import { MainLyout } from "../../components/layout/main";
 import {getOrders} from "../../services/orders/get";
+import {withRouter} from "next/router";
 
-export default class PageOrder extends Component {
+class PageOrder extends Component {
 
     state = {
         orders: this.props.data.orders,
@@ -50,12 +51,14 @@ export default class PageOrder extends Component {
         countOrders: this.props.data.count,
         lastPage: this.props.data.pages,
         pagesCount: [],
-        modalView: false
+        modalView: false,
+        link: this.props.router.asPath
     }
 
     async componentDidMount() {
         this.changeStatePage()
         this.filterTableHeader()
+        console.log(this.props)
     }
 
     async componentDidUpdate(prevProps) {
@@ -89,10 +92,10 @@ export default class PageOrder extends Component {
     }
 
     render() {
-        const {countOrders, orders, pagesCount, lastPage, activePage, tableHeader, tableParams} = this.state
+        const {countOrders, orders, pagesCount, lastPage, activePage, tableHeader, tableParams, link} = this.state
 
         return (
-            <MainLyout title={`Журнал упаковки - страница ${activePage}`}>
+            <MainLyout title={`Журнал упаковки - страница ${activePage}`} link={link}>
                 <Row className=''>
                     <Col>
                         <p className='text-muted m-0'><small>Всего заказов - {countOrders}</small></p>
@@ -125,6 +128,8 @@ export default class PageOrder extends Component {
         )
     }
 }
+
+export default withRouter(PageOrder)
 
 export async function getServerSideProps({query}) {
 
