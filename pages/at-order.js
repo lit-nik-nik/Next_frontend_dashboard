@@ -6,6 +6,7 @@ import Tbody from "../modules/tables/tbody";
 import {getOrder} from "../services/order/get";
 import {withRouter} from "next/router";
 import {changeKeyboard} from "../modules/change-keyboard";
+import {getBarcodes} from "../services/at-order/get";
 
 class AccTransOrder extends Component {
 
@@ -18,16 +19,7 @@ class AccTransOrder extends Component {
     }
 
     state = {
-        users: [
-            {
-                code: 'ASD225658458',
-                name: 'Тестовый участок / Иванова'
-            },
-            {
-                code: 'QWE158654854',
-                name: 'Тестовый участок 2 / Колчанова'
-            }
-        ],
+        users: null,
         data: {
             transfer: {
                 label: 'Передающий участок',
@@ -74,8 +66,10 @@ class AccTransOrder extends Component {
         link: this.props.router.pathname
     }
 
-    componentDidMount() {
+    async componentDidMount() {
         this.addHint(1)
+
+        if (this.props.barcodes) await this.setState(({users: this.props.barcodes}))
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
@@ -149,11 +143,11 @@ class AccTransOrder extends Component {
                 this.addError('Участок был выбран ранее')
             } else {
                 users.map(user => {
-                    if(value === user.code) {
+                    if(value === user.BARCODE) {
                         if(!this.state.data.accepted.name) {
                             this.setState(({data}) => {
                                 return (
-                                    data.transfer.name = user.name,
+                                    data.transfer.name = `${user.SECTOR} / ${user.EMPLOYEE ? user.EMPLOYEE : '-'}`,
                                     data.transfer.disabled = true,
                                     data.accepted.disabled = false
                                 )
@@ -162,7 +156,7 @@ class AccTransOrder extends Component {
                         } else {
                             this.setState(({data}) => {
                                 return (
-                                    data.transfer.name = user.name,
+                                    data.transfer.name = `${user.SECTOR} / ${user.EMPLOYEE ? user.EMPLOYEE : '-'}`,
                                     data.transfer.disabled = true,
                                     data.order.disabled = false
                                 )
@@ -195,10 +189,10 @@ class AccTransOrder extends Component {
                 this.addError('Участок был выбран ранее')
             } else {
                 users.map(user => {
-                    if(value === user.code) {
+                    if(value === user.BARCODE) {
                         this.setState(({data}) => {
                             return (
-                                data.accepted.name = user.name,
+                                data.accepted.name = `${user.SECTOR} / ${user.EMPLOYEE ? user.EMPLOYEE : '-'}`,
                                 data.accepted.disabled = true,
                                 data.order.disabled = false
                             )
@@ -660,3 +654,28 @@ class AccTransOrder extends Component {
 }
 
 export default withRouter(AccTransOrder)
+
+export async function getServerSideProps() {
+
+    let barcodes, error
+
+    await getBarcodes()
+        .then(res  => barcodes = res.data.barcodes)
+        .catch(err => error = JSON.stringify(err))
+
+    if (barcodes) {
+        return {
+            props: {
+                barcodes
+            }
+        }
+    }
+
+    if (error) {
+        return {
+            props: {
+                error
+            }
+        }
+    }
+}
