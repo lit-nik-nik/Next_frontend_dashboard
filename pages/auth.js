@@ -8,6 +8,8 @@ import Router from "next/router";
 import Link from "next/link";
 import ModalError from "../modules/modals/modal-error";
 import Head from "next/head";
+import logo from "../public/logo.png"
+import Image from "next/image";
 
 export default class Auth extends Component {
 
@@ -88,10 +90,15 @@ export default class Auth extends Component {
                 </Head>
                 <Row>
                     <Col lg={12}>
-                        <div className={style.authBody}>
-                            <main className={`form-signin ${style.formSign}`}>
-                                <form onSubmit={e => this.autorization(e)} autoComplete="off">
-                                    <h1 className="h3 mb-3 fw-normal text-center">Авторизация</h1>
+                        <div className={`${style.authBody}`}>
+                            <main className={`form-signin bg-dark ${style.formSign}`}>
+                                <Row>
+                                    <Col className='text-center'>
+                                        <Image src={logo} alt="Массив-Юг" />
+                                    </Col>
+                                </Row>
+                                <Form onSubmit={e => this.autorization(e)} autoComplete="off">
+                                    <h1 className="h3 mb-3 fw-normal text-white text-center">Авторизация</h1>
 
                                     <FloatingLabel
                                         controlId="login"
@@ -134,7 +141,7 @@ export default class Auth extends Component {
 
                                     <Col className='text-end mb-3'>
                                         <Link href='/reg'>
-                                            <a>
+                                            <a className='text-white'>
                                                 У меня нет учетки
                                             </a>
                                         </Link>
@@ -148,7 +155,7 @@ export default class Auth extends Component {
                                         error={errorMessage}
                                     />
 
-                                </form>
+                                </Form>
                             </main>
                         </div>
                     </Col>

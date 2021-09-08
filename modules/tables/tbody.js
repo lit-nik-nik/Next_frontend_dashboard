@@ -1,5 +1,6 @@
 import Link from "next/link"
 import {Component} from "react";
+import {Row, Col} from 'react-bootstrap'
 
 export default class Tbody extends Component {
 
@@ -41,15 +42,15 @@ export default class Tbody extends Component {
         orders.map((order, i) => {
             let cell = []
 
-            tableParams.map(param => {
+            tableParams.map((param, index) => {
 
                 if(param === 'FACT_DATE_FIRSTSAVE') cell.push(
-                        <td className='align-middle text-center' style={{width: '10%'}}>
+                        <td className='align-middle text-center' style={{width: '10%'}} key={index}>
                             {order[param]}
                         </td>
                     )
                 else if (param === 'ITM_ORDERNUM') cell.push(
-                    <td className='align-middle text-center' style={{width: '16%'}}>
+                    <td className='align-middle text-center' style={{width: '16%'}} key={index}>
                         <Link href={`/order/${order.ID}`}>
                             <a>
                                 {order[param]}
@@ -57,9 +58,14 @@ export default class Tbody extends Component {
                         </Link>
                     </td>
                 )
-                else  {
+                else if (typeof(param) === 'object') cell.push(
+                    <td className='align-middle text-center' key={index}>
+                        {order[param[0]]} {order[param[1]]}
+                    </td>
+                )
+                else {
                     cell.push(
-                        <td className='align-middle text-center' style={{width: 'auto'}}>
+                        <td className='align-middle text-center' style={{width: 'auto'}} key={index}>
                             {order[param]}
                         </td>
                     )

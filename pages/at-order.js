@@ -1,10 +1,11 @@
-import {Button, Col, Alert, Form, InputGroup, Row, Table} from "react-bootstrap"
+import {Button, Col, Alert, Form, InputGroup, Row, Table, Modal} from "react-bootstrap"
 import { MainLyout } from '../components/layout/main'
 import React, {Component} from "react";
 import Thead from "../modules/tables/thead";
 import Tbody from "../modules/tables/tbody";
 import {getOrder} from "../services/order/get";
 import {withRouter} from "next/router";
+import {changeKeyboard} from "../modules/change-keyboard";
 
 class AccTransOrder extends Component {
 
@@ -13,17 +14,18 @@ class AccTransOrder extends Component {
         this.transferInput = React.createRef();
         this.acceptedInput = React.createRef();
         this.orderInput = React.createRef();
+        this.commentInput = React.createRef();
     }
 
     state = {
         users: [
             {
-                code: '225658458',
-                name: 'Тестовый пользователь'
+                code: 'ASD225658458',
+                name: 'Тестовый участок / Иванова'
             },
             {
-                code: '158654854',
-                name: 'Тестовый пользователь 2'
+                code: 'QWE158654854',
+                name: 'Тестовый участок 2 / Колчанова'
             }
         ],
         data: {
@@ -49,17 +51,22 @@ class AccTransOrder extends Component {
                 idOrder: '',
                 nameOrder: '',
                 statusOrder: '',
-                commentOrder: ''
+                hide: true
             }
         },
         orders: [],
+        orderChange: {
+            view: false,
+            idOrder: '',
+            nameOrder: '',
+            comment: ''
+        },
         form: {
             idTransfer: null,
             idAccepted: null,
-            idOrders: []
+            orders: []
         },
-        renderID: 0,
-        hint: 'Передающий участок',
+        hint: '',
         error: {
             type: false,
             message: ''
@@ -68,7 +75,7 @@ class AccTransOrder extends Component {
     }
 
     componentDidMount() {
-
+        this.addHint(1)
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
@@ -76,130 +83,166 @@ class AccTransOrder extends Component {
             this.transferInput.current.focus()
         } else if (!this.state.data.accepted.name) {
             this.acceptedInput.current.focus()
+        } else if (this.state.orderChange.view) {
+            this.commentInput.current.focus()
         } else {
             this.orderInput.current.focus()
         }
     }
 
-    // ререндер страницы
-    rerenderPage = () => {
-        this.setState({renderID: this.state.renderID + 1})
-    }
-
+    // добавление ошибки
     addError = (message) => {
         this.setState(({error}) => {
-            error.type = true,
-            error.message = message
+            return (
+                error.type = true,
+                error.message = message
+            )
         })
         setTimeout(this.clearError, 2000)
+    }
+
+    // добавление подсказки
+    addHint = (id) => {
+        const arrHint = [
+            'Отсканируйте - Передающий участок',
+            'Отсканируйте - Принимающий участок',
+            'Отсканируйте - Заказ',
+            'Введите комментарий к заказу',
+        ]
+
+        this.setState({hint: arrHint[id-1]})
     }
 
     // очистка ошибки
     clearError = () => {
         this.setState(({error}) => {
-            error.type = false,
+            return (
+                error.type = false,
                 error.message = ''
+            )
         })
-        this.rerenderPage()
     }
 
     // удаление заказа из объекта заказов
     deleteOrder = (id) => {
-        let newArr = this.state.orders
+        const {orders} = this.state
+        let newArr = orders
 
-        this.state.orders.map((item, i) => {
+        orders.map((item, i) => {
             if (item.idOrder === id) {
                 newArr.splice(i, 1)
-                this.setState({orders: newArr})
+                return this.setState({orders: newArr})
             }
         })
     }
 
     //поиск и проверка передающей стороны
     handledTransfer = (value) => {
-        const {users} = this.state
+        const {users, data} = this.state
+        let i = 0
+
+        value = changeKeyboard(value)
 
         if (value) {
-            if (value === this.state.data.accepted.value) {
-                this.setState(({data}) => {
-                    data.transfer.value=''
-                })
+            if (value === data.accepted.value) {
+                this.setState(({data}) => data.transfer.value='')
                 this.addError('Участок был выбран ранее')
             } else {
                 users.map(user => {
                     if(value === user.code) {
                         if(!this.state.data.accepted.name) {
                             this.setState(({data}) => {
-                                data.transfer.name = user.name,
+                                return (
+                                    data.transfer.name = user.name,
                                     data.transfer.disabled = true,
                                     data.accepted.disabled = false
+                                )
                             })
-                            this.setState({hint: 'Принимающий участок'})
+                            this.addHint(2)
                         } else {
-                            this.setState(({data, hint}) => {
-                                data.transfer.name = user.name,
+                            this.setState(({data}) => {
+                                return (
+                                    data.transfer.name = user.name,
                                     data.transfer.disabled = true,
                                     data.order.disabled = false
+                                )
+
                             })
-                            this.setState({hint: 'Заказы'})
+                            this.addHint(3)
                         }
+                        i++
                     }
                 })
+
+                if (i === 0) {
+                    this.setState(({data}) => data.transfer.value = '')
+                    this.addError('Пользователь не найден')
+                }
             }
         }
     }
 
     //поиск и проверка принимающей стороны
     handledAccept = (value) => {
-        const {users} = this.state
+        const {users, data} = this.state
+        let i = 0
 
-        if(value) {
-            if (value === this.state.data.transfer.value) {
-                this.setState(({data}) => {
-                    data.accepted.value = ''
-                })
+        value = changeKeyboard(value)
+
+        if (value) {
+            if (value === data.transfer.value) {
+                this.setState(({data}) => data.accepted.value = '')
                 this.addError('Участок был выбран ранее')
             } else {
                 users.map(user => {
                     if(value === user.code) {
-                        this.setState(({data, hint}) => {
-                            data.accepted.name = user.name,
+                        this.setState(({data}) => {
+                            return (
+                                data.accepted.name = user.name,
                                 data.accepted.disabled = true,
                                 data.order.disabled = false
+                            )
                         })
-                        this.setState({hint: 'Заказы'})
+                        this.addHint(3)
+                        i++
                     }
                 })
+
+                if (i === 0) {
+                    this.setState(({data}) => data.accepted.value = '')
+                    this.addError('Пользователь не найден')
+                }
             }
         }
     }
 
     //поиск и проверка заказа
     handledOrder = async () => {
-        let value = this.state.data.order.value,
-            order, error
+        const {data} = this.state
+        let order, error
 
-        await getOrder(value)
+        await getOrder(data.order.value)
             .then(res => order = res)
             .catch(err => error = err)
 
         if (order) {
             this.setState(({data}) => {
-                data.order.nameOrder = order.header[0].ORDERNUM,
-                data.order.idOrder = order.header[0].ID,
-                data.order.commentOrder = order.header[0].PRIMECH,
-                data.order.statusOrder = order.header[0].STATUS_DESCRIPTION
+                return (
+                    data.order.nameOrder = order.header[0].ITM_ORDERNUM,
+                    data.order.idOrder = order.header[0].ID,
+                    data.order.statusOrder = order.header[0].STATUS_DESCRIPTION
+                )
             })
         } else {
             this.setState(({data}) => {
-                data.order.nameOrder = `Заказ с № ${value} не существует в базе`,
-                data.order.idOrder = '',
-                data.order.commentOrder = '',
-                data.order.statusOrder = ''
+                return (
+                    data.order.nameOrder = '',
+                    data.order.idOrder = '',
+                    data.order.commentOrder = '',
+                    data.order.statusOrder = ''
+                )
             })
         }
-
-        this.rerenderPage()
     }
 
     // отправка объекта с данными в базу
@@ -214,8 +257,7 @@ class AccTransOrder extends Component {
             for (let key in order ) {
                 if (
                     key === 'idOrder' ||
-                    key === 'nameOrder' ||
-                    key === 'employee'
+                    key === 'comment'
                 ) {
                     obj[key] = order[key]
                 }
@@ -225,60 +267,85 @@ class AccTransOrder extends Component {
         })
 
         await this.setState(({form}) => {
-            form.idTransfer = this.state.data.transfer.value,
-            form.idAccepted = this.state.data.accepted.value,
-            form.idOrders = newOrders
+            return (
+                form.idTransfer = this.state.data.transfer.value,
+                form.idAccepted = this.state.data.accepted.value,
+                form.orders = newOrders
+            )
         })
 
         console.log(form)
-
-        alert('Заказы успешно переданы на следующи этап обработки')
-        this.rerenderPage()
     }
 
-    //очистка данных сохраненных в вводе
+    // очистка данных сохраненных в вводе
     clearValue = (area) => {
         if (area === 'transfer') {
             this.setState(({data, hint}) => {
-                data.transfer.value = '',
-                data.transfer.name = '',
-                data.transfer.disabled = false,
-                data.accepted.disabled = true,
-                data.order.disabled = true
+                return (
+                    data.transfer.value = '',
+                    data.transfer.name = '',
+                    data.transfer.disabled = false,
+                    data.accepted.disabled = true,
+                    data.order.disabled = true
+                )
             })
-            this.setState({hint: 'Передающий участок'})
+            this.addHint(1)
         }
 
         if (area === 'accepted') {
             if(this.state.data.transfer.name) {
-                this.setState(({data, hint}) => {
-                    data.accepted.value = '',
-                    data.accepted.name = '',
-                    data.accepted.disabled = false,
-                    data.transfer.disabled = true,
-                    data.order.disabled = true
+                this.setState(({data}) => {
+                    return (
+                        data.accepted.value = '',
+                        data.accepted.name = '',
+                        data.accepted.disabled = false,
+                        data.transfer.disabled = true,
+                        data.order.disabled = true
+                    )
                 })
-                this.setState({hint: 'Принимающий участок'})
+                this.addHint(2)
             } else {
                 this.setState(({data}) => {
-                    data.accepted.value = '',
-                    data.accepted.name = ''
+                    return (
+                        data.accepted.value = '',
+                        data.accepted.name = ''
+                    )
                 })
-                this.setState({hint: 'Передающий участок'})
+                this.addHint(1)
             }
         }
 
         if (area === 'order') {
             this.setState(({data}) => {
-                data.order.nameOrder = '',
-                data.order.idOrder = '',
-                data.order.commentOrder = '',
-                data.order.statusOrder = '',
-                data.order.value = ''
+                return (
+                    data.order.nameOrder = '',
+                    data.order.idOrder = '',
+                    data.order.statusOrder = '',
+                    data.order.value = ''
+                )
             })
+            this.addHint(3)
         }
 
-        this.rerenderPage()
+        if (area === 'all') {
+            this.setState({orders: []})
+            this.setState(({data}) => {
+                return (
+                    data.transfer.value = '',
+                    data.transfer.name= '',
+                    data.transfer.disabled = false,
+                    data.accepted.value = '',
+                    data.accepted.name = '',
+                    data.accepted.disabled = true,
+                    data.order.nameOrder = '',
+                    data.order.idOrder = '',
+                    data.order.statusOrder = '',
+                    data.order.value = '',
+                    data.order.disabled = true
+                )
+            })
+            this.addHint(1)
+        }
     }
 
     // Добавление заказа в объект для таблицы
@@ -290,45 +357,94 @@ class AccTransOrder extends Component {
 
         await this.handledOrder()
 
-        for (let key in order) {
-            if (key === 'idOrder' ||
-                key === 'nameOrder' ||
-                key === 'commentOrder' ||
-                key === 'statusOrder') {
-                arrOrder[key] = order[key]
-            }
-        }
-
-        arrOrder.employee = ''
-
-        arrOrder.delOrder = <Button variant='outline-danger' type='button' onClick={() => this.deleteOrder(arrOrder.idOrder)}>Удалить</Button>
-
-        if (order.value) {
-            if (!orders[0]) {
-                this.setState({orders: [...this.state.orders, arrOrder]})
-            } else {
-                orders.map(item => {
-                    if (item.idOrder === arrOrder.idOrder) {
-                        this.addError('Данный заказ уже находится в таблице')
-                        compare = true
-                    }
-                })
-
-                if (!compare) {
-                    this.setState({orders: [...this.state.orders, arrOrder]})
+        if (order.idOrder) {
+            for (let key in order) {
+                if (key === 'idOrder' ||
+                    key === 'nameOrder' ||
+                    key === 'statusOrder') {
+                    arrOrder[key] = order[key]
                 }
-                compare = false
             }
-        }
+
+            arrOrder.comment = ''
+
+            arrOrder.commentOrder =
+                    <i
+                        className='bi bi-pencil-square btn text-warning'
+                        style={{fontSize: 20}}
+                        onClick={() => this.onComment(arrOrder.idOrder)}
+                    />
+
+            arrOrder.employee = ''
+
+            arrOrder.delOrder =
+                <i
+                    className="bi bi-trash-fill btn text-danger"
+                    style={{fontSize: 24}}
+                    onClick={() => this.deleteOrder(arrOrder.idOrder)}
+                />
+
+            if (order.value) {
+                if (!orders[0]) {
+                    this.setState({orders: [...this.state.orders, arrOrder]})
+                } else {
+                    orders.map(item => {
+                        if (item.idOrder === arrOrder.idOrder) {
+                            this.addError('Данный заказ уже находится в таблице')
+                            compare = true
+                        }
+                    })
+
+                    if (!compare) {
+                        this.setState({orders: [...this.state.orders, arrOrder]})
+                    }
+                    compare = false
+                }
+            }
+        } else this.addError(`Заказ № ${order.value} не существует`)
 
         this.clearValue('order')
+    }
 
-        this.rerenderPage()
+    // функция вызова изменения комментария заказа
+    onComment = (id) => {
+        const {orders} = this.state
+
+        orders.map (order => {
+            if (order.idOrder === id) {
+                this.setState(({orderChange}) => {
+                    return (
+                        orderChange.view = true,
+                        orderChange.idOrder = order.idOrder,
+                        orderChange.nameOrder = order.nameOrder,
+                        orderChange.comment = order.comment
+                    )
+                })
+            }
+        })
+
+        this.addHint(4)
+    }
+
+    // функция изменения комментария заказа в объекте заказов
+    changeCommentOrder = () => {
+        const {orderChange} = this.state
+
+        this.setState(({orders}) => {
+            return orders.map(order => {
+                if (order.idOrder === orderChange.idOrder) {
+                    order.comment = orderChange.comment
+                }
+            })
+        })
+
+        this.setState(({orderChange}) => orderChange.view = false)
+        this.addHint(3)
     }
 
     // Отображение страницы
     render() {
-        const {data, hint, error, orders} = this.state,
+        const {data, hint, error, orders, orderChange} = this.state,
             {accepted, transfer, order} = data
 
         return (
@@ -342,7 +458,7 @@ class AccTransOrder extends Component {
                             className={`p-1 mb-3 text-center ${error.type ? 'd-none' : ''}`}
                             variant='secondary'
                         >
-                            {`Заполните - ${hint}`}
+                            {`${hint}`}
                         </Alert>
                         <Alert
                             className={`p-1 mb-3 text-center ${error.type ? '' : 'd-none'}`}
@@ -354,12 +470,10 @@ class AccTransOrder extends Component {
                     <Col/>
                 </Row>
 
-
-
                 <Row>
-                    <Col lg={5} className='mb-3'>
+                    <Col lg={5}>
                         <InputGroup>
-                            <InputGroup.Text className='text-end d-block' style={{width: `225px`}}>{transfer.label}</InputGroup.Text>
+                            <InputGroup.Text className='text-end d-block' style={{width: `35%`, whiteSpace: 'normal'}}>{transfer.label}</InputGroup.Text>
                             <Form.Control
                                 type="password"
                                 id={transfer.id}
@@ -372,14 +486,16 @@ class AccTransOrder extends Component {
                                 value={transfer.value}
                                 className={`border rounded-0 ${transfer.disabled ? 'd-none' : ''}`}
                                 readOnly={transfer.disabled}
-                                onChange={(e) => {
+                                onChange={(e) =>
                                     this.setState(({data}) => data.transfer.value = e.target.value)
-                                    this.handledTransfer(e.target.value)
+                                }
+                                onKeyPress={e => {
+                                    if (e.key === 'Enter') this.handledTransfer(e.target.value)
                                 }}
                             />
                         </InputGroup>
                     </Col>
-                    <Col lg={5} className='text-center text-secondary'>
+                    <Col lg={6} className='text-center text-secondary'>
                         <Alert
                             className={'p-1'}
                             variant={transfer.name ? 'success' : 'warning'}
@@ -387,18 +503,20 @@ class AccTransOrder extends Component {
                             {transfer.name ? transfer.name : '...'}
                         </Alert>
                     </Col>
-                    <Col lg={2} className='mb-3'>
-                        <Button
-                            variant='outline-danger'
-                            type='button'
+                    <Col lg={1}>
+                        <i
+                            className="bi bi-trash-fill btn text-danger pt-0"
+                            style={{fontSize: 24}}
                             onClick={() => this.clearValue('transfer')}
-                        >Очистить участок</Button>
+                        />
                     </Col>
+                </Row>
 
+                <Row>
                     <hr/>
-                    <Col lg={5} className='mb-3'>
+                    <Col lg={5}>
                         <InputGroup>
-                            <InputGroup.Text className='text-end d-block' style={{width: `225px`}}>{accepted.label}</InputGroup.Text>
+                            <InputGroup.Text className='text-end d-block' style={{width: `35%`, whiteSpace: 'normal'}}>{accepted.label}</InputGroup.Text>
                             <Form.Control
                                 type="password"
                                 id={accepted.id}
@@ -410,14 +528,16 @@ class AccTransOrder extends Component {
                                 value={accepted.value}
                                 className={`border rounded-0 ${accepted.disabled ? 'd-none' : ''}`}
                                 readOnly={accepted.disabled}
-                                onChange={(e) => {
+                                onChange={(e) =>
                                     this.setState(({data}) => data.accepted.value = e.target.value)
-                                    this.handledAccept(e.target.value)
+                                }
+                                onKeyPress={e => {
+                                    if (e.key === 'Enter') this.handledAccept(e.target.value)
                                 }}
                             />
                         </InputGroup>
                     </Col>
-                    <Col lg={5} className='text-center'>
+                    <Col lg={6} className='text-center'>
                         <Alert
                             className={'p-1'}
                             variant={accepted.name ? 'success' : 'warning'}
@@ -425,23 +545,27 @@ class AccTransOrder extends Component {
                             {accepted.name ? accepted.name : '...'}
                         </Alert>
                     </Col>
-                    <Col lg={2} className='mb-3'>
-                        <Button
-                            variant='outline-danger'
-                            type='button'
+                    <Col lg={1}>
+                        <i
+                            className="bi bi-trash-fill btn text-danger pt-0"
+                            style={{fontSize: 24}}
                             onClick={() => this.clearValue('accepted')}
-                        >Очистить участок</Button>
+                        />
                     </Col>
+                </Row>
 
+                <Row className={this.state.data.order.hide ? 'hide-input' : ''}>
                     <hr/>
                     <Col lg={5} className='mb-3'>
                         <InputGroup>
-                            <InputGroup.Text className='text-end d-block' style={{width: `225px`}}>{order.label}</InputGroup.Text>
+                            <InputGroup.Text className='text-end d-block' style={{width: `35%`, whiteSpace: 'normal'}}>{order.label}</InputGroup.Text>
                             <Form.Control
-                                type="password"
+                                type="number"
                                 id={order.id}
                                 ref={this.orderInput}
-                                onBlur={() => this.orderInput.current.focus()}
+                                onBlur={() => {
+                                    if (!this.state.orderChange.view) this.orderInput.current.focus()
+                                }}
                                 required
                                 isValid={order.nameOrder}
                                 value={order.value}
@@ -457,29 +581,53 @@ class AccTransOrder extends Component {
                         </InputGroup>
                     </Col>
                     <Col lg={5} className='text-center'/>
-                    <Col lg={2} className='mb-3'>
+                    <Col lg={2} className='mb-3 text-center'>
                         <Button
-                            variant='outline-danger'
+                            variant='link'
                             type='button'
-                            onClick={() => this.clearValue('order')}
-                        >Очистить заказ</Button>
+                            onClick={() => this.setState(({data}) => data.order.hide = true)}
+                        >Скрыть поле</Button>
                     </Col>
+                </Row>
 
-                    <hr/>
+                <Row className={`${this.state.data.order.hide ? '' : 'hide-input'}`}>
+                    <hr className='m-0'/>
+                    <Col lg={10}/>
+                    <Col lg={2} className='text-end'>
+                        <Button
+                            variant='link'
+                            type='button'
+                            style={{fontSize: 10}}
+                            className='p-0'
+                            onClick={() => this.setState(({data}) => data.order.hide = false)}
+                        >Не читается штрих-код заказа</Button>
+                    </Col>
+                </Row>
+
+                <Row>
                     <Col lg={12}>
                         <Table>
                             <Thead
-                                title={['ID', 'Наименование заказа', 'Статус заказа', 'Комментарий', 'Работник', '']}
+                                title={['Наименование заказа', 'Статус заказа', 'Комментарий к заказу', 'Работник', '']}
                             />
                             <Tbody
-                                params={['idOrder', 'nameOrder', 'statusOrder',  'commentOrder', 'employee', 'delOrder']}
+                                params={['nameOrder', 'statusOrder',  ['comment', 'commentOrder'], 'employee', 'delOrder']}
                                 orders={orders}
                             />
                         </Table>
                     </Col>
+                </Row>
 
+                <Row>
                     <hr/>
-                    <Col lg={12} className='text-end'>
+                    <Col lg={6} className='text-start'>
+                        <Button
+                            variant='outline-danger'
+                            type='button'
+                            onClick={e => this.clearValue('all')}
+                        >Очистить форму</Button>
+                    </Col>
+                    <Col lg={6} className='text-end'>
                         <Button
                             variant='outline-success'
                             type='button'
@@ -487,6 +635,25 @@ class AccTransOrder extends Component {
                         >Сохранить данные</Button>
                     </Col>
                 </Row>
+
+                <Modal show={this.state.orderChange.view} centered>
+                    <Modal.Header className='text-center d-block'>
+                        {`Введите комментарий к заказу - ${orderChange.nameOrder}`}
+                    </Modal.Header>
+                    <Modal.Body>
+                        <Form.Control
+                            type="text"
+                            ref={this.commentInput}
+                            onBlur={() => this.commentInput.current.focus()}
+                            value={orderChange.comment}
+                            className='border rounded-0'
+                            onChange={e => this.setState(({orderChange}) => orderChange.comment = e.target.value)}
+                            onKeyPress={e => {
+                                if (e.key === 'Enter') this.changeCommentOrder()
+                            }}
+                        />
+                    </Modal.Body>
+                </Modal>
             </MainLyout>
         )
     }

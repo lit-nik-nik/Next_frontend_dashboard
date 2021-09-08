@@ -1,6 +1,6 @@
-import {Modal} from "react-bootstrap";
+import {Modal, Form} from "react-bootstrap";
 
-export default function ModalWindow (props) {
+export default function ModalComment (props) {
 
     return (
         <>
@@ -11,6 +11,11 @@ export default function ModalWindow (props) {
                 centered
             >
                 <Modal.Body className='p-0'>
+                    <Form.Control
+                        type='text'
+                        ref={props.modalRef}
+                        defaultValue={props.data.id ? props.data.id : ''}
+                    />
                 </Modal.Body>
             </Modal>
         </>

@@ -1,0 +1,4 @@
+.hide-input {
+    position: absolute !important;
+    left: -2500px;
+}

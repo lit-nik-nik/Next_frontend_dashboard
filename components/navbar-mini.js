@@ -46,8 +46,9 @@ export default class NavbarMini extends Component {
                     placement='right'
                     delay={{ show: 250, hide: 400 }}
                     overlay={this.renderTooltip(item)}
+                    key={i}
                 >
-                    <li className="nav-item" key={i}>
+                    <li className="nav-item">
                         <Link href={item.link}>
                             <a
                                 className={`nav-link link-dark m-1 py-2 px-3 ${link === item.link ? 'active' : ''}`}
