@@ -7,6 +7,10 @@ import {getOrder} from "../services/order/get";
 import {withRouter} from "next/router";
 import {changeKeyboard} from "../modules/change-keyboard";
 import {getBarcodes} from "../services/at-order/get";
+import {postAtOrders} from "../services/at-order/post";
+import ModalError from "../modules/modals/modal-error";
+import ModalWindow from "../modules/modals/modal";
+import ModalComment from "../modules/modals/modal-comment";
 
 class AccTransOrder extends Component {
 
@@ -63,7 +67,17 @@ class AccTransOrder extends Component {
             type: false,
             message: ''
         },
-        link: this.props.router.pathname
+        link: this.props.router.pathname,
+        submit: {
+            data: {
+                view: false,
+                message: null
+            },
+            error: {
+                view: false,
+                message: null
+            }
+        }
     }
 
     async componentDidMount() {
@@ -85,14 +99,14 @@ class AccTransOrder extends Component {
     }
 
     // добавление ошибки
-    addError = (message) => {
+    addError = (message, time = 2000) => {
         this.setState(({error}) => {
             return (
                 error.type = true,
                 error.message = message
             )
         })
-        setTimeout(this.clearError, 2000)
+        setTimeout(this.clearError, time)
     }
 
     // добавление подсказки
@@ -141,30 +155,36 @@ class AccTransOrder extends Component {
             if (value === data.accepted.value) {
                 this.setState(({data}) => data.transfer.value='')
                 this.addError('Участок был выбран ранее')
-            } else {
+            } else  {
                 users.map(user => {
-                    if(value === user.BARCODE) {
-                        if(!this.state.data.accepted.name) {
-                            this.setState(({data}) => {
-                                return (
-                                    data.transfer.name = `${user.SECTOR} / ${user.EMPLOYEE ? user.EMPLOYEE : '-'}`,
-                                    data.transfer.disabled = true,
-                                    data.accepted.disabled = false
-                                )
-                            })
-                            this.addHint(2)
+                    if (value === user.BARCODE) {
+                        if (user.BLOCKED) {
+                            this.setState(({data}) => data.transfer.value = '')
+                            this.addError('Пользователь заблокирован')
+                            i++
                         } else {
-                            this.setState(({data}) => {
-                                return (
-                                    data.transfer.name = `${user.SECTOR} / ${user.EMPLOYEE ? user.EMPLOYEE : '-'}`,
-                                    data.transfer.disabled = true,
-                                    data.order.disabled = false
-                                )
+                            if(!this.state.data.accepted.name) {
+                                this.setState(({data}) => {
+                                    return (
+                                        data.transfer.name = `${user.SECTOR} / ${user.EMPLOYEE ? user.EMPLOYEE : '-'}`,
+                                        data.transfer.disabled = true,
+                                        data.accepted.disabled = false
+                                    )
+                                })
+                                this.addHint(2)
+                            } else {
+                                this.setState(({data}) => {
+                                    return (
+                                        data.transfer.name = `${user.SECTOR} / ${user.EMPLOYEE ? user.EMPLOYEE : '-'}`,
+                                        data.transfer.disabled = true,
+                                        data.order.disabled = false
+                                    )
 
-                            })
-                            this.addHint(3)
+                                })
+                                this.addHint(3)
+                            }
+                            i++
                         }
-                        i++
                     }
                 })
 
@@ -190,15 +210,21 @@ class AccTransOrder extends Component {
             } else {
                 users.map(user => {
                     if(value === user.BARCODE) {
-                        this.setState(({data}) => {
-                            return (
-                                data.accepted.name = `${user.SECTOR} / ${user.EMPLOYEE ? user.EMPLOYEE : '-'}`,
-                                data.accepted.disabled = true,
-                                data.order.disabled = false
-                            )
-                        })
-                        this.addHint(3)
-                        i++
+                        if (user.BLOCKED) {
+                            this.setState(({data}) => data.accepted.value = '')
+                            this.addError('Пользователь заблокирован')
+                            i++
+                        } else {
+                            this.setState(({data}) => {
+                                return (
+                                    data.accepted.name = `${user.SECTOR} / ${user.EMPLOYEE ? user.EMPLOYEE : '-'}`,
+                                    data.accepted.disabled = true,
+                                    data.order.disabled = false
+                                )
+                            })
+                            this.addHint(3)
+                            i++
+                        }
                     }
                 })
 
@@ -232,7 +258,6 @@ class AccTransOrder extends Component {
                 return (
                     data.order.nameOrder = '',
                     data.order.idOrder = '',
-                    data.order.commentOrder = '',
                     data.order.statusOrder = ''
                 )
             })
@@ -269,6 +294,28 @@ class AccTransOrder extends Component {
         })
 
         console.log(form)
+
+        await postAtOrders(form)
+            .then(res => {
+                console.log(res.data.message)
+
+                this.setState(({submit}) => {
+                    return (
+                        submit.data.view = true,
+                        submit.data.message = res.data.message
+                    )
+                })
+            })
+            .catch(err => {
+                console.log(err.response.data.errors)
+
+                this.setState(({submit}) => {
+                    return (
+                        submit.error.view = true,
+                        submit.error.message = err.response.data.errors
+                    )
+                })
+            })
     }
 
     // очистка данных сохраненных в вводе
@@ -369,8 +416,6 @@ class AccTransOrder extends Component {
                         onClick={() => this.onComment(arrOrder.idOrder)}
                     />
 
-            arrOrder.employee = ''
-
             arrOrder.delOrder =
                 <i
                     className="bi bi-trash-fill btn text-danger"
@@ -436,10 +481,41 @@ class AccTransOrder extends Component {
         this.addHint(3)
     }
 
+    onChangeData = (label, value) => {
+        if (label === 'transfer') this.setState(({data}) => data.transfer.value = value)
+        if (label === 'accepted') this.setState(({data}) => data.accepted.value = value)
+        if (label === 'order') this.setState(({data}) => data.order.value = value)
+    }
+
     // Отображение страницы
     render() {
-        const {data, hint, error, orders, orderChange} = this.state,
+        const {data, hint, error, orders, orderChange, submit} = this.state,
             {accepted, transfer, order} = data
+
+        const inputGroup = (label, data, ref, onKeyPress) => {
+            return (
+                <InputGroup>
+                    <InputGroup.Text className='text-end d-block' style={{width: `35%`, whiteSpace: 'normal'}}>{data.label}</InputGroup.Text>
+                    <Form.Control
+                        type={label === 'order' ? "number" : "password"}
+                        id={data.id}
+                        ref={ref}
+                        onBlur={() => ref.current.focus()}
+                        autoFocus
+                        required={label === 'order' ? null : true}
+                        isValid={label === 'order' ? null : data.value}
+                        isInvalid={label === 'order' ? null : !data.value}
+                        value={data.value}
+                        className={`border rounded-0 ${data.disabled ? 'd-none' : ''}`}
+                        readOnly={data.disabled}
+                        onChange={(e) => this.onChangeData(label, e.target.value)}
+                        onKeyPress={e => {
+                            if (e.key === 'Enter') onKeyPress(e.target.value)
+                        }}
+                    />
+                </InputGroup>
+            )
+        }
 
         return (
             <MainLyout title='Форма приема-передачи заказа' link={this.state.link}>
@@ -466,28 +542,7 @@ class AccTransOrder extends Component {
 
                 <Row>
                     <Col lg={5}>
-                        <InputGroup>
-                            <InputGroup.Text className='text-end d-block' style={{width: `35%`, whiteSpace: 'normal'}}>{transfer.label}</InputGroup.Text>
-                            <Form.Control
-                                type="password"
-                                id={transfer.id}
-                                ref={this.transferInput}
-                                onBlur={() => this.transferInput.current.focus()}
-                                autoFocus
-                                required
-                                isValid={transfer.value}
-                                isInvalid={!transfer.value}
-                                value={transfer.value}
-                                className={`border rounded-0 ${transfer.disabled ? 'd-none' : ''}`}
-                                readOnly={transfer.disabled}
-                                onChange={(e) =>
-                                    this.setState(({data}) => data.transfer.value = e.target.value)
-                                }
-                                onKeyPress={e => {
-                                    if (e.key === 'Enter') this.handledTransfer(e.target.value)
-                                }}
-                            />
-                        </InputGroup>
+                        {inputGroup('transfer', transfer, this.transferInput, this.handledTransfer)}
                     </Col>
                     <Col lg={6} className='text-center text-secondary'>
                         <Alert
@@ -509,27 +564,7 @@ class AccTransOrder extends Component {
                 <Row>
                     <hr/>
                     <Col lg={5}>
-                        <InputGroup>
-                            <InputGroup.Text className='text-end d-block' style={{width: `35%`, whiteSpace: 'normal'}}>{accepted.label}</InputGroup.Text>
-                            <Form.Control
-                                type="password"
-                                id={accepted.id}
-                                ref={this.acceptedInput}
-                                onBlur={() => this.acceptedInput.current.focus()}
-                                required
-                                isValid={accepted.value}
-                                isInvalid={!accepted.value}
-                                value={accepted.value}
-                                className={`border rounded-0 ${accepted.disabled ? 'd-none' : ''}`}
-                                readOnly={accepted.disabled}
-                                onChange={(e) =>
-                                    this.setState(({data}) => data.accepted.value = e.target.value)
-                                }
-                                onKeyPress={e => {
-                                    if (e.key === 'Enter') this.handledAccept(e.target.value)
-                                }}
-                            />
-                        </InputGroup>
+                        {inputGroup('accepted', accepted, this.acceptedInput, this.handledAccept)}
                     </Col>
                     <Col lg={6} className='text-center'>
                         <Alert
@@ -551,28 +586,7 @@ class AccTransOrder extends Component {
                 <Row className={this.state.data.order.hide ? 'hide-input' : ''}>
                     <hr/>
                     <Col lg={5} className='mb-3'>
-                        <InputGroup>
-                            <InputGroup.Text className='text-end d-block' style={{width: `35%`, whiteSpace: 'normal'}}>{order.label}</InputGroup.Text>
-                            <Form.Control
-                                type="number"
-                                id={order.id}
-                                ref={this.orderInput}
-                                onBlur={() => {
-                                    if (!this.state.orderChange.view) this.orderInput.current.focus()
-                                }}
-                                required
-                                isValid={order.nameOrder}
-                                value={order.value}
-                                className={`border rounded-0 ${order.disabled ? 'd-none' : ''}`}
-                                readOnly={order.disabled}
-                                onChange={e => {
-                                    this.setState(({data}) => data.order.value = e.target.value)
-                                }}
-                                onKeyPress={e => {
-                                    if (e.key === 'Enter') this.addOrder()
-                                }}
-                            />
-                        </InputGroup>
+                        {inputGroup('order', order, this.orderInput, this.addOrder)}
                     </Col>
                     <Col lg={5} className='text-center'/>
                     <Col lg={2} className='mb-3 text-center'>
@@ -602,10 +616,10 @@ class AccTransOrder extends Component {
                     <Col lg={12}>
                         <Table>
                             <Thead
-                                title={['Наименование заказа', 'Статус заказа', 'Комментарий к заказу', 'Работник', '']}
+                                title={['Наименование заказа', 'Статус заказа', 'Комментарий к заказу', '']}
                             />
                             <Tbody
-                                params={['nameOrder', 'statusOrder',  ['comment', 'commentOrder'], 'employee', 'delOrder']}
+                                params={['nameOrder', 'statusOrder',  ['comment', 'commentOrder'], 'delOrder']}
                                 orders={orders}
                             />
                         </Table>
@@ -625,6 +639,7 @@ class AccTransOrder extends Component {
                         <Button
                             variant='outline-success'
                             type='button'
+                            disabled={!orders[0]}
                             onClick={e => this.handledSubmit(e)}
                         >Сохранить данные</Button>
                     </Col>
@@ -648,6 +663,18 @@ class AccTransOrder extends Component {
                         />
                     </Modal.Body>
                 </Modal>
+
+                <ModalWindow
+                    show={submit.data.view}
+                    onHide={() => this.setState(({submit}) => submit.data.view = false)}
+                    data={submit.data.message}
+                />
+
+                <ModalError
+                    show={submit.error.view}
+                    onHide={() => this.setState(({submit}) => submit.error.view = false)}
+                    error={submit.error.message}
+                />
             </MainLyout>
         )
     }
