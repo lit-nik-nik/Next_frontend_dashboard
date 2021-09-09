@@ -10,7 +10,8 @@ export class MainLyout extends Component {
 
     state = {
         check: '',
-        collapse: false
+        collapse: false,
+        screenMode: null
     }
 
     componentDidMount() {
@@ -23,6 +24,19 @@ export class MainLyout extends Component {
         if (localStorage.getItem('collapse')) {
             this.setState({collapse: localStorage.getItem('collapse')})
         }
+
+        this.onResize()
+
+        window.addEventListener('resize', this.onResize)
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener('resize', this.onResize)
+    }
+
+    onResize = async () => {
+        if (window.innerWidth < 992) this.setState({screenMode: "mobile"})
+        else this.setState({screenMode: "desktop"})
     }
 
     onCollapseNav = () => {
@@ -38,7 +52,8 @@ export class MainLyout extends Component {
     }
 
     render() {
-        const {check, collapse} = this.state
+
+        const {check, collapse, screenMode} = this.state
 
         const {children, title, link} = this.props
 
@@ -49,19 +64,15 @@ export class MainLyout extends Component {
                         <title>{title} - Массив-Юг</title>
                     </Head>
 
-                    <Header onCollapseNav={this.onCollapseNav} />
+                    {screenMode === 'desktop' ? (
+                        <Header onCollapseNav={this.onCollapseNav} />
+                    ) : null}
 
                     <Container fluid className='p-0'>
                         <Row>
-                            {!collapse ? (
-                                <Col lg={2}>
-                                    <Navbar link={link}/>
-                                </Col>
-                                ) : (
-                                <Col lg={1}>
-                                    <NavbarMini link={link}/>
-                                </Col>
-                            )}
+                            <Col lg={collapse ? 1 : 2} className='nav-menu'>
+                                {collapse ? <NavbarMini link={link}/> : <Navbar link={link}/>}
+                            </Col>
 
                             <Col lg={!collapse ? 10 : 11} className='py-3 px-4'>
                                 {children}

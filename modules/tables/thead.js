@@ -1,13 +1,13 @@
 export default function Thead ({title}) {
 
     const tableHead = title.map((name, index) => 
-        <th className='' key={index}>
+        <th key={index}>
             {name}
         </th>
     )
 
     return (
-        <thead className='align-middle text-center table-secondary'>
+        <thead className='align-middle text-center'>
             <tr>
                 {tableHead}
             </tr>

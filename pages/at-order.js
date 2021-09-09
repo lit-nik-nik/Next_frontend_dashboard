@@ -10,7 +10,6 @@ import {getBarcodes} from "../services/at-order/get";
 import {postAtOrders} from "../services/at-order/post";
 import ModalError from "../modules/modals/modal-error";
 import ModalWindow from "../modules/modals/modal";
-import ModalComment from "../modules/modals/modal-comment";
 
 class AccTransOrder extends Component {
 
@@ -23,6 +22,7 @@ class AccTransOrder extends Component {
     }
 
     state = {
+        link: null,
         users: null,
         data: {
             transfer: {
@@ -67,7 +67,6 @@ class AccTransOrder extends Component {
             type: false,
             message: ''
         },
-        link: this.props.router.pathname,
         submit: {
             data: {
                 view: false,
@@ -82,6 +81,8 @@ class AccTransOrder extends Component {
 
     async componentDidMount() {
         this.addHint(1)
+
+        this.setState({link: this.props.router.pathname})
 
         if (this.props.barcodes) await this.setState(({users: this.props.barcodes}))
     }
@@ -481,6 +482,7 @@ class AccTransOrder extends Component {
         this.addHint(3)
     }
 
+    // внесенние данных из поля ввода в state
     onChangeData = (label, value) => {
         if (label === 'transfer') this.setState(({data}) => data.transfer.value = value)
         if (label === 'accepted') this.setState(({data}) => data.accepted.value = value)
@@ -552,7 +554,7 @@ class AccTransOrder extends Component {
                             {transfer.name ? transfer.name : '...'}
                         </Alert>
                     </Col>
-                    <Col lg={1}>
+                    <Col lg={1} className='text-center'>
                         <i
                             className="bi bi-trash-fill btn text-danger pt-0"
                             style={{fontSize: 24}}
@@ -574,7 +576,7 @@ class AccTransOrder extends Component {
                             {accepted.name ? accepted.name : '...'}
                         </Alert>
                     </Col>
-                    <Col lg={1}>
+                    <Col lg={1} className='text-center'>
                         <i
                             className="bi bi-trash-fill btn text-danger pt-0"
                             style={{fontSize: 24}}
@@ -614,7 +616,7 @@ class AccTransOrder extends Component {
 
                 <Row>
                     <Col lg={12}>
-                        <Table>
+                        <Table striped bordered hover responsive="lg">
                             <Thead
                                 title={['Наименование заказа', 'Статус заказа', 'Комментарий к заказу', '']}
                             />

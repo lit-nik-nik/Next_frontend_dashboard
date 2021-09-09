@@ -326,8 +326,8 @@ class CreateOrder extends Component {
 
         const comment = (item, index, col = 12) => {
             return (
-                <Row className={`mb-2 ${item.active ? '' : 'd-none'}`} key={index}>
-                    <Col lg={col}>
+                <Row className={`${item.active ? '' : 'd-none'}`} key={index}>
+                    <Col lg={col} className='mb-3'>
                         <InputGroup>
                             <InputGroup.Text className='text-end d-block' style={{width: `180px`}}>{item.label}</InputGroup.Text>
                             <Form.Control
@@ -346,7 +346,7 @@ class CreateOrder extends Component {
         const select = (item, index, col = 12) => {
             if (item.id === 'client') {
                 return (
-                    <Col lg={col} key={index}>
+                    <Col lg={col} key={index} className='mb-3'>
                         <InputGroup>
                             <InputGroup.Text className='text-end d-block' style={{width: `180px`}}>{item.label}</InputGroup.Text>
                             <Form.Control
@@ -366,8 +366,8 @@ class CreateOrder extends Component {
                 )
             } else {
                 return (
-                    <Row className={`mb-2 ${item.active ? '' : 'd-none'}`} key={index}>
-                        <Col lg={col}>
+                    <Row className={`${item.active ? '' : 'd-none'}`} key={index}>
+                        <Col lg={col} className='mb-3'>
                             <InputGroup>
                                 <InputGroup.Text className='text-end d-block' style={{width: `180px`}}>{item.label}</InputGroup.Text>
                                 <Form.Control
@@ -393,7 +393,7 @@ class CreateOrder extends Component {
         const text = (item, index, col = 12) => {
             if (item.id === 'name') {
                 return (
-                    <Col lg={col} key={index}>
+                    <Col lg={col} key={index} className='mb-3'>
                         <InputGroup>
                             <InputGroup.Text className='text-end d-block' style={{width: `180px`}}>{item.label}</InputGroup.Text>
                             <Form.Control
@@ -411,8 +411,8 @@ class CreateOrder extends Component {
                 )
             } else {
                 return (
-                    <Row className={`mb-2 ${item.active ? '' : 'd-none'}`} key={index}>
-                        <Col lg={col}>
+                    <Row className={`${item.active ? '' : 'd-none'}`} key={index}>
+                        <Col lg={col} className='mb-3'>
                             <InputGroup>
                                 <InputGroup.Text className='text-end d-block' style={{width: `180px`}}>{item.label}</InputGroup.Text>
                                 <Form.Control
@@ -508,7 +508,7 @@ class CreateOrder extends Component {
                         <hr/>
 
                         <Col lg={1}/>
-                        <Col lg={10} className='mb-2'>
+                        <Col lg={10} className='mb-3'>
                             <InputGroup>
                                 <InputGroup.Text className='text-end d-block' style={{width: `180px`}}>{typeOrder.label}</InputGroup.Text>
                                 <Form.Select

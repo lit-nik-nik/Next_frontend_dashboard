@@ -1,0 +1,11 @@
+
+
+@media screen and (max-width: 992px){
+    .nav-menu {
+        display: none;
+    }
+
+    .nav-menu-mobile {
+        display: block;
+    }
+}
