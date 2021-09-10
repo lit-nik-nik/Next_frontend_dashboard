@@ -26,7 +26,7 @@ const Header = (props) => {
 
     return (
         <>
-            <Row className="bg-dark p-0 shadow" style={{fontSize: 16}}>
+            <Row className="bg-dark p-0 shadow sticky-top" style={{fontSize: 16}}>
                 <Col lg={2}>
                     <Row>
                         <Col lg={2} className='text-center'>

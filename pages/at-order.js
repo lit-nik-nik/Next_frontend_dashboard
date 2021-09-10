@@ -70,13 +70,15 @@ class AccTransOrder extends Component {
         submit: {
             data: {
                 view: false,
-                message: null
+                message: null,
+                orders: []
             },
             error: {
                 view: false,
                 message: null
             }
-        }
+        },
+        test: null
     }
 
     async componentDidMount() {
@@ -85,6 +87,7 @@ class AccTransOrder extends Component {
         this.setState({link: this.props.router.pathname})
 
         if (this.props.barcodes) await this.setState(({users: this.props.barcodes}))
+
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
@@ -98,6 +101,8 @@ class AccTransOrder extends Component {
             this.orderInput.current.focus()
         }
     }
+
+    componentWillUnmount() {}
 
     // добавление ошибки
     addError = (message, time = 2000) => {
@@ -294,22 +299,17 @@ class AccTransOrder extends Component {
             )
         })
 
-        console.log(form)
-
         await postAtOrders(form)
             .then(res => {
-                console.log(res.data.message)
-
                 this.setState(({submit}) => {
                     return (
                         submit.data.view = true,
-                        submit.data.message = res.data.message
+                        submit.data.message = res.data.message,
+                        submit.data.orders = res.data.orders
                     )
                 })
             })
             .catch(err => {
-                console.log(err.response.data.errors)
-
                 this.setState(({submit}) => {
                     return (
                         submit.error.view = true,
@@ -426,7 +426,7 @@ class AccTransOrder extends Component {
 
             if (order.value) {
                 if (!orders[0]) {
-                    this.setState({orders: [...this.state.orders, arrOrder]})
+                    this.setState({orders: [arrOrder, ...this.state.orders]})
                 } else {
                     orders.map(item => {
                         if (item.idOrder === arrOrder.idOrder) {
@@ -436,7 +436,7 @@ class AccTransOrder extends Component {
                     })
 
                     if (!compare) {
-                        this.setState({orders: [...this.state.orders, arrOrder]})
+                        this.setState({orders: [arrOrder, ...this.state.orders]})
                     }
                     compare = false
                 }
@@ -502,7 +502,7 @@ class AccTransOrder extends Component {
                         type={label === 'order' ? "number" : "password"}
                         id={data.id}
                         ref={ref}
-                        onBlur={() => ref.current.focus()}
+                        onBlur={() => this.state.orderChange.view ? null : ref.current.focus()}
                         autoFocus
                         required={label === 'order' ? null : true}
                         isValid={label === 'order' ? null : data.value}
@@ -669,7 +669,8 @@ class AccTransOrder extends Component {
                 <ModalWindow
                     show={submit.data.view}
                     onHide={() => this.setState(({submit}) => submit.data.view = false)}
-                    data={submit.data.message}
+                    message={submit.data.message}
+                    orders={submit.data.orders}
                 />
 
                 <ModalError
