@@ -5,12 +5,13 @@ import { withRouter } from 'next/router'
 import {Component } from 'react'
 import Thead from "../../modules/tables/thead";
 import ModalImage from "../../modules/modals/modal-images";
+import ModalError from "../../modules/modals/modal-error";
 
-export default withRouter(class Order extends Component {
+class Order extends Component {
 
     state = {
-        order: this.props.data.order,
-        image: this.props.data.image,
+        order: null,
+        image: null,
         bodyTitle: [],
         headTitle: [
             {
@@ -74,19 +75,64 @@ export default withRouter(class Order extends Component {
                 params: ['PRIMECH']
             }
         ],
-        modalView: false
+        modalView: false,
+        idPage: null,
+        error: {
+            view: false,
+            message: ''
+        }
     }
 
     componentDidMount() {
-        this.filterBodyHeader()
+        if (this.props.order) this.setState({order: this.props.order})
+        if (this.props.image) this.setState({image: this.props.image})
+
+        if (this.props.error) {
+            if (JSON.parse(this.props.error).code === "ECONNREFUSED") {
+                this.setState(({error}) => {
+                    return (
+                        error.view = true,
+                        error.message =  'Ошибка подключения к серверу. Попробуйте позже'
+                    )
+                })
+            }
+        }
+
+        if(this.state.order) this.filterBodyHeader()
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
         if (this.props !== prevProps) {
-            this.setState({
-                order: this.props.data.order,
-                image: this.props.data.image
-            })
+            if (this.props.order) this.setState({order: this.props.order})
+            if (this.props.image) this.setState({image: this.props.image})
+        }
+    }
+
+    getOrder = async () => {
+        let order, error
+
+        await getOrder(query.id)
+            .then(res  =>  order = res.data.order)
+            .catch(err => error = err.response)
+
+        const image = await getImageOrder(query.id)
+
+        if (order) {
+            data = {
+                error: null,
+                order: order,
+                image: image
+            }
+        } else if (error) {
+            data = {
+                order: null,
+                error: error,
+                image: image
+            }
+        }
+
+        return {
+            props: { data }
         }
     }
 
@@ -108,6 +154,7 @@ export default withRouter(class Order extends Component {
     }
 
     headerRender = (obj) => {
+
         let header = []
 
         const {headTitle} = this.state
@@ -237,13 +284,16 @@ export default withRouter(class Order extends Component {
     }
 
     render () {
+        console.log(this.props.router)
 
-        const {order, image} = this.state
+        const {order, image, error} = this.state
 
-        const {header, body, plans} = order
+        if (order) {
+            const {header, body, plans} = order
+        }
 
         return (
-            <MainLyout title={`Заказ № ${header[0].ID}`}>
+            <MainLyout title={`Заказ № ${order ? header[0].ID : '_'}`}>
                 <Row>
                     <Col lg={2}>
                         <Button variant='outline-dark' onClick={() => this.props.router.back()}>
@@ -252,22 +302,22 @@ export default withRouter(class Order extends Component {
                     </Col>
                     <Col lg={5} className='mb-4'>
                         <h4 className='text-center fw-bold text-uppercase fst-italic'>
-                            Заказ № {header[0].ID}
+                            Заказ № {order ? header[0].ID : '_'}
                         </h4>
                     </Col>
                     <Col lg={2}>
-                        <p className='text-end mb-4 text-muted'><b>Менеджер:</b> {header[0].MANAGER}</p>
+                        <p className='text-end mb-4 text-muted'><b>Менеджер:</b>{order ? header[0].MANAGER : '_'}</p>
                     </Col>
                     <Col lg={3}/>
 
 
                     <Col lg={9}>
-                        {this.headerRender(header[0])}
-                        {this.bodyRender(body)}
+                        {order ? this.headerRender(header[0]) : null}
+                        {order ? this.bodyRender(body) : null}
                     </Col>
                     <Col lg={3}>
                         <h4 className='text-center fw-bold'>План изготовления заказа:</h4>
-                        {this.planRender(plans)}
+                        {order ? this.planRender(plans) : null}
                         <div className='text-center'>
                             <h4 className='fw-bold my-3'>Изображение товара</h4>
                             <img
@@ -286,23 +336,42 @@ export default withRouter(class Order extends Component {
                     onHide={()=> this.setState({modalView: false})}
                     data={this.state.image}
                 />
+
+                <ModalError
+                    show={error.view}
+                    onHide={()=> this.setState(({error}) => error.view = false)}
+                    error={error.message}
+                />
             </MainLyout>
         )
     }
-})
+}
+
+export default withRouter(Order)
 
 export async function getServerSideProps({query}) {
-    let data;
+    let order, image, error
 
-    const order = await getOrder(query.id)
-    const image = await getImageOrder(query.id)
+    await getOrder(query.id)
+        .then(res  =>  order = res.data.order)
+        .catch(err => error = JSON.stringify(err))
 
-    data = {
-        order: order,
-        image: image
-    }
+    await getImageOrder(query.id)
+        .then(res => image = res)
+        .catch(err => console.log(JSON.stringify(err)))
 
-    return {
-        props: { data }
+    if (order) {
+        return {
+            props: {
+                order,
+                image
+            }
+        }
+    } else if (error) {
+        return {
+            props: {
+                error
+            }
+        }
     }
 }

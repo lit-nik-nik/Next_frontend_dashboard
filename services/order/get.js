@@ -5,11 +5,9 @@ const API_URI = process.env.API_DB_URI
 export const getOrder = async (id) => {
     let order, error
 
-    await axios.get(`${API_URI}/orders/${id}`)
-        .then(res  =>  order = res.data.order)
-        .catch(err => error = err.response)
+    return await axios.get(`${API_URI}/orders/${id}`)
 
-    return order
+    // return order
 }
 
 export const getImageOrder = async (id) => {

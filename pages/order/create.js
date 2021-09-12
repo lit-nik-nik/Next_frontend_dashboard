@@ -3,6 +3,7 @@ import {Form, Row, Col, Button, InputGroup} from 'react-bootstrap'
 import {Component} from "react";
 import {getListsOrder} from "../../services/order/create/get";
 import {withRouter} from "next/router";
+import ModalError from "../../modules/modals/modal-error";
 
 class CreateOrder extends Component {
 
@@ -218,19 +219,33 @@ class CreateOrder extends Component {
             ]
         },
         indexData: 0,
+        error: {
+            view: false,
+            message: ''
+        },
         link: this.props.router.pathname
     }
 
     async componentDidMount() {
         const token = localStorage.getItem('token')
-        let lists
+        let lists = []
 
         this.viewHeader(this.state.typeOrder.value)
 
         await getListsOrder(token)
             .then(res => {
-                if (res) return lists = res
+                if (res.message === 'Network Error') {
+                    this.setState(({error}) => {
+                        return (
+                            error.view = true,
+                            error.message = 'Ошибка подключения к серверу. Попробуйте позже'
+                        )
+                    })
+                } else if (res) {
+                    return lists = res
+                }
             })
+            .catch(err => console.log("err >>", err))
 
         if (lists.clients) this.addList(lists)
     }
@@ -495,13 +510,12 @@ class CreateOrder extends Component {
     }
 
     render() {
-        const {typeOrder, link} = this.state
+        const {typeOrder, link, error} = this.state
         return (
             <MainLyout title={`Форма создания заказа`} link={link}>
                 <h2 className='text-center fw-bold mb-3'>Форма создания заказ</h2>
                 <Form onSubmit={e => {
                     e.preventDefault()
-                    console.log(this.state.order)
                 }} autoComplete="off">
                     <Row>
 
@@ -540,6 +554,12 @@ class CreateOrder extends Component {
                         </Col>
                     </Row>
                 </Form>
+
+                <ModalError
+                    show={error.view}
+                    onHide={() => this.setState(({error}) => error.view = false)}
+                    error={error.message}
+                />
             </MainLyout>
         )
     }

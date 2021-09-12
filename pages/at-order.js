@@ -64,7 +64,7 @@ class AccTransOrder extends Component {
         },
         hint: '',
         error: {
-            type: false,
+            view: false,
             message: ''
         },
         submit: {
@@ -82,6 +82,17 @@ class AccTransOrder extends Component {
     }
 
     async componentDidMount() {
+        if (this.props.error) {
+            if (JSON.parse(this.props.error).code === "ECONNREFUSED") {
+                this.setState(({error}) => {
+                    return (
+                        error.view = true,
+                        error.message =  'Ошибка подключения к серверу. Попробуйте позже'
+                    )
+                })
+            }
+        }
+
         this.addHint(1)
 
         this.setState({link: this.props.router.pathname})
@@ -677,6 +688,12 @@ class AccTransOrder extends Component {
                     show={submit.error.view}
                     onHide={() => this.setState(({submit}) => submit.error.view = false)}
                     error={submit.error.message}
+                />
+
+                <ModalError
+                    show={error.view}
+                    onHide={() => this.setState(({error}) => error.view = false)}
+                    error={error.message}
                 />
             </MainLyout>
         )

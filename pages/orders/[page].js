@@ -6,11 +6,12 @@ import Tbody from "../../modules/tables/tbody";
 import { MainLyout } from "../../components/layout/main";
 import {getOrders} from "../../services/orders/get";
 import {withRouter} from "next/router";
+import ModalError from "../../modules/modals/modal-error";
 
 class PageOrder extends Component {
 
     state = {
-        orders: this.props.data.orders,
+        orders: [],
         table: [
             {
                 title: 'Дата упаковки',
@@ -47,28 +48,52 @@ class PageOrder extends Component {
         ],
         tableHeader: [],
         tableParams: [],
-        activePage: this.props.data.acitvePage,
-        countOrders: this.props.data.count,
-        lastPage: this.props.data.pages,
+        activePage: 1,
+        countOrders: 0,
+        lastPage: 1,
         pagesCount: [],
         modalView: false,
-        link: this.props.router.asPath
+        link: this.props.router.asPath,
+        error: {
+            view: false,
+            message: ''
+        }
     }
 
     async componentDidMount() {
+        if (this.props.data) {
+            await this.setState({
+                orders: this.props.data.orders,
+                activePage: this.props.data.acitvePage,
+                countOrders: this.props.data.count,
+                lastPage: this.props.data.pages
+            })
+        }
+
+        if (this.props.error) {
+            if (JSON.parse(this.props.error).code === "ECONNREFUSED") {
+                this.setState(({error}) => {
+                    error.view = true,
+                    error.message = 'Ошибка подключения к серверу. Попробуйте позже'
+                })
+            }
+        }
+
         this.changeStatePage()
         this.filterTableHeader()
-        console.log(this.props)
     }
 
     async componentDidUpdate(prevProps) {
         if (this.props !== prevProps) {
-            await this.setState({
-                orders: this.props.data.orders,
-                activePage: this.props.data.acitvePage
-            })
+            if (this.props.data) {
+                await this.setState({
+                    orders: this.props.data.orders,
+                    activePage: this.props.data.acitvePage,
+                    countOrders: this.props.data.count,
+                    lastPage: this.props.data.pages
+                })
+            }
         }
-
     }
 
     filterTableHeader = () => {
@@ -92,10 +117,10 @@ class PageOrder extends Component {
     }
 
     render() {
-        const {countOrders, orders, pagesCount, lastPage, activePage, tableHeader, tableParams, link} = this.state
+        const {countOrders, orders, pagesCount, lastPage, activePage, tableHeader, tableParams, link, error} = this.state
 
         return (
-            <MainLyout title={`Журнал упаковки - страница ${activePage}`} link={link}>
+            <MainLyout title={`Журнал упаковки - страница ${activePage}`} link={link} error={error}>
                 <Row className=''>
                     <Col>
                         <p className='text-muted m-0'><small>Всего заказов - {countOrders}</small></p>
@@ -124,6 +149,12 @@ class PageOrder extends Component {
                         <p className='text-muted text-center m-0'><small>страница № {activePage}</small></p>
                     </Col>
                 </Row>
+
+                <ModalError
+                    show={error.view}
+                    onHide={() => this.setState(({error}) => error.view = false)}
+                    error={error.message}
+                />
             </MainLyout>
         )
     }
@@ -133,9 +164,23 @@ export default withRouter(PageOrder)
 
 export async function getServerSideProps({query}) {
 
-    return {
-        props: {
-            data: await getOrders(query.page)
+    let data, error
+
+    await getOrders(query.page)
+        .then(res => data = res)
+        .catch(err => error = JSON.stringify(err))
+
+    if (data) {
+        return {
+            props: {
+                data
+            }
+        }
+    } else if (error) {
+        return {
+            props: {
+                error
+            }
         }
     }
 

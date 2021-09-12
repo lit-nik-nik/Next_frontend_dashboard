@@ -19,17 +19,23 @@ export default class Auth extends Component {
             user: '',
             pass: ''
         },
-        error: false,
-        errorMessage: ''
+        disabled: false,
+        error: {
+            view: false,
+            message: ''
+        }
     }
 
     componentDidMount() {
         if (this.props.error) {
             if (JSON.parse(this.props.error).code === "ECONNREFUSED") {
-                this.setState({
-                    error: false,
-                    errorMessage: 'Сервер БД не отвечает. Авторизация не возможна.'
+                this.setState(({error}) => {
+                    return (
+                        error.view = true,
+                        error.message =  'Сервер БД не отвечает. Авторизация не возможна.'
+                    )
                 })
+                this.setState({disabled: true})
             }
         }
 
@@ -49,39 +55,40 @@ export default class Auth extends Component {
         })
     }
 
-    redirect = () => {
-        Router.push('/')
-    }
-
     autorization = async (e) => {
         e.preventDefault()
 
-        const {user, pass} = this.state.login
+        const {user, pass} = this.state.login,
+            redirect = () => Router.push('/')
 
         let salt = bcrypt.genSaltSync(10),
             hash = bcrypt.hashSync(pass, salt)
 
         await authUser(user, hash)
             .then(res => {
-                console.log(hash)
-                console.log(res)
                 if (res.status === 200) {
                     localStorage.setItem('token', res.data.token)
                     localStorage.setItem('userId', res.data.userId)
 
-                    setTimeout(this.redirect, 1000)
+                    setTimeout(redirect, 1000)
                 } else {
-                    this.setState({
-                        error: true,
-                        errorMessage: res.data.message
+                    this.setState(({error}) => {
+                        error.view = true,
+                        error.message = res.data.message
                     })
                     this.setState({login: {user: user, pass: ''}})
                 }
             })
+            .catch(err => {
+                this.setState(({error}) => {
+                    error.view = true,
+                    error.message = err.response.message
+                })
+            })
     }
 
     render() {
-        const {login, error, errorMessage} = this.state
+        const {login, error, disabled} = this.state
 
         return (
             <>
@@ -147,12 +154,12 @@ export default class Auth extends Component {
                                         </Link>
                                     </Col>
 
-                                    <Button type='submit' className="w-100 btn btn-lg btn-primary">Войти</Button>
+                                    <Button type='submit' disabled={disabled} className="w-100 btn btn-lg btn-primary">Войти</Button>
 
                                     <ModalError
-                                        show={error}
-                                        onHide={()=> this.setState({error: false})}
-                                        error={errorMessage}
+                                        show={error.view}
+                                        onHide={()=> this.setState(({error}) => error.view = false)}
+                                        error={error.message}
                                     />
 
                                 </Form>

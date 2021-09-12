@@ -7,6 +7,7 @@ import ModalError from "../modules/modals/modal-error";
 import Head from "next/head";
 import {regUser} from "../services/reg/post";
 import Router from "next/router";
+import ModalWindow from "../modules/modals/modal";
 
 export default class Reg extends Component {
 
@@ -61,18 +62,27 @@ export default class Reg extends Component {
                 value: '',
                 compare: false
             }],
-        formMessage: '',
-        error: false,
-        errorMessage: ''
+        reg: {
+            view: false,
+            message: ''
+        },
+        error: {
+            view: false,
+            message: ''
+        },
+        disabled: false
     }
 
     componentDidMount() {
         if (this.props.error) {
             if (JSON.parse(this.props.error).code === "ECONNREFUSED") {
-                this.setState({
-                    error: false,
-                    errorMessage: 'Сервер БД не отвечает. Авторизация не возможна.'
+                this.setState(({error}) => {
+                    return (
+                        error.view = true,
+                        error.message = 'Сервер БД не отвечает. Регистрация не возможна.'
+                    )
                 })
+                this.setState({disabled: true})
             }
         }
 
@@ -254,9 +264,7 @@ export default class Reg extends Component {
         let user = {},
             i = 0
 
-        const redirect = () => {
-            return Router.push('/auth')
-        }
+        const redirect = () => Router.push('/auth')
 
         inputs.map(input => {
             if (input.compare) {
@@ -271,21 +279,46 @@ export default class Reg extends Component {
             regUser(user)
                 .then(res => {
                     if (res.status === 201) {
-                        this.setState({formMessage: `${res.data.message}`})
+                        this.setState(({reg}) => {
+                            return (
+                                reg.view = true,
+                                reg.message = `${res.data.message}`
+                            )
+                        })
                         setTimeout(redirect, 2000)
                     }
-                    else this.setState({formMessage: 'Ошибка создания пользователя, попробуйте позже'})
+                    else this.setState(({error}) => {
+                        return (
+                            error.view = true,
+                            error.message = 'Ошибка создания пользователя, попробуйте позже'
+                        )
+                    })
+                })
+                .catch(err => {
+                    this.setState(({error}) => {
+                        return (
+                            error.view = true,
+                            error.message = err.response.message
+                        )
+                    })
                 })
         }
         else {
-            this.setState({formMessage: 'Не все поля заполнены верно'})
+            this.setState(({error}) => {
+                return (
+                    error.view = true,
+                    error.message = 'Не все поля заполнены верно'
+                )
+            })
         }
 
     }
 
 
     render() {
-        const {inputs, formMessage} = this.state
+        console.log(this.props)
+
+        const {inputs, disabled, error, reg} = this.state
 
         return (
             <>
@@ -309,12 +342,19 @@ export default class Reg extends Component {
                                         </Link>
                                     </Col>
 
-                                    <Button type='submit' className="w-100 btn btn-lg btn-primary">Сохранить</Button>
+                                    <Button type='submit' disabled={disabled} className="w-100 btn btn-lg btn-primary">Сохранить</Button>
 
                                     <ModalError
-                                        show={formMessage ? true : false}
-                                        onHide={()=> this.setState({formMessage: null})}
-                                        error={formMessage}
+                                        show={error.view}
+                                        onHide={()=> this.setState(({error}) => error.view = false)}
+                                        error={error.message}
+                                    />
+
+
+                                    <ModalWindow
+                                        show={reg.view}
+                                        onHide={()=> this.setState(({reg}) => reg.view = false)}
+                                        message={reg.message}
                                     />
 
                                 </Form>
