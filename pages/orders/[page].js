@@ -1,5 +1,5 @@
 import { Component } from "react";
-import {Row, Col, Table, Button} from "react-bootstrap";
+import {Row, Col, Table} from "react-bootstrap";
 import PaginationTable from "../../modules/pagination";
 import Thead from "../../modules/tables/thead";
 import Tbody from "../../modules/tables/tbody";

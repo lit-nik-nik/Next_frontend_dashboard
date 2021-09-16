@@ -10,6 +10,7 @@ import ModalError from "../modules/modals/modal-error";
 import Head from "next/head";
 import logo from "../public/logo.png"
 import Image from "next/image";
+import {changeKeyboard} from "../modules/change-keyboard";
 
 export default class Auth extends Component {
 
@@ -17,8 +18,10 @@ export default class Auth extends Component {
         users: [''],
         login: {
             user: '',
-            pass: ''
+            pass: '',
+            barcode: ''
         },
+        variant: true,
         disabled: false,
         error: {
             view: false,
@@ -45,6 +48,16 @@ export default class Auth extends Component {
 
     }
 
+    clearInput = (value) => {
+        if (value === 'barcode') this.setState(({login}) => login.barcode = '')
+        else if (value === 'login') this.setState(({login}) => {
+            return (
+                login.user = '',
+                login.pass = ''
+            )
+        })
+    }
+
     renderListUser = () => {
         return this.state.users.map((user, i) => {
             return (
@@ -58,13 +71,19 @@ export default class Auth extends Component {
     autorization = async (e) => {
         e.preventDefault()
 
-        const {user, pass} = this.state.login,
+        const {user, pass, barcode} = this.state.login,
             redirect = () => Router.push('/')
 
-        let salt = bcrypt.genSaltSync(10),
-            hash = bcrypt.hashSync(pass, salt)
+        let newBarcode = changeKeyboard(barcode)
 
-        await authUser(user, hash)
+        let salt = bcrypt.genSaltSync(10),
+            hash = null
+
+        if (pass) {
+            hash = bcrypt.hashSync(pass, salt)
+        }
+
+        await authUser(user, hash, newBarcode)
             .then(res => {
                 if (res.status === 200) {
                     localStorage.setItem('token', res.data.token)
@@ -76,7 +95,7 @@ export default class Auth extends Component {
                         error.view = true,
                         error.message = res.data.message
                     })
-                    this.setState({login: {user: user, pass: ''}})
+                    this.setState({login: {user, pass: '', barcode: newBarcode}})
                 }
             })
             .catch(err => {
@@ -87,8 +106,80 @@ export default class Auth extends Component {
             })
     }
 
+
     render() {
-        const {login, error, disabled} = this.state
+        const {login, error, disabled, variant} = this.state
+
+        const loginPass =
+            <>
+                <FloatingLabel
+                    controlId="login"
+                    label="Логин"
+                    className="mb-3"
+                >
+                    <Form.Control
+                        required
+                        isValid={login.user}
+                        type="text"
+                        placeholder="Логин"
+                        list='users'
+                        value={login.user}
+                        onChange={e => this.setState(({login}) => login.user = e.target.value)}
+                    />
+                </FloatingLabel>
+                <datalist id='users'>
+                    {this.renderListUser()}
+                </datalist>
+
+                <FloatingLabel
+                    controlId="pass"
+                    label="Пароль"
+                    className="mb-3"
+                >
+                    <Form.Control
+                        required
+                        isValid={login.pass}
+                        type="password"
+                        placeholder="Пароль"
+                        list='users'
+                        value={login.pass}
+                        onChange={e => this.setState(({login}) => login.pass = e.target.value)}
+                    />
+                </FloatingLabel>
+            </>
+
+        const barcodes =
+            <>
+                <FloatingLabel
+                    controlId="pass"
+                    label="Штрих-код"
+                >
+                    <Form.Control
+                        required
+                        isValid={login.barcode}
+                        type="password"
+                        placeholder="Штрих-код"
+                        value={login.barcode}
+                        onChange={e => this.setState(({login}) => login.barcode = e.target.value)}
+                    />
+                </FloatingLabel>
+                <p className='text-white text-center mb-5'>отсканируйте ваш персональный штрих-код</p>
+            </>
+
+        const variantButton = (label, text) => {
+            return (
+                <Button
+                    variant='link'
+                    type='button'
+                    className='p-0 text-white text-decoration-none'
+                    onClick={() => {
+                        this.clearInput(text)
+                        this.setState({variant: !this.state.variant})
+                    }}
+                >{label}</Button>
+            )
+
+        }
 
         return (
             <>
@@ -107,52 +198,23 @@ export default class Auth extends Component {
                                 <Form onSubmit={e => this.autorization(e)} autoComplete="off">
                                     <h1 className="h3 mb-3 fw-normal text-white text-center">Авторизация</h1>
 
-                                    <FloatingLabel
-                                        controlId="login"
-                                        label="Логин"
-                                        className="mb-3"
-                                    >
-                                        <Form.Control
-                                            required
-                                            isValid={login.user}
-                                            type="text"
-                                            placeholder="Логин"
-                                            list='users'
-                                            value={login.user}
-                                            onChange={e => this.setState(({login}) => {
-                                                return login.user = e.target.value
-                                            })}
-                                        />
-                                    </FloatingLabel>
-                                    <datalist id='users'>
-                                        {this.renderListUser()}
-                                    </datalist>
+                                    {variant ? barcodes : loginPass}
 
-                                    <FloatingLabel
-                                        controlId="pass"
-                                        label="Пароль"
-                                        className="mb-3"
-                                    >
-                                        <Form.Control
-                                            required
-                                            isValid={login.pass}
-                                            type="password"
-                                            placeholder="Пароль"
-                                            list='users'
-                                            value={login.pass}
-                                            onChange={e => this.setState(({login}) => {
-                                                return login.pass = e.target.value
-                                            })}
-                                        />
-                                    </FloatingLabel>
-
-                                    <Col className='text-end mb-3'>
-                                        <Link href='/reg'>
-                                            <a className='text-white'>
-                                                У меня нет учетки
-                                            </a>
-                                        </Link>
-                                    </Col>
+                                    <Row>
+                                        <Col className='mb-3 text-start'>
+                                            {variant ?
+                                                variantButton('Вход по логину/паролю', 'barcode') :
+                                                variantButton('Вход по штрих-коду', 'login')
+                                            }
+                                        </Col>
+                                        <Col className='mb-3 text-end'>
+                                            <Link href='/reg'>
+                                                <a className='text-white text-decoration-none'>
+                                                    У меня нет учетки
+                                                </a>
+                                            </Link>
+                                        </Col>
+                                    </Row>
 
                                     <Button type='submit' disabled={disabled} className="w-100 btn btn-lg btn-primary">Войти</Button>
 
@@ -161,7 +223,6 @@ export default class Auth extends Component {
                                         onHide={()=> this.setState(({error}) => error.view = false)}
                                         error={error.message}
                                     />
-
                                 </Form>
                             </main>
                         </div>

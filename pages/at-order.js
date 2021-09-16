@@ -10,6 +10,7 @@ import {getBarcodes} from "../services/at-order/get";
 import {postAtOrders} from "../services/at-order/post";
 import ModalError from "../modules/modals/modal-error";
 import ModalWindow from "../modules/modals/modal";
+import {log10} from "chart.js/helpers";
 
 class AccTransOrder extends Component {
 
@@ -19,6 +20,7 @@ class AccTransOrder extends Component {
         this.acceptedInput = React.createRef();
         this.orderInput = React.createRef();
         this.commentInput = React.createRef();
+        this.dateInput = React.createRef();
     }
 
     state = {
@@ -48,6 +50,16 @@ class AccTransOrder extends Component {
                 nameOrder: '',
                 statusOrder: '',
                 hide: true
+            },
+            date: {
+                tzoffset: new Date().getTimezoneOffset() * 60000,
+                label: 'Дата',
+                id: 'data',
+                value: null,
+                isoValue: null,
+                disabled: true,
+                hide: true,
+                update: null
             }
         },
         orders: [],
@@ -60,6 +72,7 @@ class AccTransOrder extends Component {
         form: {
             idTransfer: null,
             idAccepted: null,
+            date: null,
             orders: []
         },
         hint: '',
@@ -95,25 +108,25 @@ class AccTransOrder extends Component {
 
         this.addHint(1)
 
+        this.handlesDate()
+
         this.setState({link: this.props.router.pathname})
 
         if (this.props.barcodes) await this.setState(({users: this.props.barcodes}))
-
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
-        if(!this.state.data.transfer.name) {
-            this.transferInput.current.focus()
-        } else if (!this.state.data.accepted.name) {
-            this.acceptedInput.current.focus()
-        } else if (this.state.orderChange.view) {
-            this.commentInput.current.focus()
-        } else {
-            this.orderInput.current.focus()
-        }
+        const {data, orderChange} = this.state
+
+        if(!data.transfer.name) this.transferInput.current.focus()
+        else if (!data.accepted.name) this.acceptedInput.current.focus()
+        else if (orderChange.view) this.commentInput.current.focus()
+        else if (!data.date.disabled) this.dateInput.current.focus()
+        else this.orderInput.current.focus()
     }
 
-    componentWillUnmount() {}
+    componentWillUnmount() {
+    }
 
     // добавление ошибки
     addError = (message, time = 2000) => {
@@ -133,6 +146,7 @@ class AccTransOrder extends Component {
             'Отсканируйте - Принимающий участок',
             'Отсканируйте - Заказ',
             'Введите комментарий к заказу',
+            'Введите дату'
         ]
 
         this.setState({hint: arrHint[id-1]})
@@ -256,11 +270,15 @@ class AccTransOrder extends Component {
     //поиск и проверка заказа
     handledOrder = async () => {
         const {data} = this.state
-        let order, error
+        let order
 
         await getOrder(data.order.value)
-            .then(res => order = res)
-            .catch(err => error = err)
+            .then(res => {
+                order = res.data.order
+            })
+            .catch(err => {
+                this.addError(err.response.data.message)
+            })
 
         if (order) {
             this.setState(({data}) => {
@@ -281,10 +299,34 @@ class AccTransOrder extends Component {
         }
     }
 
+    // добавление даты передачи заказа
+    handlesDate = async () => {
+        const {date} = this.state.data,
+            nowDate = new Date(Date.now() - date.tzoffset).toISOString().slice(0, -5)
+        let isoDate
+
+        if (!date.value) {
+            await this.setState(({data}) => data.date.value = nowDate)
+        }
+
+        if (date.value > nowDate) {
+            this.addError('Будущее еще не наступило')
+            await this.setState(({data}) => data.date.value = nowDate)
+        } else {
+            isoDate = new Date(date.value).toISOString()
+            await this.setState(({data}) => {
+                return (
+                    data.date.isoValue = isoDate,
+                    data.date.disabled = true
+                )
+            })
+        }
+    }
+
     // отправка объекта с данными в базу
     handledSubmit = async (e) => {
         e.preventDefault()
-        const {form, orders} = this.state
+        const {form, orders, data} = this.state
         let newOrders = []
 
         orders.map(order => {
@@ -294,9 +336,7 @@ class AccTransOrder extends Component {
                 if (
                     key === 'idOrder' ||
                     key === 'comment'
-                ) {
-                    obj[key] = order[key]
-                }
+                ) obj[key] = order[key]
             }
 
             newOrders.push(obj)
@@ -304,11 +344,14 @@ class AccTransOrder extends Component {
 
         await this.setState(({form}) => {
             return (
-                form.idTransfer = this.state.data.transfer.value,
-                form.idAccepted = this.state.data.accepted.value,
+                form.idTransfer = data.transfer.value,
+                form.idAccepted = data.accepted.value,
+                form.date = data.date.isoValue,
                 form.orders = newOrders
             )
         })
+
+        console.log(form)
 
         await postAtOrders(form)
             .then(res => {
@@ -452,7 +495,7 @@ class AccTransOrder extends Component {
                     compare = false
                 }
             }
-        } else this.addError(`Заказ № ${order.value} не существует`)
+        }
 
         this.clearValue('order')
     }
@@ -498,22 +541,29 @@ class AccTransOrder extends Component {
         if (label === 'transfer') this.setState(({data}) => data.transfer.value = value)
         if (label === 'accepted') this.setState(({data}) => data.accepted.value = value)
         if (label === 'order') this.setState(({data}) => data.order.value = value)
+        if (label === 'date') this.setState(({data}) => data.date.value = value)
     }
 
     // Отображение страницы
     render() {
         const {data, hint, error, orders, orderChange, submit} = this.state,
-            {accepted, transfer, order} = data
+            {accepted, transfer, order, date} = data
 
         const inputGroup = (label, data, ref, onKeyPress) => {
+            let typeInput, blur
+
+            if (label === 'order') typeInput = "number"
+            else if (label === 'date') typeInput = "datetime-local"
+            else typeInput = "password"
+
             return (
                 <InputGroup>
-                    <InputGroup.Text className='text-end d-block' style={{width: `35%`, whiteSpace: 'normal'}}>{data.label}</InputGroup.Text>
+                    <InputGroup.Text className='text-end d-block' style={{width: `50%`, whiteSpace: 'normal'}}>{data.label}</InputGroup.Text>
                     <Form.Control
-                        type={label === 'order' ? "number" : "password"}
+                        type={typeInput}
                         id={data.id}
                         ref={ref}
-                        onBlur={() => this.state.orderChange.view ? null : ref.current.focus()}
+                        onBlur={() => this.state.orderChange.view || !this.state.data.date.disabled ? null : ref.current.focus()}
                         autoFocus
                         required={label === 'order' ? null : true}
                         isValid={label === 'order' ? null : data.value}
@@ -554,12 +604,13 @@ class AccTransOrder extends Component {
                 </Row>
 
                 <Row>
-                    <Col lg={5}>
+                    <Col lg={4} className='mb-3'>
                         {inputGroup('transfer', transfer, this.transferInput, this.handledTransfer)}
                     </Col>
-                    <Col lg={6} className='text-center text-secondary'>
+                    <Col lg={3} className='text-center text-secondary'>
                         <Alert
-                            className={'p-1'}
+                            className='p-2'
+                            style={{fontSize: 12}}
                             variant={transfer.name ? 'success' : 'warning'}
                         >
                             {transfer.name ? transfer.name : '...'}
@@ -572,16 +623,48 @@ class AccTransOrder extends Component {
                             onClick={() => this.clearValue('transfer')}
                         />
                     </Col>
+                    <Col lg={3} className='text-center mb-3'>
+                        <InputGroup>
+                            <InputGroup.Text className='text-end d-block' style={{width: `35%`, whiteSpace: 'normal'}}>{date.label}</InputGroup.Text>
+                            <Form.Control
+                                type='datetime-local'
+                                id={date.id}
+                                ref={this.dateInput}
+                                onBlur={() => date.disabled || this.state.orderChange.view ? null : this.dateInput.current.focus()}
+                                autoFocus
+                                value={date.value}
+                                className='border rounded-0'
+                                readOnly={date.disabled}
+                                onChange={(e) => this.onChangeData("date", e.target.value)}
+                            />
+                        </InputGroup>
+                    </Col>
+                    <Col lg={1} className='text-center mb-3'>
+                        {date.disabled ? (
+                            <i
+                                className="bi bi-calendar2-plus-fill text-primary btn p-0"
+                                style={{fontSize: 24}}
+                                onClick={() => this.setState(({data}) => data.date.disabled = false)}
+                            />
+                        ) : (
+                            <i
+                                className="bi bi-calendar2-check-fill text-success btn p-0"
+                                style={{fontSize: 24}}
+                                onClick={() => this.handlesDate()}
+                            />
+                        )}
+                    </Col>
                 </Row>
 
                 <Row>
                     <hr/>
-                    <Col lg={5}>
+                    <Col lg={4}>
                         {inputGroup('accepted', accepted, this.acceptedInput, this.handledAccept)}
                     </Col>
-                    <Col lg={6} className='text-center'>
+                    <Col lg={3} className='text-center'>
                         <Alert
-                            className={'p-1'}
+                            className='p-2'
+                            style={{fontSize: 12}}
                             variant={accepted.name ? 'success' : 'warning'}
                         >
                             {accepted.name ? accepted.name : '...'}
@@ -594,34 +677,45 @@ class AccTransOrder extends Component {
                             onClick={() => this.clearValue('accepted')}
                         />
                     </Col>
-                </Row>
-
-                <Row className={this.state.data.order.hide ? 'hide-input' : ''}>
-                    <hr/>
-                    <Col lg={5} className='mb-3'>
-                        {inputGroup('order', order, this.orderInput, this.addOrder)}
+                    <Col lg={3} className={`mb-3`}>
+                        <div>
+                            <InputGroup>
+                                <InputGroup.Text className='text-end d-block' style={{width: `35%`, whiteSpace: 'normal'}}>{order.label}</InputGroup.Text>
+                                <Form.Control
+                                    type='number'
+                                    id={order.id}
+                                    ref={this.orderInput}
+                                    onBlur={() => !order.disabled || this.state.orderChange.view || !date.disabled ? null : this.orderInput.current.focus()}
+                                    autoFocus
+                                    value={order.value}
+                                    className={`border rounded-0 ${order.hide ? 'hide-input' : ''}`}
+                                    readOnly={order.disabled}
+                                    onChange={(e) => this.onChangeData('order', e.target.value)}
+                                    onKeyPress={e => {
+                                        if (e.key === 'Enter') this.addOrder(e.target.value)
+                                    }}
+                                />
+                            </InputGroup>
+                        </div>
                     </Col>
-                    <Col lg={5} className='text-center'/>
-                    <Col lg={2} className='mb-3 text-center'>
-                        <Button
-                            variant='link'
-                            type='button'
-                            onClick={() => this.setState(({data}) => data.order.hide = true)}
-                        >Скрыть поле</Button>
-                    </Col>
-                </Row>
-
-                <Row className={`${this.state.data.order.hide ? '' : 'hide-input'}`}>
-                    <hr className='m-0'/>
-                    <Col lg={10}/>
-                    <Col lg={2} className='text-end'>
-                        <Button
-                            variant='link'
-                            type='button'
-                            style={{fontSize: 10}}
-                            className='p-0'
-                            onClick={() => this.setState(({data}) => data.order.hide = false)}
-                        >Не читается штрих-код заказа</Button>
+                    <Col lg={1} className='mb-3 text-end'>
+                        {order.hide ? (
+                            <Button
+                                variant='outline-primary'
+                                type='button'
+                                style={{fontSize: 12}}
+                                className='p-1'
+                                onClick={() => this.setState(({data}) => data.order.hide = false)}
+                            >Ручной ввод заказа</Button>
+                        ) : (
+                            <Button
+                                variant='outline-primary'
+                                type='button'
+                                style={{fontSize: 12}}
+                                className='p-1'
+                                onClick={() => this.setState(({data}) => data.order.hide = true)}
+                            >Скрыть поле</Button>
+                        )}
                     </Col>
                 </Row>
 

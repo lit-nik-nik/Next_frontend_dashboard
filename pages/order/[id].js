@@ -87,52 +87,40 @@ class Order extends Component {
         if (this.props.order) this.setState({order: this.props.order})
         if (this.props.image) this.setState({image: this.props.image})
 
-        if (this.props.error) {
-            if (JSON.parse(this.props.error).code === "ECONNREFUSED") {
-                this.setState(({error}) => {
-                    return (
-                        error.view = true,
-                        error.message =  'Ошибка подключения к серверу. Попробуйте позже'
-                    )
-                })
-            }
-        }
+        this.renderError()
 
         if(this.state.order) this.filterBodyHeader()
     }
 
-    componentDidUpdate(prevProps, prevState, snapshot) {
+    async componentDidUpdate(prevProps, prevState, snapshot) {
         if (this.props !== prevProps) {
             if (this.props.order) this.setState({order: this.props.order})
+            else this.setState({order: null})
+
             if (this.props.image) this.setState({image: this.props.image})
+            else this.setState({image: null})
+
+            if (this.props.error) this.renderError()
         }
     }
 
-    getOrder = async () => {
-        let order, error
-
-        await getOrder(query.id)
-            .then(res  =>  order = res.data.order)
-            .catch(err => error = err.response)
-
-        const image = await getImageOrder(query.id)
-
-        if (order) {
-            data = {
-                error: null,
-                order: order,
-                image: image
+    renderError = () => {
+        if (this.props.error) {
+            if (this.props.error.code === "ECONNREFUSED") {
+                this.setState(({error}) => {
+                    return (
+                        error.view = true,
+                            error.message =  'Ошибка подключения к серверу. Попробуйте позже'
+                    )
+                })
+            } else {
+                this.setState(({error}) => {
+                    return (
+                        error.view = true,
+                            error.message = this.props.error
+                    )
+                })
             }
-        } else if (error) {
-            data = {
-                order: null,
-                error: error,
-                image: image
-            }
-        }
-
-        return {
-            props: { data }
         }
     }
 
@@ -284,12 +272,14 @@ class Order extends Component {
     }
 
     render () {
-        console.log(this.props.router)
-
         const {order, image, error} = this.state
 
+        let header, body, plans
+
         if (order) {
-            const {header, body, plans} = order
+            header = order.header
+            body = order.body
+            plans = order.plans
         }
 
         return (
@@ -354,11 +344,14 @@ export async function getServerSideProps({query}) {
 
     await getOrder(query.id)
         .then(res  =>  order = res.data.order)
-        .catch(err => error = JSON.stringify(err))
+        .catch(err => {
+            if (err.response) error = err.response.data.message
+            else error = err.code
+        })
 
     await getImageOrder(query.id)
         .then(res => image = res)
-        .catch(err => console.log(JSON.stringify(err)))
+        .catch(err => err)
 
     if (order) {
         return {

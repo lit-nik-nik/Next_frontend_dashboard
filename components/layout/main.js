@@ -5,7 +5,6 @@ import Router from "next/router";
 import {Component} from "react";
 import Head from "next/head";
 import NavbarMini from "../navbar-mini";
-import ModalError from "../../modules/modals/modal-error";
 
 export class MainLyout extends Component {
 
@@ -86,8 +85,6 @@ export class MainLyout extends Component {
         } else {
             return (<></>)
         }
-
-
     }
 
 }

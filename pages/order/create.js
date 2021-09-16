@@ -301,8 +301,6 @@ class CreateOrder extends Component {
         body.fields.map((field, i) => {
             if (field.list) this.setState(({body}) =>  body.fields[i].list.data = ['', ...lists[arr2]])
         })
-
-
     }
 
     changeOrderValue = (id, value) => {

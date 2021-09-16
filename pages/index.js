@@ -1,4 +1,4 @@
-import { Col, Container, Row } from "react-bootstrap"
+import { Col, Container, Row, Button } from "react-bootstrap"
 import { MainLyout } from '../components/layout/main'
 import {withRouter} from "next/router";
 import {Bar} from 'react-chartjs-2';
@@ -56,11 +56,16 @@ class Home extends Component {
                 ],
                 borderWidth: 1
             }]
-        }
+        },
+        params: `scrollbars=no,resizable=no,status=no,location=no,toolbar=no,menubar=no,width=0,height=0,left=-1000,top=-1000`
     }
 
     componentDidMount() {
         this.setState({link: this.props.router.pathname})
+    }
+
+    openPopup = () => {
+        open('http://192.168.42.11:3000/', 'test', this.state.params);
     }
 
     render() {
@@ -69,7 +74,7 @@ class Home extends Component {
         return (
             <MainLyout title='Панель управления' link={link}>
                 <Container fluid>
-                    <Row className='mb-3' className='text-center'>
+                    <Row className='mb-3 text-center'>
                         <Col lg={12}>
                             <h2>Панель управления</h2>
                             <hr/>
@@ -80,7 +85,10 @@ class Home extends Component {
                         </Col>
                         <Col lg={6}>
                             <div className='shadow rounded m-2'>
-                                2
+                                <Button
+                                    type='button'
+                                    onClick={() => this.openPopup()}
+                                >Open Popup</Button>
                             </div>
                         </Col>
                         <Col lg={3}>

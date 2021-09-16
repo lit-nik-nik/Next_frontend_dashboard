@@ -1,31 +1,15 @@
 import {Component} from "react";
 import Link from "next/link";
+import {globalState} from '../data/globalState'
 
 export default class Navbar extends Component {
 
     state = {
-        menu: [
-            {
-                label: 'Панель управления',
-                link: '/',
-                icon: 'bi-house-door-fill'
-            },
-            {
-                label: 'Журнал заказов',
-                link: '/orders/1',
-                icon: 'bi-table'
-            },
-            {
-                label: 'Прием-передача заказа',
-                link: '/at-order',
-                icon: 'bi-grid'
-            },
-            {
-                label: 'Добавить заказ',
-                link: '/order/create',
-                icon: 'bi-plus-circle-fill'
-            }
-        ]
+        menu: []
+    }
+
+    componentDidMount() {
+        this.setState({menu: globalState.menu})
     }
 
     createMenu = () => {

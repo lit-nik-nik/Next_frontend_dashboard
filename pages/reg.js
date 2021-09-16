@@ -8,6 +8,8 @@ import Head from "next/head";
 import {regUser} from "../services/reg/post";
 import Router from "next/router";
 import ModalWindow from "../modules/modals/modal";
+import Image from "next/image";
+import logo from "../public/logo.png";
 
 export default class Reg extends Component {
 
@@ -28,7 +30,7 @@ export default class Reg extends Component {
                 data: [
                     'Мужской',
                     'Женский',
-                    'Средний'
+                    'Иной'
                 ],
                 value: '',
                 compare: false
@@ -138,7 +140,7 @@ export default class Reg extends Component {
     renderLabel = (label, value) => {
         if(value) {
             return (
-                <Form.Label column lg='2' className='text-muted' style={{fontSize: 12}}>
+                <Form.Label column lg='2' className='text-white' style={{fontSize: 12}}>
                     {label}
                 </Form.Label>
             )
@@ -328,15 +330,20 @@ export default class Reg extends Component {
                 <Row>
                     <Col lg={12}>
                         <div className={style.authBody}>
-                            <main className={`form-signin ${style.formSign}`}>
+                            <main className={`form-signin bg-dark ${style.formSign}`}>
+                                <Row>
+                                    <Col className='text-center'>
+                                        <Image src={logo} alt="Массив-Юг" />
+                                    </Col>
+                                </Row>
                                 <Form onSubmit={e => this.formSubmit(e)} autoComplete="off">
-                                    <h1 className="h3 mb-3 fw-normal text-center">Зарегистрируйся</h1>
+                                    <h1 className="h3 mb-3 fw-normal text-white text-center">Зарегистрируйся</h1>
 
                                     {this.renderInput(inputs)}
 
                                     <Col className='text-end mb-3'>
                                         <Link href='/auth'>
-                                            <a>
+                                            <a className='text-decoration-none text-white'>
                                                 Я вспомнил свою учетку
                                             </a>
                                         </Link>

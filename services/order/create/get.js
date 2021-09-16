@@ -1,13 +1,10 @@
 import axios from "axios";
+import {myOptions} from "../../settings";
 
 const API_URI = process.env.API_DB_URI
 
 export const getListsOrder = async (token) => {
-    const options = {
-        headers: {
-            'Authorization': token
-        }
-    }
+    const options = myOptions(token)
 
     let listOrder = {},
         error
