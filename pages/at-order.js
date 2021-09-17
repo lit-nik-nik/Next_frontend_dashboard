@@ -10,7 +10,6 @@ import {getBarcodes} from "../services/at-order/get";
 import {postAtOrders} from "../services/at-order/post";
 import ModalError from "../modules/modals/modal-error";
 import ModalWindow from "../modules/modals/modal";
-import {log10} from "chart.js/helpers";
 
 class AccTransOrder extends Component {
 
@@ -55,8 +54,8 @@ class AccTransOrder extends Component {
                 tzoffset: new Date().getTimezoneOffset() * 60000,
                 label: 'Дата',
                 id: 'data',
-                value: null,
-                isoValue: null,
+                value: '',
+                isoValue: '',
                 disabled: true,
                 hide: true,
                 update: null
@@ -374,7 +373,7 @@ class AccTransOrder extends Component {
     }
 
     // очистка данных сохраненных в вводе
-    clearValue = (area) => {
+    clearValue = async (area) => {
         if (area === 'transfer') {
             this.setState(({data, hint}) => {
                 return (
@@ -425,7 +424,7 @@ class AccTransOrder extends Component {
 
         if (area === 'all') {
             this.setState({orders: []})
-            this.setState(({data}) => {
+            await this.setState(({data}) => {
                 return (
                     data.transfer.value = '',
                     data.transfer.name= '',
@@ -437,9 +436,12 @@ class AccTransOrder extends Component {
                     data.order.idOrder = '',
                     data.order.statusOrder = '',
                     data.order.value = '',
-                    data.order.disabled = true
+                    data.order.disabled = true,
+                    data.date.value = '',
+                    data.date.isoValue = ''
                 )
             })
+            this.handlesDate()
             this.addHint(1)
         }
     }
@@ -679,7 +681,7 @@ class AccTransOrder extends Component {
                     </Col>
                     <Col lg={3} className={`mb-3`}>
                         <div>
-                            <InputGroup>
+                            <InputGroup className={`${order.hide ? 'hide-input' : ''}`}>
                                 <InputGroup.Text className='text-end d-block' style={{width: `35%`, whiteSpace: 'normal'}}>{order.label}</InputGroup.Text>
                                 <Form.Control
                                     type='number'
@@ -688,7 +690,7 @@ class AccTransOrder extends Component {
                                     onBlur={() => !order.disabled || this.state.orderChange.view || !date.disabled ? null : this.orderInput.current.focus()}
                                     autoFocus
                                     value={order.value}
-                                    className={`border rounded-0 ${order.hide ? 'hide-input' : ''}`}
+                                    className={`border rounded-0`}
                                     readOnly={order.disabled}
                                     onChange={(e) => this.onChangeData('order', e.target.value)}
                                     onKeyPress={e => {

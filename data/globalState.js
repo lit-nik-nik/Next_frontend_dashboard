@@ -11,6 +11,11 @@ export const globalState = {
             icon: 'bi-table'
         },
         {
+            label: 'Журнал сборки',
+            link: '/journal/1',
+            icon: 'bi-table'
+        },
+        {
             label: 'Прием-передача заказа',
             link: '/at-order',
             icon: 'bi-grid'
@@ -19,6 +24,32 @@ export const globalState = {
             label: 'Добавить заказ',
             link: '/order/create',
             icon: 'bi-plus-circle-fill'
+        }
+    ],
+    headersTables: [
+        {
+            label: 'NUMBER',
+            name: '№ п/п'
+        },
+        {
+            label: 'ORDER_NAME',
+            name: 'Наименование'
+        },
+        {
+            label: 'PLAN_DATE',
+            name: 'Планируемая дата'
+        },
+        {
+            label: 'STATUS_NAME',
+            name: 'Статус'
+        },
+        {
+            label: 'ORDER_SQUARE',
+            name: 'Площадь сборки'
+        },
+        {
+            label: 'COMMENT_PLAN',
+            name: 'Комментарий'
         }
     ]
 }
