@@ -10,7 +10,7 @@ export default class NavbarMini extends Component {
     }
 
     componentDidMount() {
-        this.setState({menu: globalState.menu})
+        if(this.props.menu) this.setState({menu: this.props.menu})
     }
 
     renderTooltip = (item, props) => (

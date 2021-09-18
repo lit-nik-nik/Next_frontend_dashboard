@@ -1,25 +1,30 @@
 import { Container, Col, Row } from "react-bootstrap";
 import Header from "../header";
 import Navbar from "../navbar";
-import Router from "next/router";
 import {Component} from "react";
 import Head from "next/head";
 import NavbarMini from "../navbar-mini";
+import {globalState} from "../../data/globalState";
+import {getJournals} from "../../services/journals/get";
+import exitApp from "../../modules/exit";
 
 export class MainLyout extends Component {
 
     state = {
-        check: '',
+        token: '',
         collapse: false,
-        screenMode: null
+        screenMode: null,
+        menu: []
     }
 
-    componentDidMount() {
-        this.setState({check: localStorage.getItem('token')})
+    async componentDidMount() {
+        await this.setState({token: localStorage.getItem('token')})
 
         if (!localStorage.getItem('token')) {
-            Router.push('/auth')
+            exitApp()
         }
+
+        this.addMenu()
 
         if (localStorage.getItem('collapse')) {
             this.setState({collapse: localStorage.getItem('collapse')})
@@ -51,40 +56,69 @@ export class MainLyout extends Component {
         }
     }
 
-    render() {
+    addMenu = async () => {
+        const {token} = this.state
+        let journals
 
-        const {check, collapse, screenMode} = this.state
+        this.setState({menu: globalState.menu})
+
+        await getJournals(token)
+            .then(res => journals = res.data.journals)
+            .catch(err => {
+                this.setState(({error}) => {
+                    return (
+                        error.view = true,
+                        error.message = err.response.data.message
+                    )
+                })
+
+                exitApp()
+            })
+
+        if (journals) journals.map(item => {
+            let objMenu = {
+                label: item.name,
+                link: `/journal/${item.id}`,
+                icon: 'bi-table'
+            }
+
+            this.setState({menu: [...this.state.menu, objMenu]})
+        })
+    }
+
+    render() {
+        const {token, collapse, screenMode, menu} = this.state
 
         const {children, title, link} = this.props
 
+        return (
+            <>
+                {token ? (
+                    <>
+                        <Head>
+                            <title>{title} - Массив-Юг</title>
+                        </Head>
 
-        if (check) {
-            return (
-                <>
-                    <Head>
-                        <title>{title} - Массив-Юг</title>
-                    </Head>
+                        {screenMode === 'desktop' ? (
+                            <Header onCollapseNav={this.onCollapseNav} />
+                        ) : null}
 
-                    {screenMode === 'desktop' ? (
-                        <Header onCollapseNav={this.onCollapseNav} />
-                    ) : null}
+                        <Container fluid className='p-0'>
+                            <Row>
+                                <Col lg={collapse ? 1 : 2} className='nav-menu'>
+                                    {collapse ? <NavbarMini link={link} menu={menu} /> : <Navbar link={link} menu={menu} />}
+                                </Col>
 
-                    <Container fluid className='p-0'>
-                        <Row>
-                            <Col lg={collapse ? 1 : 2} className='nav-menu'>
-                                {collapse ? <NavbarMini link={link}/> : <Navbar link={link}/>}
-                            </Col>
-
-                            <Col lg={!collapse ? 10 : 11} className='py-3 px-4'>
-                                {children}
-                            </Col>
-                        </Row>
-                    </Container>
-                </>
-            )
-        } else {
-            return (<></>)
-        }
+                                <Col lg={!collapse ? 10 : 11} className='py-3 px-4'>
+                                    {children}
+                                </Col>
+                            </Row>
+                        </Container>
+                    </>
+                ) : (
+                    <></>
+                )}
+            </>
+        )
     }
-
 }

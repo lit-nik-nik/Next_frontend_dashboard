@@ -68,11 +68,16 @@ export default class Tbody extends Component {
                         {new Date(order[param]).toLocaleString()}
                     </td>
                 )
+                else if (param === 'ORDER_SQUARE') cell.push(
+                    <td className='align-middle text-center' style={{width: 'auto'}} key={index}>
+                        {Math.round(order[param] * 1000) / 1000}
+                    </td>
+                )
                 else cell.push(
-                        <td className='align-middle text-center' style={{width: 'auto'}} key={index}>
-                            {order[param]}
-                        </td>
-                    )
+                    <td className='align-middle text-center' style={{width: 'auto'}} key={index}>
+                        {order[param]}
+                    </td>
+                )
 
             })
 

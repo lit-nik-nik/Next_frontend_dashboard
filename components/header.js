@@ -5,6 +5,7 @@ import Router from 'next/router'
 import {useState} from "react";
 import logo from '../public/logo.png'
 import Image from "next/image";
+import exitApp from "../modules/exit";
 
 const Header = (props) => {
 
@@ -14,14 +15,6 @@ const Header = (props) => {
         e.preventDefault();
         Router.push(`/order/${value}`)
         setValue('')
-    }
-
-    const exitUser = (e) => {
-        e.preventDefault()
-        localStorage.removeItem('token')
-        localStorage.removeItem('userId')
-
-        Router.push('/auth')
     }
 
     return (
@@ -63,8 +56,9 @@ const Header = (props) => {
                         <li className="nav-item text-nowrap">
                             <Button
                                 variant='link'
+                                type='button'
                                 className="py-0 text-decoration-none text-warning"
-                                onClick={e => exitUser(e)}
+                                onClick={() => exitApp()}
                             >
                                 Выход
                             </Button>

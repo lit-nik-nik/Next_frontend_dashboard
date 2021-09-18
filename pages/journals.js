@@ -7,6 +7,7 @@ import Router, {withRouter} from "next/router";
 import ModalError from "../modules/modals/modal-error";
 import {getJournals, getOrderJournal} from "../services/journals/get";
 import {globalState} from "../data/globalState";
+import exitApp from "../modules/exit";
 
 class PageJournals extends Component {
 
@@ -51,12 +52,10 @@ class PageJournals extends Component {
 
     async componentDidMount() {
         if (localStorage.getItem('token')) await this.setState({token: localStorage.getItem('token')})
-        else this.routeAuth()
+        else exitApp()
 
         this.getListJournals()
     }
-
-    routeAuth = () => Router.push('/auth')
 
     getListJournals = async () => {
         const {token} = this.state
@@ -71,10 +70,7 @@ class PageJournals extends Component {
                     )
                 })
 
-                localStorage.removeItem('token')
-                localStorage.removeItem('userId')
-
-                setTimeout(this.routeAuth, 2000)
+                exitApp()
             })
     }
 

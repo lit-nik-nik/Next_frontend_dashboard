@@ -1,6 +1,5 @@
 import {Component} from "react";
 import Link from "next/link";
-import {globalState} from '../data/globalState'
 
 export default class Navbar extends Component {
 
@@ -9,7 +8,7 @@ export default class Navbar extends Component {
     }
 
     componentDidMount() {
-        this.setState({menu: globalState.menu})
+        if(this.props.menu) this.setState({menu: this.props.menu})
     }
 
     createMenu = () => {

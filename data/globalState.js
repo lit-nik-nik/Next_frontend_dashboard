@@ -6,16 +6,6 @@ export const globalState = {
             icon: 'bi-house-door-fill'
         },
         {
-            label: 'Журналы',
-            link: '/journals',
-            icon: 'bi-table'
-        },
-        {
-            label: 'Журнал сборки',
-            link: '/journal/1',
-            icon: 'bi-table'
-        },
-        {
             label: 'Прием-передача заказа',
             link: '/at-order',
             icon: 'bi-grid'
@@ -45,7 +35,7 @@ export const globalState = {
         },
         {
             label: 'ORDER_SQUARE',
-            name: 'Площадь сборки'
+            name: 'S сборки'
         },
         {
             label: 'COMMENT_PLAN',
