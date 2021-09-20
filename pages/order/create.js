@@ -510,7 +510,7 @@ class CreateOrder extends Component {
     render() {
         const {typeOrder, link, error} = this.state
         return (
-            <MainLyout title={`Форма создания заказа`} link={link}>
+            <MainLyout title={`Форма создания заказа`} link={link} token={this.props.token}>
                 <h2 className='text-center fw-bold mb-3'>Форма создания заказ</h2>
                 <Form onSubmit={e => {
                     e.preventDefault()

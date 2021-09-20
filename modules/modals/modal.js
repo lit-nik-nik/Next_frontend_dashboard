@@ -1,4 +1,4 @@
-import {Modal} from "react-bootstrap";
+import {Button, Modal} from "react-bootstrap";
 
 export default function ModalWindow (props) {
 
@@ -24,6 +24,16 @@ export default function ModalWindow (props) {
                     <h2 className='fw-bold'>{props.message ? `${props.message}` : null}</h2>
                     <hr/>
                     {orders[0] ? ordersDescription : null}
+
+                    {props.clearData ? (
+                        <Button
+                            variant='warning'
+                            className='my-3'
+                            onClick={() => props.clearData()}
+                        >
+                            Со списком принятых и непринятых заказов ознакомлен(а)
+                        </Button>
+                    ) : null}
                 </Modal.Body>
             </Modal>
         </>

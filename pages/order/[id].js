@@ -283,7 +283,7 @@ class Order extends Component {
         }
 
         return (
-            <MainLyout title={`Заказ № ${order ? header[0].ID : '_'}`}>
+            <MainLyout title={`Заказ № ${order ? header[0].ID : '_'}`} token={this.props.token}>
                 <Row>
                     <Col lg={2}>
                         <Button variant='outline-dark' onClick={() => this.props.router.back()}>

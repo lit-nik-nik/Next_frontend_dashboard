@@ -3,19 +3,24 @@ import '../node_modules/bootstrap-icons/font/bootstrap-icons.css';
 import NextNprogress from 'nextjs-progressbar'
 import "../styles/style.css"
 import "../styles/responsive.css"
+import Cookies from 'js-cookie'
 
 function MyApp({ Component, pageProps }) {
-  return <>
-    <NextNprogress
+    const token = Cookies.get('token'),
+        userId = Cookies.get('userId')
+
+  return (
+    <>
+      <NextNprogress
         color="#F5FF00"
         startPosition={0.3}
         stopDelayMs={200}
         height={5}
         showOnShallow={true}
-    />
-    <Component {...pageProps}/>
+      />
+      <Component {...pageProps} token={token} userId={userId}/>
     </>
-
+  )
 }
 
 export default MyApp

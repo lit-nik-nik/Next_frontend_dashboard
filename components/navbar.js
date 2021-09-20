@@ -7,8 +7,8 @@ export default class Navbar extends Component {
         menu: []
     }
 
-    componentDidMount() {
-        if(this.props.menu) this.setState({menu: this.props.menu})
+    async componentDidMount() {
+        if(this.props.menu) await this.setState({menu: this.props.menu})
     }
 
     createMenu = () => {
@@ -32,7 +32,6 @@ export default class Navbar extends Component {
     }
 
     render() {
-
         return (
             <div className={`d-flex flex-column flex-shrink-0 p-3 bg-light position-fixed col-lg-2 border-end`} style={{height: '95vh'}}>
                 <ul className="nav nav-pills flex-column mb-auto">

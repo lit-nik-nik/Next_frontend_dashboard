@@ -72,7 +72,7 @@ class Home extends Component {
         const {link, data} = this.state
 
         return (
-            <MainLyout title='Панель управления' link={link}>
+            <MainLyout title='Панель управления' link={link} token={this.props.token}>
                 <Container fluid>
                     <Row className='mb-3 text-center'>
                         <Col lg={12}>

@@ -9,6 +9,8 @@ import {getJournals, getOrderJournal} from "../../services/journals/get";
 import {globalState} from "../../data/globalState";
 import {getOrders} from "../../services/orders/get";
 import exitApp from "../../modules/exit";
+import {getUsers} from "../../services/auth/get";
+import {getTokenCookies} from "../../modules/cookie";
 
 class PageJournals extends Component {
 
@@ -52,10 +54,12 @@ class PageJournals extends Component {
     }
 
     async componentDidMount() {
-        if (localStorage.getItem('token')) await this.setState({token: localStorage.getItem('token')})
+        if (this.props.token) await this.setState({token: this.props.token})
         else exitApp()
 
-        await this.getOrderJournal(this.props.router.query.id)
+        await this.setState({orderList: this.props.data})
+
+        // await this.getOrderJournal(this.props.router.query.id)
 
         if (this.state.orderList) {
             this.setState({disabledFilter: false})
@@ -64,22 +68,32 @@ class PageJournals extends Component {
         }
     }
 
-    getOrderJournal = async (id) => {
-        const {token} = this.state
+    componentWillUnmount() {
 
-        await getOrderJournal(id, token)
-            .then(res => this.setState({orderList: res.data.journal}))
-            .catch(err => {
-                this.setState(({error}) => {
-                    return (
-                        error.view = true,
-                        error.message = err.response.data.message
-                    )
-                })
-
-                exitApp()
-            })
     }
+
+    // getOrderJournal = async (id) => {
+    //     const {token} = this.state
+    //
+    //     await getOrderJournal(id, token)
+    //         .then(res => this.setState({orderList: res.data.journal}))
+    //         .catch(err => {
+    //             this.setState(({error}) => {
+    //                 return (
+    //                     error.view = true,
+    //                     error.message = err.response.data.message
+    //                 )
+    //             })
+    //
+    //             if (err.response.data.errors) {
+    //                 if (
+    //                     err.response.data.errors[0] === 'jwt expired' ||
+    //                     err.response.data.errors[0] === 'jwt must be provided' ||
+    //                     err.response.data.errors[0] === 'jwt malformed'
+    //                 ) exitApp()
+    //             }
+    //         })
+    // }
 
     filterOrder = (type) => {
         const {orderList} = this.state
@@ -143,7 +157,7 @@ class PageJournals extends Component {
         })
 
         return (
-            <MainLyout title={'Журналы'} link={link}>
+            <MainLyout title={'Журналы'} link={link} token={this.props.token}>
                 <Row>
                     <Col className='text-end mb-3'>
                         {filterButton}
@@ -191,3 +205,29 @@ class PageJournals extends Component {
 }
 
 export default withRouter(PageJournals)
+
+export async function getServerSideProps({req, query}) {
+
+    const token = getTokenCookies(req.headers.cookie)
+    const id = query.id
+
+    let data, error
+
+    await getOrderJournal(id, token)
+        .then(res => data = res.data.journal)
+        .catch(err => error = JSON.stringify(err))
+
+    if (data) {
+        return {
+            props: {
+                data
+            }
+        }
+    } else if (error) {
+        return {
+            props: {
+                error
+            }
+        }
+    }
+}

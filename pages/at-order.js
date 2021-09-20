@@ -161,6 +161,12 @@ class AccTransOrder extends Component {
         })
     }
 
+    // функция очистки формы после отправки данных
+    clearForm = () => {
+        this.setState(({submit}) => submit.data.view = false)
+        this.clearValue('all')
+    }
+
     // удаление заказа из объекта заказов
     deleteOrder = (id) => {
         const {orders} = this.state
@@ -308,17 +314,21 @@ class AccTransOrder extends Component {
             await this.setState(({data}) => data.date.value = nowDate)
         }
 
+        console.log(date.value)
+
         if (date.value > nowDate) {
             this.addError('Будущее еще не наступило')
             await this.setState(({data}) => data.date.value = nowDate)
         } else {
-            isoDate = new Date(date.value).toISOString()
-            await this.setState(({data}) => {
-                return (
-                    data.date.isoValue = isoDate,
-                    data.date.disabled = true
-                )
-            })
+            if (date.value) {
+                isoDate = new Date(date.value).toISOString()
+                await this.setState(({data}) => {
+                    return (
+                        data.date.isoValue = isoDate,
+                        data.date.disabled = true
+                    )
+                })
+            }
         }
     }
 
@@ -583,7 +593,7 @@ class AccTransOrder extends Component {
         }
 
         return (
-            <MainLyout title='Форма приема-передачи заказа' link={this.state.link}>
+            <MainLyout title='Форма приема-передачи заказа' link={this.state.link} token={this.props.token}>
                 <h2 className='text-center fw-bold mb-3'>Форма приема-передачи заказа</h2>
 
                 <Row>
@@ -775,7 +785,7 @@ class AccTransOrder extends Component {
 
                 <ModalWindow
                     show={submit.data.view}
-                    onHide={() => this.setState(({submit}) => submit.data.view = false)}
+                    clearData={this.clearForm}
                     message={submit.data.message}
                     orders={submit.data.orders}
                 />

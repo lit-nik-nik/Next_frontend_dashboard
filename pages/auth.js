@@ -1,5 +1,5 @@
 import style from '../styles/auth.module.css'
-import {Component} from "react";
+import React, {Component} from "react";
 import {Row, Col, FloatingLabel, Form, Button} from "react-bootstrap";
 import {getUsers} from "../services/auth/get";
 import {authUser} from "../services/auth/post";
@@ -11,8 +11,14 @@ import Head from "next/head";
 import logo from "../public/logo.png"
 import Image from "next/image";
 import {changeKeyboard} from "../modules/change-keyboard";
+import Cookies from 'js-cookie'
 
 export default class Auth extends Component {
+
+    constructor(props) {
+        super(props);
+        this.barcodesInput = React.createRef();
+    }
 
     state = {
         users: [''],
@@ -46,6 +52,13 @@ export default class Auth extends Component {
             this.setState({users: this.props.users})
         }
 
+        this.barcodesInput.current.focus()
+    }
+
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        const {variant} = this.state
+
+        if (variant) this.barcodesInput.current.focus()
     }
 
     clearInput = (value) => {
@@ -86,8 +99,8 @@ export default class Auth extends Component {
         await authUser(user, hash, newBarcode)
             .then(res => {
                 if (res.status === 200) {
-                    localStorage.setItem('token', res.data.token)
-                    localStorage.setItem('userId', res.data.userId)
+                    Cookies.set('token', res.data.token)
+                    Cookies.set('userId', res.data.userId)
 
                     setTimeout(redirect, 1000)
                 } else {
@@ -157,6 +170,9 @@ export default class Auth extends Component {
                     <Form.Control
                         required
                         isValid={login.barcode}
+                        ref={this.barcodesInput}
+                        onBlur={() => this.barcodesInput.current.focus()}
+                        autoFocus
                         type="password"
                         placeholder="Штрих-код"
                         value={login.barcode}

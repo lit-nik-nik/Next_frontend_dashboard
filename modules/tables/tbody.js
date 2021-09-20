@@ -52,7 +52,7 @@ export default class Tbody extends Component {
                 else if (param === 'ITM_ORDERNUM' || param === 'ORDER_NAME') cell.push(
                     <td className='align-middle text-center' style={{width: '16%'}} key={index}>
                         <Link href={`/order/${order.ID}`}>
-                            <a>
+                            <a className='text-decoration-none text-dark'>
                                 {order[param]}
                             </a>
                         </Link>

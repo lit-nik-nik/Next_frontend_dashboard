@@ -1,9 +1,10 @@
 import Router from "next/router";
+import Cookies from 'js-cookie'
 
 
 export default function exitApp () {
-    localStorage.removeItem('token')
-    localStorage.removeItem('userId')
+    Cookies.remove('token')
+    Cookies.remove('userId')
 
     Router.push('/auth')
 }

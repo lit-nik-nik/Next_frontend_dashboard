@@ -14,15 +14,17 @@ export class MainLyout extends Component {
         token: '',
         collapse: false,
         screenMode: null,
-        menu: []
+        menu: globalState.menu,
+        error: {
+            view: false,
+            message: ''
+        }
     }
 
     async componentDidMount() {
-        await this.setState({token: localStorage.getItem('token')})
+        if (this.props.token) await this.setState({token: this.props.token})
 
-        if (!localStorage.getItem('token')) {
-            exitApp()
-        }
+        if (!this.props.token) exitApp()
 
         this.addMenu()
 
@@ -37,6 +39,10 @@ export class MainLyout extends Component {
 
     componentWillUnmount() {
         window.removeEventListener('resize', this.onResize)
+    }
+
+    rerenderPage = () => {
+        this.setState({render: this.state.render + 1})
     }
 
     onResize = async () => {
@@ -60,8 +66,6 @@ export class MainLyout extends Component {
         const {token} = this.state
         let journals
 
-        this.setState({menu: globalState.menu})
-
         await getJournals(token)
             .then(res => journals = res.data.journals)
             .catch(err => {
@@ -72,7 +76,13 @@ export class MainLyout extends Component {
                     )
                 })
 
-                exitApp()
+                if (err.response.data.errors) {
+                    if (
+                        err.response.data.errors[0] === 'jwt expired' ||
+                        err.response.data.errors[0] === 'jwt must be provided' ||
+                        err.response.data.errors[0] === 'jwt malformed'
+                    ) exitApp()
+                }
             })
 
         if (journals) journals.map(item => {
