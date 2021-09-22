@@ -6,8 +6,7 @@ const API_URI = process.env.API_DB_URI
 export const getListsOrder = async (token) => {
     const options = myOptions(token)
 
-    let listOrder = {},
-        error
+    let listOrder = {}
 
     await axios.get(`${API_URI}/lists`, options)
         .then(res  => {
@@ -15,8 +14,6 @@ export const getListsOrder = async (token) => {
                 if (key !== 'employers') listOrder[key] = res.data.lists[key]
             }
         })
-        .catch(err => error = err)
 
-    if (error) return error
-    else return listOrder
+    return listOrder
 }

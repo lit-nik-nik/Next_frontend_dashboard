@@ -1,5 +1,5 @@
 import { Col, Container, Row, Button } from "react-bootstrap"
-import { MainLyout } from '../components/layout/main'
+import { MainLayout } from '../components/layout/main'
 import {withRouter} from "next/router";
 import {Bar} from 'react-chartjs-2';
 import {Component} from "react";
@@ -72,7 +72,7 @@ class Home extends Component {
         const {link, data} = this.state
 
         return (
-            <MainLyout title='Панель управления' link={link} token={this.props.token}>
+            <MainLayout title='Панель управления' link={link} token={this.props.token}>
                 <Container fluid>
                     <Row className='mb-3 text-center'>
                         <Col lg={12}>
@@ -98,7 +98,7 @@ class Home extends Component {
                         </Col>
                     </Row>
                 </Container>
-            </MainLyout>
+            </MainLayout>
         )
     }
 }

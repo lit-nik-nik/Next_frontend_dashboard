@@ -1,16 +1,10 @@
 import {Component} from "react";
 import Link from "next/link";
 import {OverlayTrigger, Tooltip} from "react-bootstrap";
-import {globalState} from "../data/globalState";
 
 export default class NavbarMini extends Component {
 
-    state = {
-        menu: []
-    }
-
     async componentDidMount() {
-        if(this.props.menu) await this.setState({menu: this.props.menu})
     }
 
     renderTooltip = (item, props) => (
@@ -21,11 +15,11 @@ export default class NavbarMini extends Component {
 
 
     createMenu = () => {
-        let menu = []
-        const {link} = this.props
+        let newMenu = []
+        const {link, menu} = this.props
 
-        this.state.menu.map((item, i) => {
-            menu.push(
+        menu.map((item, i) => {
+            newMenu.push(
                 <OverlayTrigger
                     placement='right'
                     delay={{ show: 250, hide: 400 }}
@@ -35,7 +29,7 @@ export default class NavbarMini extends Component {
                     <li className="nav-item">
                         <Link href={item.link}>
                             <a
-                                className={`nav-link link-dark m-1 py-2 px-3 ${link === item.link ? 'active' : ''}`}
+                                className={`nav-link link-dark m-1 py-2 px-3 ${link === item.link ? 'active bg-dark' : ''}`}
                                 style={{fontSize: 18}}
                             >
                                 <i className={`bi ${item.icon}`} />
@@ -46,7 +40,7 @@ export default class NavbarMini extends Component {
             )
         })
 
-        return menu
+        return newMenu
     }
 
     render() {

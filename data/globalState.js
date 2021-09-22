@@ -14,11 +14,6 @@ export const globalState = {
             label: 'Добавить заказ',
             link: '/order/create',
             icon: 'bi-plus-circle-fill'
-        },
-        {
-            label: 'Журнал сборки',
-            link: '/journal/1',
-            icon: 'bi-table'
         }
     ],
     headersTables: [

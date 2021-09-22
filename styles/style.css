@@ -2,3 +2,12 @@
     position: fixed !important;
     left: -2500px;
 }
+
+.bg-image-404 {
+    background: url("../public/404.jpg") no-repeat;
+    background-size: cover;
+}
+
+.error div {
+    height: 50px !important;
+}

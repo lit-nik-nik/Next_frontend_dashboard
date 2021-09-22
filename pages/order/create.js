@@ -1,9 +1,9 @@
-import {MainLyout} from "../../components/layout/main";
+import {MainLayout} from "../../components/layout/main";
 import {Form, Row, Col, Button, InputGroup} from 'react-bootstrap'
 import {Component} from "react";
 import {getListsOrder} from "../../services/order/create/get";
 import {withRouter} from "next/router";
-import ModalError from "../../modules/modals/modal-error";
+import {getTokenCookies} from "../../modules/cookie";
 
 class CreateOrder extends Component {
 
@@ -219,35 +219,13 @@ class CreateOrder extends Component {
             ]
         },
         indexData: 0,
-        error: {
-            view: false,
-            message: ''
-        },
-        link: this.props.router.pathname
+        link: this.props.router.asPath
     }
 
     async componentDidMount() {
-        const token = localStorage.getItem('token')
-        let lists = []
-
         this.viewHeader(this.state.typeOrder.value)
 
-        await getListsOrder(token)
-            .then(res => {
-                if (res.message === 'Network Error') {
-                    this.setState(({error}) => {
-                        return (
-                            error.view = true,
-                            error.message = 'Ошибка подключения к серверу. Попробуйте позже'
-                        )
-                    })
-                } else if (res) {
-                    return lists = res
-                }
-            })
-            .catch(err => console.log("err >>", err))
-
-        if (lists.clients) this.addList(lists)
+        if (this.props.lists) this.addList(this.props.lists)
     }
 
     viewHeader = (value) => {
@@ -508,9 +486,10 @@ class CreateOrder extends Component {
     }
 
     render() {
-        const {typeOrder, link, error} = this.state
+        const {typeOrder, link} = this.state
+
         return (
-            <MainLyout title={`Форма создания заказа`} link={link} token={this.props.token}>
+            <MainLayout title={`Форма создания заказа`} link={link} token={this.props.token} error={this.props.error}>
                 <h2 className='text-center fw-bold mb-3'>Форма создания заказ</h2>
                 <Form onSubmit={e => {
                     e.preventDefault()
@@ -552,15 +531,37 @@ class CreateOrder extends Component {
                         </Col>
                     </Row>
                 </Form>
-
-                <ModalError
-                    show={error.view}
-                    onHide={() => this.setState(({error}) => error.view = false)}
-                    error={error.message}
-                />
-            </MainLyout>
+            </MainLayout>
         )
     }
 }
 
 export default withRouter(CreateOrder)
+
+export async function getServerSideProps({req}) {
+
+    const token = getTokenCookies(req.headers.cookie)
+
+    let lists, error
+
+    await getListsOrder(token)
+        .then(res => lists = res)
+        .catch(err => error = err.response.data)
+
+
+    if (lists) {
+        return {
+            props: {
+                lists
+            }
+        }
+    }
+
+    if (error) {
+        return {
+            props: {
+                error
+            }
+        }
+    }
+}

@@ -3,32 +3,29 @@ import Link from "next/link";
 
 export default class Navbar extends Component {
 
-    state = {
-        menu: []
-    }
-
     async componentDidMount() {
-        if(this.props.menu) await this.setState({menu: this.props.menu})
     }
 
     createMenu = () => {
-        let menu = []
-        const {link} = this.props
+        const {link, menu} = this.props
+        let newMenu = []
 
-        this.state.menu.map((item, i) => {
-            menu.push(
-                <li className="nav-item" key={i}>
-                    <Link href={item.link}>
-                        <a className={`nav-link link-dark my-1 ${link === item.link ? 'active' : ''}`} style={{fontSize: 18}}>
-                            <i className={`me-2 bi ${item.icon}`} />
-                            {item.label}
-                        </a>
-                    </Link>
-                </li>
-            )
-        })
+        if (menu) {
+            menu.map((item, i) => {
+                newMenu.push(
+                    <li className="nav-item" key={i}>
+                        <Link href={item.link}>
+                            <a className={`nav-link link-dark my-1 ${link === item.link ? 'active bg-dark' : ''}`} style={{fontSize: 18}}>
+                                <i className={`me-2 bi ${item.icon}`} />
+                                {item.label}
+                            </a>
+                        </Link>
+                    </li>
+                )
+            })
+        }
 
-        return menu
+        return newMenu
     }
 
     render() {

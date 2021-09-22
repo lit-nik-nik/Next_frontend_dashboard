@@ -1,5 +1,5 @@
 import {Button, Col, Alert, Form, InputGroup, Row, Table, Modal} from "react-bootstrap"
-import { MainLyout } from '../components/layout/main'
+import { MainLayout } from '../components/layout/main'
 import React, {Component} from "react";
 import Thead from "../modules/tables/thead";
 import Tbody from "../modules/tables/tbody";
@@ -86,25 +86,12 @@ class AccTransOrder extends Component {
                 orders: []
             },
             error: {
-                view: false,
-                message: null
+                data: null
             }
-        },
-        test: null
+        }
     }
 
     async componentDidMount() {
-        if (this.props.error) {
-            if (JSON.parse(this.props.error).code === "ECONNREFUSED") {
-                this.setState(({error}) => {
-                    return (
-                        error.view = true,
-                        error.message =  'Ошибка подключения к серверу. Попробуйте позже'
-                    )
-                })
-            }
-        }
-
         this.addHint(1)
 
         this.handlesDate()
@@ -314,8 +301,6 @@ class AccTransOrder extends Component {
             await this.setState(({data}) => data.date.value = nowDate)
         }
 
-        console.log(date.value)
-
         if (date.value > nowDate) {
             this.addError('Будущее еще не наступило')
             await this.setState(({data}) => data.date.value = nowDate)
@@ -360,8 +345,6 @@ class AccTransOrder extends Component {
             )
         })
 
-        console.log(form)
-
         await postAtOrders(form)
             .then(res => {
                 this.setState(({submit}) => {
@@ -375,8 +358,7 @@ class AccTransOrder extends Component {
             .catch(err => {
                 this.setState(({submit}) => {
                     return (
-                        submit.error.view = true,
-                        submit.error.message = err.response.data.errors
+                        submit.error.data = err.response.data
                     )
                 })
             })
@@ -593,7 +575,11 @@ class AccTransOrder extends Component {
         }
 
         return (
-            <MainLyout title='Форма приема-передачи заказа' link={this.state.link} token={this.props.token}>
+            <MainLayout
+                title='Форма приема-передачи заказа'
+                link={this.state.link}
+                token={this.props.token}
+                error={submit.error.data ? submit.error.data : this.props.error}>
                 <h2 className='text-center fw-bold mb-3'>Форма приема-передачи заказа</h2>
 
                 <Row>
@@ -789,19 +775,7 @@ class AccTransOrder extends Component {
                     message={submit.data.message}
                     orders={submit.data.orders}
                 />
-
-                <ModalError
-                    show={submit.error.view}
-                    onHide={() => this.setState(({submit}) => submit.error.view = false)}
-                    error={submit.error.message}
-                />
-
-                <ModalError
-                    show={error.view}
-                    onHide={() => this.setState(({error}) => error.view = false)}
-                    error={error.message}
-                />
-            </MainLyout>
+            </MainLayout>
         )
     }
 }
@@ -814,7 +788,7 @@ export async function getServerSideProps() {
 
     await getBarcodes()
         .then(res  => barcodes = res.data.barcodes)
-        .catch(err => error = JSON.stringify(err))
+        .catch(err => error = err.response.data)
 
     if (barcodes) {
         return {

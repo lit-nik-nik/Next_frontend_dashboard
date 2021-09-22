@@ -1,11 +1,10 @@
 import {Button, Col, Row, InputGroup, FormControl, Table, ListGroup} from "react-bootstrap"
 import {getImageOrder, getOrder} from "../../services/order/get"
-import { MainLyout } from "../../components/layout/main"
+import { MainLayout } from "../../components/layout/main"
 import { withRouter } from 'next/router'
 import {Component } from 'react'
 import Thead from "../../modules/tables/thead";
 import ModalImage from "../../modules/modals/modal-images";
-import ModalError from "../../modules/modals/modal-error";
 
 class Order extends Component {
 
@@ -77,17 +76,11 @@ class Order extends Component {
         ],
         modalView: false,
         idPage: null,
-        error: {
-            view: false,
-            message: ''
-        }
     }
 
-    componentDidMount() {
-        if (this.props.order) this.setState({order: this.props.order})
-        if (this.props.image) this.setState({image: this.props.image})
-
-        this.renderError()
+    async componentDidMount() {
+        if (this.props.order) await this.setState({order: this.props.order})
+        if (this.props.image) await this.setState({image: this.props.image})
 
         if(this.state.order) this.filterBodyHeader()
     }
@@ -99,32 +92,10 @@ class Order extends Component {
 
             if (this.props.image) this.setState({image: this.props.image})
             else this.setState({image: null})
-
-            if (this.props.error) this.renderError()
         }
     }
 
-    renderError = () => {
-        if (this.props.error) {
-            if (this.props.error.code === "ECONNREFUSED") {
-                this.setState(({error}) => {
-                    return (
-                        error.view = true,
-                            error.message =  'Ошибка подключения к серверу. Попробуйте позже'
-                    )
-                })
-            } else {
-                this.setState(({error}) => {
-                    return (
-                        error.view = true,
-                            error.message = this.props.error
-                    )
-                })
-            }
-        }
-    }
-
-    filterBodyHeader = () => {
+    filterBodyHeader = async () => {
         let bodyHeader = ['№']
 
         for (let key in this.state.order.body[0]) {
@@ -138,7 +109,7 @@ class Order extends Component {
             if (key === 'CALC_COMMENT') bodyHeader.push('Примечание')
         }
 
-        this.setState({bodyTitle: bodyHeader})
+        await this.setState({bodyTitle: bodyHeader})
     }
 
     headerRender = (obj) => {
@@ -230,14 +201,14 @@ class Order extends Component {
 
         obj.map((item, i) => {
             bodyLines.push(
-                <tr key={i}>
+                <tr key={i} className='table-light'>
                     {this.addLineBody(item, i+1)}
                 </tr>
             )
         })
 
         return (
-            <Table responsive hover size='sm' className='small text-center' style={{fontSize: 20}}>
+            <Table variant={'dark'} responsive hover size='sm' className='small text-center' style={{fontSize: 20}}>
                 <Thead title={this.state.bodyTitle} />
                 <tbody>
                     {bodyLines}
@@ -272,7 +243,7 @@ class Order extends Component {
     }
 
     render () {
-        const {order, image, error} = this.state
+        const {order, image} = this.state
 
         let header, body, plans
 
@@ -283,7 +254,7 @@ class Order extends Component {
         }
 
         return (
-            <MainLyout title={`Заказ № ${order ? header[0].ID : '_'}`} token={this.props.token}>
+            <MainLayout title={`Заказ № ${order ? header[0].ID : '_'}`} token={this.props.token} error={this.props.error}>
                 <Row>
                     <Col lg={2}>
                         <Button variant='outline-dark' onClick={() => this.props.router.back()}>
@@ -326,13 +297,7 @@ class Order extends Component {
                     onHide={()=> this.setState({modalView: false})}
                     data={this.state.image}
                 />
-
-                <ModalError
-                    show={error.view}
-                    onHide={()=> this.setState(({error}) => error.view = false)}
-                    error={error.message}
-                />
-            </MainLyout>
+            </MainLayout>
         )
     }
 }
@@ -345,7 +310,7 @@ export async function getServerSideProps({query}) {
     await getOrder(query.id)
         .then(res  =>  order = res.data.order)
         .catch(err => {
-            if (err.response) error = err.response.data.message
+            if (err.response) error = err.response.data
             else error = err.code
         })
 

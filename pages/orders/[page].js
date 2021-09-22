@@ -3,7 +3,7 @@ import {Row, Col, Table} from "react-bootstrap";
 import PaginationTable from "../../modules/pagination";
 import Thead from "../../modules/tables/thead";
 import Tbody from "../../modules/tables/tbody";
-import { MainLyout } from "../../components/layout/main";
+import { MainLayout } from "../../components/layout/main";
 import {getOrders} from "../../services/orders/get";
 import {withRouter} from "next/router";
 import ModalError from "../../modules/modals/modal-error";
@@ -120,7 +120,7 @@ class PageOrder extends Component {
         const {countOrders, orders, pagesCount, lastPage, activePage, tableHeader, tableParams, link, error} = this.state
 
         return (
-            <MainLyout title={`Журнал упаковки - страница ${activePage}`} link={link} error={error} token={this.props.token}>
+            <MainLayout title={`Журнал упаковки - страница ${activePage}`} link={link} error={error} token={this.props.token}>
                 <Row className=''>
                     <Col>
                         <p className='text-muted m-0'><small>Всего заказов - {countOrders}</small></p>
@@ -149,13 +149,7 @@ class PageOrder extends Component {
                         <p className='text-muted text-center m-0'><small>страница № {activePage}</small></p>
                     </Col>
                 </Row>
-
-                <ModalError
-                    show={error.view}
-                    onHide={() => this.setState(({error}) => error.view = false)}
-                    error={error.message}
-                />
-            </MainLyout>
+            </MainLayout>
         )
     }
 }

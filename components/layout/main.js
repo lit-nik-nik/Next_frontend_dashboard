@@ -7,23 +7,20 @@ import NavbarMini from "../navbar-mini";
 import {globalState} from "../../data/globalState";
 import {getJournals} from "../../services/journals/get";
 import exitApp from "../../modules/exit";
+import CustomError from "../../modules/error";
 
-export class MainLyout extends Component {
+export class MainLayout extends Component {
 
     state = {
-        token: '',
         collapse: false,
         screenMode: null,
         menu: globalState.menu,
-        error: {
-            view: false,
-            message: ''
-        }
+        render: 0,
+        errorView: false,
+        errorData: null
     }
 
     async componentDidMount() {
-        if (this.props.token) await this.setState({token: this.props.token})
-
         if (!this.props.token) exitApp()
 
         this.addMenu()
@@ -37,12 +34,11 @@ export class MainLyout extends Component {
         window.addEventListener('resize', this.onResize)
     }
 
-    componentWillUnmount() {
-        window.removeEventListener('resize', this.onResize)
+    componentDidUpdate(prevProps, prevState, snapshot) {
     }
 
-    rerenderPage = () => {
-        this.setState({render: this.state.render + 1})
+    componentWillUnmount() {
+        window.removeEventListener('resize', this.onResize)
     }
 
     onResize = async () => {
@@ -63,26 +59,14 @@ export class MainLyout extends Component {
     }
 
     addMenu = async () => {
-        const {token} = this.state
-        let journals
+        const {token} = this.props
+        let journals, menu = [...globalState.menu]
 
         await getJournals(token)
             .then(res => journals = res.data.journals)
             .catch(err => {
-                this.setState(({error}) => {
-                    return (
-                        error.view = true,
-                        error.message = err.response.data.message
-                    )
-                })
-
-                if (err.response.data.errors) {
-                    if (
-                        err.response.data.errors[0] === 'jwt expired' ||
-                        err.response.data.errors[0] === 'jwt must be provided' ||
-                        err.response.data.errors[0] === 'jwt malformed'
-                    ) exitApp()
-                }
+                this.setState({errorView: true})
+                this.setState({errorData: err.response.data})
             })
 
         if (journals) journals.map(item => {
@@ -92,14 +76,16 @@ export class MainLyout extends Component {
                 icon: 'bi-table'
             }
 
-            this.setState({menu: [...this.state.menu, objMenu]})
+            menu.push(objMenu)
         })
+
+        await this.setState({menu})
     }
 
     render() {
-        const {token, collapse, screenMode, menu} = this.state
+        const {collapse, screenMode, menu, errorData, errorView} = this.state
 
-        const {children, title, link} = this.props
+        const {children, title, link, token, error} = this.props
 
         return (
             <>
@@ -120,7 +106,12 @@ export class MainLyout extends Component {
                                 </Col>
 
                                 <Col lg={!collapse ? 10 : 11} className='py-3 px-4'>
-                                    {children}
+                                    {errorView ?
+                                        <CustomError error={errorData}/> :
+                                        error ?
+                                            <CustomError error={error}/> :
+                                            children
+                                    }
                                 </Col>
                             </Row>
                         </Container>
