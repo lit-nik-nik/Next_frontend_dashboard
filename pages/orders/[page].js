@@ -6,7 +6,6 @@ import Tbody from "../../modules/tables/tbody";
 import { MainLayout } from "../../components/layout/main";
 import {getOrders} from "../../services/orders/get";
 import {withRouter} from "next/router";
-import ModalError from "../../modules/modals/modal-error";
 
 class PageOrder extends Component {
 

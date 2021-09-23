@@ -8,7 +8,6 @@ import {withRouter} from "next/router";
 import {changeKeyboard} from "../modules/change-keyboard";
 import {getBarcodes} from "../services/at-order/get";
 import {postAtOrders} from "../services/at-order/post";
-import ModalError from "../modules/modals/modal-error";
 import ModalWindow from "../modules/modals/modal";
 
 class AccTransOrder extends Component {
@@ -61,6 +60,7 @@ class AccTransOrder extends Component {
                 update: null
             }
         },
+        ordersID: [],
         orders: [],
         orderChange: {
             view: false,
@@ -92,26 +92,45 @@ class AccTransOrder extends Component {
     }
 
     async componentDidMount() {
-        this.addHint(1)
-
-        this.handlesDate()
-
+        if (this.props.barcodes) await this.setState(({users: this.props.barcodes}))
         this.setState({link: this.props.router.pathname})
 
-        if (this.props.barcodes) await this.setState(({users: this.props.barcodes}))
+        this.addHint(1)
+
+        if (localStorage.getItem('transfer')) {
+            this.onChangeData('transfer', localStorage.getItem('transfer'))
+            this.handledTransfer(localStorage.getItem('transfer'))
+        }
+        if (localStorage.getItem('accepted')) {
+            this.onChangeData('accepted', localStorage.getItem('accepted'))
+            this.handledAccept(localStorage.getItem('accepted'))
+        }
+        if (localStorage.getItem('date')) {
+            this.handlesDate(localStorage.getItem('date'))
+        }
+        else this.handlesDate()
+        if (localStorage.getItem('orders')) {
+            JSON.parse(localStorage.getItem('orders')).map(order => {
+                this.addOrder(order)
+            })
+        }
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
-        const {data, orderChange} = this.state
+        const {data, orderChange, ordersID} = this.state
 
         if(!data.transfer.name) this.transferInput.current.focus()
         else if (!data.accepted.name) this.acceptedInput.current.focus()
         else if (orderChange.view) this.commentInput.current.focus()
         else if (!data.date.disabled) this.dateInput.current.focus()
-        else this.orderInput.current.focus()
-    }
+        else if (!data.order.disabled) this.orderInput.current.focus()
 
-    componentWillUnmount() {
+        if(this.state !== prevState) {
+            if (data.transfer.value) localStorage.setItem('transfer', data.transfer.value)
+            if (data.accepted.value) localStorage.setItem('accepted', data.accepted.value)
+            if (data.date.value) localStorage.setItem('date', data.date.value)
+            if (ordersID[0]) localStorage.setItem('orders', JSON.stringify(ordersID))
+        }
     }
 
     // добавление ошибки
@@ -260,11 +279,11 @@ class AccTransOrder extends Component {
     }
 
     //поиск и проверка заказа
-    handledOrder = async () => {
+    handledOrder = async (value) => {
         const {data} = this.state
         let order
 
-        await getOrder(data.order.value)
+        await getOrder(value)
             .then(res => {
                 order = res.data.order
             })
@@ -292,14 +311,19 @@ class AccTransOrder extends Component {
     }
 
     // добавление даты передачи заказа
-    handlesDate = async () => {
+    handlesDate = async (localDate) => {
         const {date} = this.state.data,
             nowDate = new Date(Date.now() - date.tzoffset).toISOString().slice(0, -5)
         let isoDate
 
-        if (!date.value) {
-            await this.setState(({data}) => data.date.value = nowDate)
+        if (localDate) {
+            await this.setState(({data}) => data.date.value = localDate)
+        } else {
+            if (!date.value) {
+                await this.setState(({data}) => data.date.value = nowDate)
+            }
         }
+
 
         if (date.value > nowDate) {
             this.addError('Будущее еще не наступило')
@@ -347,6 +371,8 @@ class AccTransOrder extends Component {
 
         await postAtOrders(form)
             .then(res => {
+                console.log('res')
+                console.log(res)
                 this.setState(({submit}) => {
                     return (
                         submit.data.view = true,
@@ -356,6 +382,8 @@ class AccTransOrder extends Component {
                 })
             })
             .catch(err => {
+                console.log('err')
+                console.log(err.response)
                 this.setState(({submit}) => {
                     return (
                         submit.error.data = err.response.data
@@ -415,7 +443,8 @@ class AccTransOrder extends Component {
         }
 
         if (area === 'all') {
-            this.setState({orders: []})
+            await this.setState({ordersID: []})
+            await this.setState({orders: []})
             await this.setState(({data}) => {
                 return (
                     data.transfer.value = '',
@@ -433,19 +462,23 @@ class AccTransOrder extends Component {
                     data.date.isoValue = ''
                 )
             })
+            localStorage.removeItem('transfer')
+            localStorage.removeItem('accepted')
+            localStorage.removeItem('date')
+            localStorage.removeItem('orders')
             this.handlesDate()
             this.addHint(1)
         }
     }
 
     // Добавление заказа в объект для таблицы
-    addOrder = async () => {
+    addOrder = async (value) => {
         const {orders, data} = this.state,
             {order} = data
         let arrOrder = {},
             compare = false
 
-        await this.handledOrder()
+        await this.handledOrder(value)
 
         if (order.idOrder) {
             for (let key in order) {
@@ -472,8 +505,9 @@ class AccTransOrder extends Component {
                     onClick={() => this.deleteOrder(arrOrder.idOrder)}
                 />
 
-            if (order.value) {
+            if (value) {
                 if (!orders[0]) {
+                    this.setState({ordersID: [...this.state.ordersID, value]})
                     this.setState({orders: [arrOrder, ...this.state.orders]})
                 } else {
                     orders.map(item => {
@@ -484,6 +518,7 @@ class AccTransOrder extends Component {
                     })
 
                     if (!compare) {
+                        this.setState({ordersID: [...this.state.ordersID, value]})
                         this.setState({orders: [arrOrder, ...this.state.orders]})
                     }
                     compare = false
@@ -628,7 +663,7 @@ class AccTransOrder extends Component {
                                 type='datetime-local'
                                 id={date.id}
                                 ref={this.dateInput}
-                                onBlur={() => date.disabled || this.state.orderChange.view ? null : this.dateInput.current.focus()}
+                                onBlur={() => date.disabled || orderChange.view ? null : this.dateInput.current.focus()}
                                 autoFocus
                                 value={date.value}
                                 className='border rounded-0'
@@ -683,7 +718,7 @@ class AccTransOrder extends Component {
                                     type='number'
                                     id={order.id}
                                     ref={this.orderInput}
-                                    onBlur={() => !order.disabled || this.state.orderChange.view || !date.disabled ? null : this.orderInput.current.focus()}
+                                    onBlur={() => order.disabled || orderChange.view || !date.disabled ? null : this.orderInput.current.focus()}
                                     autoFocus
                                     value={order.value}
                                     className={`border rounded-0`}

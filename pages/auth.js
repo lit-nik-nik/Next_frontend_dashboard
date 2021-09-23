@@ -6,12 +6,12 @@ import {authUser} from "../services/auth/post";
 import bcrypt from 'bcryptjs';
 import Router from "next/router";
 import Link from "next/link";
-import ModalError from "../modules/modals/modal-error";
 import Head from "next/head";
 import logo from "../public/logo.png"
 import Image from "next/image";
 import {changeKeyboard} from "../modules/change-keyboard";
 import Cookies from 'js-cookie'
+import CustomError from "../modules/error";
 
 export default class Auth extends Component {
 
@@ -29,24 +29,11 @@ export default class Auth extends Component {
         },
         variant: true,
         disabled: false,
-        error: {
-            view: false,
-            message: ''
-        }
+        errorData: null
     }
 
     componentDidMount() {
-        if (this.props.error) {
-            if (JSON.parse(this.props.error).code === "ECONNREFUSED") {
-                this.setState(({error}) => {
-                    return (
-                        error.view = true,
-                        error.message =  'Сервер БД не отвечает. Авторизация не возможна.'
-                    )
-                })
-                this.setState({disabled: true})
-            }
-        }
+        if (this.props.error) this.setState({disabled: true})
 
         if (this.props.users) {
             this.setState({users: this.props.users})
@@ -104,24 +91,18 @@ export default class Auth extends Component {
 
                     setTimeout(redirect, 1000)
                 } else {
-                    this.setState(({error}) => {
-                        error.view = true,
-                        error.message = res.data.message
-                    })
+                    this.setState({errorData: res.data})
                     this.setState({login: {user, pass: '', barcode: newBarcode}})
                 }
             })
             .catch(err => {
-                this.setState(({error}) => {
-                    error.view = true,
-                    error.message = err.response.message
-                })
+                this.setState({errorData: err.response.data})
             })
     }
 
 
     render() {
-        const {login, error, disabled, variant} = this.state
+        const {login, disabled, errorData, variant} = this.state
 
         const loginPass =
             <>
@@ -234,11 +215,7 @@ export default class Auth extends Component {
 
                                     <Button type='submit' disabled={disabled} className="w-100 btn btn-lg btn-primary">Войти</Button>
 
-                                    <ModalError
-                                        show={error.view}
-                                        onHide={()=> this.setState(({error}) => error.view = false)}
-                                        error={error.message}
-                                    />
+                                    <CustomError error={errorData ? errorData : this.props.error} />
                                 </Form>
                             </main>
                         </div>
@@ -256,7 +233,7 @@ export async function getServerSideProps() {
 
     await getUsers()
         .then(res  => users = res.data.lists.employers)
-        .catch(err => error = JSON.stringify(err))
+        .catch(err => error = err.response.data)
 
     if (users) {
         return {

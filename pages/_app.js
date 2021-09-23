@@ -4,7 +4,6 @@ import NextNprogress from 'nextjs-progressbar'
 import "../styles/style.css"
 import "../styles/responsive.css"
 import Cookies from 'js-cookie'
-import exitApp from "../modules/exit";
 
 function MyApp({ Component, pageProps }) {
     const token = Cookies.get('token'),

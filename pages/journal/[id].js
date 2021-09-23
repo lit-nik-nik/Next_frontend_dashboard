@@ -4,12 +4,9 @@ import Thead from "../../modules/tables/thead";
 import Tbody from "../../modules/tables/tbody";
 import { MainLayout } from "../../components/layout/main";
 import {withRouter} from "next/router";
-import ModalError from "../../modules/modals/modal-error";
 import {getOrderJournal} from "../../services/journals/get";
 import {globalState} from "../../data/globalState";
-import exitApp from "../../modules/exit";
 import {getTokenCookies} from "../../modules/cookie";
-import CustomError from "../../modules/error";
 
 class PageJournals extends Component {
 

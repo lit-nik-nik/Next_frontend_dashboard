@@ -106,11 +106,12 @@ export class MainLayout extends Component {
                                 </Col>
 
                                 <Col lg={!collapse ? 10 : 11} className='py-3 px-4'>
+                                    {children}
                                     {errorView ?
                                         <CustomError error={errorData}/> :
                                         error ?
                                             <CustomError error={error}/> :
-                                            children
+                                            null
                                     }
                                 </Col>
                             </Row>

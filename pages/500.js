@@ -1,7 +1,11 @@
 import {Row, Col} from "react-bootstrap";
 import Link from "next/link";
+import exitApp from "../modules/exit";
 
 export default function Custom500() {
+
+    exitApp()
+
     return (
         <>
             <Row style={{height: '100vh', width: '100%'}} className='bg-image-404'>

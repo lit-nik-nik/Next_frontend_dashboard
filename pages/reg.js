@@ -3,13 +3,13 @@ import {Component} from "react";
 import {Row, Col, Form, Button, FormGroup} from "react-bootstrap";
 import Link from "next/link";
 import {getUsers} from "../services/auth/get";
-import ModalError from "../modules/modals/modal-error";
 import Head from "next/head";
 import {regUser} from "../services/reg/post";
 import Router from "next/router";
 import ModalWindow from "../modules/modals/modal";
 import Image from "next/image";
 import logo from "../public/logo.png";
+import CustomError from "../modules/error";
 
 export default class Reg extends Component {
 
@@ -68,25 +68,12 @@ export default class Reg extends Component {
             view: false,
             message: ''
         },
-        error: {
-            view: false,
-            message: ''
-        },
+        errorData: null,
         disabled: false
     }
 
     componentDidMount() {
-        if (this.props.error) {
-            if (JSON.parse(this.props.error).code === "ECONNREFUSED") {
-                this.setState(({error}) => {
-                    return (
-                        error.view = true,
-                        error.message = 'Сервер БД не отвечает. Регистрация не возможна.'
-                    )
-                })
-                this.setState({disabled: true})
-            }
-        }
+        if (this.props.error) this.setState({disabled: true})
 
         if (this.props.users) {
             this.setState({users: this.props.users})
@@ -289,38 +276,24 @@ export default class Reg extends Component {
                         })
                         setTimeout(redirect, 2000)
                     }
-                    else this.setState(({error}) => {
-                        return (
-                            error.view = true,
-                            error.message = 'Ошибка создания пользователя, попробуйте позже'
-                        )
-                    })
+                    else this.setState({errorData: res.data})
                 })
                 .catch(err => {
-                    this.setState(({error}) => {
-                        return (
-                            error.view = true,
-                            error.message = err.response.message
-                        )
-                    })
+                    this.setState({errorData: err.response.data})
                 })
         }
         else {
-            this.setState(({error}) => {
-                return (
-                    error.view = true,
-                    error.message = 'Не все поля заполнены верно'
-                )
-            })
+            this.setState({errorData: {
+                    errors: [''],
+                    message: 'Не все поля заполнены верно'
+                }})
         }
 
     }
 
 
     render() {
-        console.log(this.props)
-
-        const {inputs, disabled, error, reg} = this.state
+        const {inputs, disabled, errorData, reg} = this.state
 
         return (
             <>
@@ -350,21 +323,15 @@ export default class Reg extends Component {
                                     </Col>
 
                                     <Button type='submit' disabled={disabled} className="w-100 btn btn-lg btn-primary">Сохранить</Button>
-
-                                    <ModalError
-                                        show={error.view}
-                                        onHide={()=> this.setState(({error}) => error.view = false)}
-                                        error={error.message}
-                                    />
-
-
-                                    <ModalWindow
-                                        show={reg.view}
-                                        onHide={()=> this.setState(({reg}) => reg.view = false)}
-                                        message={reg.message}
-                                    />
-
                                 </Form>
+
+                                <ModalWindow
+                                    show={reg.view}
+                                    onHide={()=> this.setState(({reg}) => reg.view = false)}
+                                    message={reg.message}
+                                />
+
+                                <CustomError error={errorData ? errorData : this.props.error}/>
                             </main>
                         </div>
                     </Col>
@@ -380,7 +347,7 @@ export async function getServerSideProps() {
 
     await getUsers()
         .then(res  => users = res.data.lists.employers)
-        .catch(err => error = JSON.stringify(err))
+        .catch(err => error = err.response.data)
 
     if (users) {
         return {
