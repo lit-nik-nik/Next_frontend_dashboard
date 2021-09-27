@@ -546,7 +546,7 @@ export async function getServerSideProps({req}) {
 
     await getListsOrder(token)
         .then(res => lists = res)
-        .catch(err => error = err.response.data)
+        .catch(err => error = err.response?.data)
 
 
     if (lists) {

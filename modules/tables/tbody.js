@@ -63,12 +63,12 @@ export default class Tbody extends Component {
                         {order[param[0]]} {order[param[1]]}
                     </td>
                 )
-                else if (param === 'PLAN_DATE') cell.push(
+                else if (param === 'PLAN_DATE' || param === 'TS') cell.push(
                     <td className='align-middle text-center' style={{width: 'auto'}} key={index}>
                         {new Date(order[param]).toLocaleString().slice(0,10)}
                     </td>
                 )
-                else if (param === 'ORDER_SQUARE') cell.push(
+                else if (param === 'ORDER_SQUARE' || param === 'ORDER_FASADSQ') cell.push(
                     <td className='align-middle text-center' style={{width: 'auto'}} key={index}>
                         {Math.round(order[param] * 1000) / 1000}
                     </td>

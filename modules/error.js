@@ -43,8 +43,6 @@ export default class CustomError extends Component {
     render() {
         const {errorMessage, errorView} = this.state
 
-        console.log(this.props.error)
-
         return (
             <>
                 <Modal

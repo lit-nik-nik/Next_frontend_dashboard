@@ -18,28 +18,40 @@ export const globalState = {
     ],
     headersTables: [
         {
-            label: 'NUMBER',
+            label: ['NUMBER'],
             name: '№ п/п'
         },
         {
-            label: 'ORDER_NAME',
+            label: ['ORDER_NAME', 'ITM_ORDERNUM'],
             name: 'Наименование'
         },
         {
-            label: 'PLAN_DATE',
+            label: ['PLAN_DATE'],
             name: 'Планируемая дата'
         },
         {
-            label: 'STATUS_NAME',
+            label: ['STATUS_NAME', 'STATUS_DESCRIPTION'],
             name: 'Статус'
         },
         {
-            label: 'ORDER_SQUARE',
+            label: ['ORDER_SQUARE', 'ORDER_FASADSQ'],
             name: 'S сборки'
         },
         {
-            label: 'COMMENT_PLAN',
+            label: ['COMMENT_PLAN', 'NOTE'],
             name: 'Комментарий'
+        },
+        {
+            label: ['TRANSFER'],
+            name: 'Передающий участок'
+        },
+        {
+            label: ['ACCEPTED'],
+            name: 'Принимающий участок'
+        },
+        {
+            label: ['TS'],
+            name: 'TS'
         }
     ]
 }

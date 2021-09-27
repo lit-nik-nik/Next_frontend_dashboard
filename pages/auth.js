@@ -96,7 +96,9 @@ export default class Auth extends Component {
                 }
             })
             .catch(err => {
-                this.setState({errorData: err.response.data})
+                console.log('err')
+                console.log(err)
+                this.setState({errorData: err.response?.data})
             })
     }
 
@@ -233,7 +235,7 @@ export async function getServerSideProps() {
 
     await getUsers()
         .then(res  => users = res.data.lists.employers)
-        .catch(err => error = err.response.data)
+        .catch(err => error = err.response?.data)
 
     if (users) {
         return {
@@ -242,12 +244,16 @@ export async function getServerSideProps() {
             }
         }
     }
-
-    if (error) {
+    else if (error) {
         return {
             props: {
                 error
             }
+        }
+    }
+    else {
+        return {
+            props: {}
         }
     }
 }

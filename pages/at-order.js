@@ -386,7 +386,7 @@ class AccTransOrder extends Component {
                 console.log(err.response)
                 this.setState(({submit}) => {
                     return (
-                        submit.error.data = err.response.data
+                        submit.error.data = err.response?.data
                     )
                 })
             })
@@ -823,7 +823,7 @@ export async function getServerSideProps() {
 
     await getBarcodes()
         .then(res  => barcodes = res.data.barcodes)
-        .catch(err => error = err.response.data)
+        .catch(err => error = err.response?.data)
 
     if (barcodes) {
         return {

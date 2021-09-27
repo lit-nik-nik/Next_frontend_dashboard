@@ -3,6 +3,8 @@ import { MainLayout } from '../components/layout/main'
 import {withRouter} from "next/router";
 import {Bar} from 'react-chartjs-2';
 import {Component} from "react";
+import {getTokenCookies} from "../modules/cookie";
+import {getOrderJournal} from "../services/journals/get";
 
 class Home extends Component {
 
@@ -104,3 +106,16 @@ class Home extends Component {
 }
 
 export default withRouter(Home)
+
+// export async function getServerSideProps({req, query}) {
+//
+//     const token = getTokenCookies(req.headers.cookie)
+//     const id = query.id
+//
+//     return {
+//         props: {
+//             tokenProps: token
+//         }
+//     }
+//
+// }

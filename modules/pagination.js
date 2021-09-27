@@ -1,11 +1,33 @@
 import { Component } from "react"
-import { Pagination } from "react-bootstrap"
-import Link from "next/link"
+import {Button, Pagination} from "react-bootstrap"
 
 export default class PaginationTable extends Component {
 
+    state = {
+        pagesCount: []
+    }
+
+    componentDidMount() {
+        this.renderPagesCount()
+    }
+
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        if (this.props !== prevProps) {
+            this.renderPagesCount()
+        }
+    }
+
+    renderPagesCount = () => {
+        let pages = []
+
+        for (let i = 1; i <= this.props.lastPage; i++) pages.push(i)
+
+        this.setState({pagesCount: pages})
+    }
+
     render() {
-        const {pagesCount, activePage, lastPage} = this.props
+        const {activePage, lastPage, onClick} = this.props
+        const {pagesCount} = this.state
 
         const pageCount = pagesCount.map((page, i) => {
             if (page < activePage + 10) {
@@ -16,11 +38,14 @@ export default class PaginationTable extends Component {
 
                     return (
                         <li key={i} className={"page-item " + active}>
-                            <Link  href={`${page}`} >
-                                <a className="page-link">
-                                    {page}
-                                </a>
-                            </Link>
+                            <Button
+                                type='link'
+                                className="page-link"
+                                disabled={active}
+                                onClick={() => onClick(page)}
+                            >
+                                {page}
+                            </Button>
                         </li>
                     )
                 }
@@ -32,11 +57,14 @@ export default class PaginationTable extends Component {
         return (
             <Pagination className='text-right'>
                 <li className={"page-item"}>
-                    <Link  href={`1`} >
-                        <a className="page-link">
-                            &laquo;
-                        </a>
-                    </Link>
+                    <Button
+                        type='link'
+                        className="page-link"
+                        disabled={activePage === 1}
+                        onClick={() => onClick(1)}
+                    >
+                        &laquo;
+                    </Button>
                 </li>
                 
                 {pageEllipsis}
@@ -44,11 +72,14 @@ export default class PaginationTable extends Component {
                 {pageEllipsis}
 
                 <li className={"page-item"}>
-                    <Link  href={`${lastPage}`} >
-                        <a className="page-link">
-                            &raquo;
-                        </a>
-                    </Link>
+                    <Button
+                        type='link'
+                        className="page-link"
+                        disabled={activePage === lastPage}
+                        onClick={() => onClick(lastPage)}
+                    >
+                        &raquo;
+                    </Button>
                 </li>
             </Pagination>
         )

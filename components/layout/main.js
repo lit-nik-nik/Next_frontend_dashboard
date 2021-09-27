@@ -66,7 +66,7 @@ export class MainLayout extends Component {
             .then(res => journals = res.data.journals)
             .catch(err => {
                 this.setState({errorView: true})
-                this.setState({errorData: err.response.data})
+                this.setState({errorData: err.response?.data})
             })
 
         if (journals) journals.map(item => {
