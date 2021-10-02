@@ -72,7 +72,7 @@ export class MainLayout extends Component {
         if (journals) journals.map(item => {
             let objMenu = {
                 label: item.name,
-                link: `/journal/${item.id}`,
+                link: `/journal/${item.id}/plans`,
                 icon: 'bi-table'
             }
 

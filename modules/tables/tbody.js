@@ -49,7 +49,7 @@ export default class Tbody extends Component {
                             {order[param]}
                         </td>
                     )
-                else if (param === 'ITM_ORDERNUM' || param === 'ORDER_NAME') cell.push(
+                else if (param === 'ITM_ORDERNUM' || param === 'ORDER_NAME' || param === 'NAME') cell.push(
                     <td className='align-middle text-center' style={{width: '16%'}} key={index}>
                         <Link href={`/order/${order.ID}`}>
                             <a className='text-decoration-none text-dark'>
@@ -63,7 +63,7 @@ export default class Tbody extends Component {
                         {order[param[0]]} {order[param[1]]}
                     </td>
                 )
-                else if (param === 'PLAN_DATE' || param === 'TS') cell.push(
+                else if (param === 'PLAN_DATE' || param === 'TS' || param === 'DATE_ADDED' || param === 'TRANSFER_DATE') cell.push(
                     <td className='align-middle text-center' style={{width: 'auto'}} key={index}>
                         {new Date(order[param]).toLocaleString().slice(0,10)}
                     </td>

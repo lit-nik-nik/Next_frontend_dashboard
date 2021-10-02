@@ -9,6 +9,7 @@ import {changeKeyboard} from "../modules/change-keyboard";
 import {getBarcodes} from "../services/at-order/get";
 import {postAtOrders} from "../services/at-order/post";
 import ModalWindow from "../modules/modals/modal";
+import {decriptedStr, encritptedStr} from "../modules/encription";
 
 class AccTransOrder extends Component {
 
@@ -98,12 +99,14 @@ class AccTransOrder extends Component {
         this.addHint(1)
 
         if (localStorage.getItem('transfer')) {
-            this.onChangeData('transfer', localStorage.getItem('transfer'))
-            this.handledTransfer(localStorage.getItem('transfer'))
+            const transfer = decriptedStr(localStorage.getItem('transfer'))
+            this.onChangeData('transfer', transfer)
+            this.handledTransfer(transfer)
         }
         if (localStorage.getItem('accepted')) {
-            this.onChangeData('accepted', localStorage.getItem('accepted'))
-            this.handledAccept(localStorage.getItem('accepted'))
+            const accepted = decriptedStr(localStorage.getItem('accepted'))
+            this.onChangeData('accepted', accepted)
+            this.handledAccept(accepted)
         }
         if (localStorage.getItem('date')) {
             this.handlesDate(localStorage.getItem('date'))
@@ -126,8 +129,8 @@ class AccTransOrder extends Component {
         else if (!data.order.disabled) this.orderInput.current.focus()
 
         if(this.state !== prevState) {
-            if (data.transfer.value) localStorage.setItem('transfer', data.transfer.value)
-            if (data.accepted.value) localStorage.setItem('accepted', data.accepted.value)
+            if (data.transfer.value) localStorage.setItem('transfer', encritptedStr(data.transfer.value))
+            if (data.accepted.value) localStorage.setItem('accepted', encritptedStr(data.accepted.value))
             if (data.date.value) localStorage.setItem('date', data.date.value)
             if (ordersID[0]) localStorage.setItem('orders', JSON.stringify(ordersID))
         }
@@ -175,13 +178,22 @@ class AccTransOrder extends Component {
 
     // удаление заказа из объекта заказов
     deleteOrder = (id) => {
-        const {orders} = this.state
+        const {orders, ordersID} = this.state
+        let localOrders = ordersID
         let newArr = orders
 
         orders.map((item, i) => {
             if (item.idOrder === id) {
                 newArr.splice(i, 1)
-                return this.setState({orders: newArr})
+                this.setState({orders: newArr})
+            }
+        })
+
+        ordersID.map((item, i) => {
+            if (id === item) {
+                localOrders.splice(i, 1)
+                this.setState({ordersID: localOrders})
+                localStorage.setItem('orders', localOrders)
             }
         })
     }
@@ -190,8 +202,6 @@ class AccTransOrder extends Component {
     handledTransfer = (value) => {
         const {users, data} = this.state
         let i = 0
-
-        value = changeKeyboard(value)
 
         if (value) {
             if (value === data.accepted.value) {
@@ -242,8 +252,6 @@ class AccTransOrder extends Component {
     handledAccept = (value) => {
         const {users, data} = this.state
         let i = 0
-
-        value = changeKeyboard(value)
 
         if (value) {
             if (value === data.transfer.value) {
@@ -405,6 +413,7 @@ class AccTransOrder extends Component {
                 )
             })
             this.addHint(1)
+            localStorage.removeItem('transfer')
         }
 
         if (area === 'accepted') {
@@ -428,6 +437,7 @@ class AccTransOrder extends Component {
                 })
                 this.addHint(1)
             }
+            localStorage.removeItem('accepted')
         }
 
         if (area === 'order') {
@@ -507,7 +517,7 @@ class AccTransOrder extends Component {
 
             if (value) {
                 if (!orders[0]) {
-                    this.setState({ordersID: [...this.state.ordersID, value]})
+                    this.setState({ordersID: [...this.state.ordersID, +value]})
                     this.setState({orders: [arrOrder, ...this.state.orders]})
                 } else {
                     orders.map(item => {
@@ -518,7 +528,7 @@ class AccTransOrder extends Component {
                     })
 
                     if (!compare) {
-                        this.setState({ordersID: [...this.state.ordersID, value]})
+                        this.setState({ordersID: [...this.state.ordersID, +value]})
                         this.setState({orders: [arrOrder, ...this.state.orders]})
                     }
                     compare = false
@@ -579,7 +589,7 @@ class AccTransOrder extends Component {
             {accepted, transfer, order, date} = data
 
         const inputGroup = (label, data, ref, onKeyPress) => {
-            let typeInput, blur
+            let typeInput
 
             if (label === 'order') typeInput = "number"
             else if (label === 'date') typeInput = "datetime-local"
@@ -600,7 +610,7 @@ class AccTransOrder extends Component {
                         value={data.value}
                         className={`border rounded-0 ${data.disabled ? 'd-none' : ''}`}
                         readOnly={data.disabled}
-                        onChange={(e) => this.onChangeData(label, e.target.value)}
+                        onChange={(e) => this.onChangeData(label, changeKeyboard(e.target.value))}
                         onKeyPress={e => {
                             if (e.key === 'Enter') onKeyPress(e.target.value)
                         }}

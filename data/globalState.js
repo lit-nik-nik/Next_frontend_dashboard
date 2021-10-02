@@ -22,12 +22,16 @@ export const globalState = {
             name: '№ п/п'
         },
         {
-            label: ['ORDER_NAME', 'ITM_ORDERNUM'],
+            label: ['ORDER_NAME', 'ITM_ORDERNUM', 'NAME'],
             name: 'Наименование'
         },
         {
             label: ['PLAN_DATE'],
             name: 'Планируемая дата'
+        },
+        {
+            label: ['DATE_ADDED', 'TRANSFER_DATE'],
+            name: 'Дата'
         },
         {
             label: ['STATUS_NAME', 'STATUS_DESCRIPTION'],
@@ -51,7 +55,11 @@ export const globalState = {
         },
         {
             label: ['TS'],
-            name: 'TS'
+            name: 'Дата'
+        },
+        {
+            label: ['MONEY'],
+            name: 'Зарплата'
         }
     ]
 }
