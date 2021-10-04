@@ -3,7 +3,7 @@ import {getAdoptedOrderJournal} from "../../../services/journals/get";
 import {globalState} from "../../../data/globalState";
 import Thead from "../../../modules/tables/thead";
 import Tbody from "../../../modules/tables/tbody";
-import {Table, Row, Col, Alert, InputGroup, FormControl} from "react-bootstrap";
+import {Table, Row, Col, Alert, InputGroup, FormControl, Button} from "react-bootstrap";
 import PaginationTable from "../../../modules/pagination";
 import Loading from "../../../modules/loading";
 import CustomError from "../../../modules/error";
@@ -24,18 +24,23 @@ class AllOrdersJournal extends Component {
         allOrders: [],
         counts: null,
         pages: null,
+        filter: {
+            search: '',
+            startDate: '',
+            endDate: '',
+            limit: 100
+        },
+        activeFilter: false,
         activePage: 1,
         limit: 100,
         headerTable: [],
         paramsTable: [],
         error: null,
-        link: null,
-        journalID: null
+        link: null
     }
 
     async componentDidMount() {
         this.setState({link: this.props.router.asPath})
-        this.setState({journalID: this.props.router.query.id})
         await this.addData()
         this.renderHeader()
     }
@@ -60,11 +65,16 @@ class AllOrdersJournal extends Component {
 
     changeData = async () => {
         const {token, id} = this.props
-        const {activePage, limit} = this.state
+        const {activePage, filter} = this.state
+        const {startDate, endDate, search, limit} = filter
 
-        let data, error
+        let data, error, sDate = '', eDate = ''
 
-        await getAdoptedOrderJournal(id, token, activePage, limit)
+        if (startDate) sDate = new Date(startDate).toLocaleString().slice(0,10)
+        if (endDate) eDate = new Date(endDate).toLocaleString().slice(0,10)
+
+
+        await getAdoptedOrderJournal(id, token, activePage, limit, sDate, eDate, search)
             .then(res => data = res.data)
             .catch(err => error = err.response?.data)
 
@@ -108,12 +118,12 @@ class AllOrdersJournal extends Component {
     }
 
     render() {
-        const {headerTable, paramsTable, allOrders, activePage, pages, error, journalID, link, limit, title} = this.state
+        const {headerTable, paramsTable, allOrders, activePage, pages, error, link, title, filter, activeFilter} = this.state
 
         return (
             <MainLayout title={title} link={link} token={this.props.token} error={this.props.error}>
                 <JournalLayout
-                    journalID={journalID}
+                    journalID={this.props.id}
                     activePage={'all-orders'}
                 >
                     <Row>
@@ -125,21 +135,93 @@ class AllOrdersJournal extends Component {
                     <hr/>
 
                     <Row className='mb-3'>
-                        <Col lg={12} className='text-center fw-bold h4 text-uppercase'>Фильтры</Col>
-
-                        <Col lg={4}>
-                            <InputGroup className="mb-3">
-                                <InputGroup.Text>Кол-во заказов на странице</InputGroup.Text>
-                                <FormControl
-                                    placeholder="Заказы"
-                                    value={limit}
-                                    onChange={(e) => this.setState({limit: e.target.value})}
-                                    onKeyPress={(e) => {
-                                        if (e.key === 'Enter') this.changeData()
-                                    }}
-                                />
-                            </InputGroup>
+                        <Col lg={12} className='text-center fw-bold h4 text-uppercase'>
+                            <Button
+                                type='button'
+                                variant='outline-dark'
+                                className='me-3'
+                                active={activeFilter}
+                                onClick={() => this.setState({activeFilter: !this.state.activeFilter})}
+                            >
+                                {activeFilter ? 'Скрыть фильтры' : 'Открыть фильтры'}
+                            </Button>
                         </Col>
+
+                        {activeFilter
+                            ? (
+                            <>
+                                <Col lg={12}>
+                                    <InputGroup className="mb-3">
+                                        <InputGroup.Text>Произвольный поиск</InputGroup.Text>
+                                        <FormControl
+                                            placeholder="Произвольный поиск"
+                                            value={filter.search}
+                                            onChange={(e) => this.setState(({filter}) => {
+                                                return filter.search = e.target.value
+                                            })}
+                                            onKeyPress={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    this.setState({activePage: 1})
+                                                    this.changeData()
+                                                }
+                                            }}
+                                        />
+                                    </InputGroup>
+                                </Col>
+
+                                <Col lg={4}>
+                                    <InputGroup className="mb-3">
+                                        <InputGroup.Text>Кол-во заказов на странице</InputGroup.Text>
+                                        <FormControl
+                                            placeholder="Заказы"
+                                            value={filter.limit}
+                                            onChange={(e) => this.setState(({filter}) => {
+                                                return filter.limit = e.target.value
+                                            })}
+                                            onKeyPress={(e) => {
+                                                if (e.key === 'Enter') this.changeData()
+                                            }}
+                                        />
+                                    </InputGroup>
+                                </Col>
+
+                                <Col lg={4}>
+                                    <InputGroup className="mb-3">
+                                        <InputGroup.Text>Дата начала</InputGroup.Text>
+                                        <FormControl
+                                            placeholder="Дата начала"
+                                            type='date'
+                                            value={filter.startDate}
+                                            onChange={(e) => this.setState(({filter}) => {
+                                                return filter.startDate = e.target.value
+                                            })}
+                                            onKeyPress={(e) => {
+                                                if (e.key === 'Enter') this.changeData()
+                                            }}
+                                        />
+                                    </InputGroup>
+                                </Col>
+
+                                <Col lg={4}>
+                                    <InputGroup className="mb-3">
+                                        <InputGroup.Text>Дата окончания</InputGroup.Text>
+                                        <FormControl
+                                            placeholder="Дата окончания"
+                                            type='date'
+                                            value={filter.endDate}
+                                            onChange={(e) => this.setState(({filter}) => {
+                                                return filter.endDate = e.target.value
+                                            })}
+                                            onKeyPress={(e) => {
+                                                if (e.key === 'Enter') this.changeData()
+                                            }}
+                                        />
+                                    </InputGroup>
+                                </Col>
+                            </>
+                            )
+                            : null
+                        }
                     </Row>
 
                     <hr/>
@@ -180,7 +262,7 @@ export async function getServerSideProps({req,query}) {
 
     let data, error
 
-    await getAdoptedOrderJournal(id, token, 1, 100)
+    await getAdoptedOrderJournal(id, token)
         .then(res  => data = res.data)
         .catch(err => error = err.response?.data)
 
@@ -188,7 +270,8 @@ export async function getServerSideProps({req,query}) {
     if (data) {
         return {
             props: {
-                data
+                data,
+                id
             }
         }
     } else if (error) {
