@@ -31,7 +31,8 @@ class SalaryTransaction extends Component {
             result: 0,
             square: 0
         },
-        link: null
+        link: null,
+        test: 0
     }
 
     async componentDidMount() {
@@ -44,6 +45,7 @@ class SalaryTransaction extends Component {
         await this.addTotalPrem()
         await this.addTotalPenalty()
         this.addResult()
+        this.addTest()
     }
 
 
@@ -371,6 +373,26 @@ class SalaryTransaction extends Component {
         )
     }
 
+    addTest = () => {
+        const {sectors} = this.props
+
+        let cost = 0
+
+        sectors[0].orders.map(order => {
+            order.works.map(work => {
+                cost += work.money
+            })
+        })
+
+        if (sectors[0].otherTransactoins.data[0]) {
+            sectors[0].otherTransactoins.data.map(nalog => {
+                cost += nalog.amount * nalog.modifer
+            })
+        }
+
+        this.setState({test: cost})
+    }
+
     render() {
         const {headerTable, total, link} = this.state
         const {sectors, router} = this.props
@@ -382,6 +404,9 @@ class SalaryTransaction extends Component {
                         <Button variant='outline-dark' onClick={() => this.props.router.back()}>
                             Вернуться назад
                         </Button>
+                    </Col>
+                    <Col>
+                        {this.state.test}
                     </Col>
                 </Row>
                 <Row className='my-3'>

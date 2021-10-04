@@ -61,6 +61,7 @@ export class MainLayout extends Component {
     addMenu = async () => {
         const {token} = this.props
         let journals, menu = [...globalState.menu]
+        let submenu = []
 
         await getJournals(token)
             .then(res => journals = res.data.journals)
@@ -72,12 +73,18 @@ export class MainLayout extends Component {
         if (journals) journals.map(item => {
             let objMenu = {
                 label: item.name,
-                link: `/journal/${item.id}/plans`,
-                icon: 'bi-table'
+                link: `/journal/${item.id}/plans`
             }
 
-            menu.push(objMenu)
+            submenu.push(objMenu)
         })
+
+        menu.map(item => {
+            if (item.id === 'journals') {
+                item.submenu = submenu
+            }
+        })
+
 
         await this.setState({menu})
     }

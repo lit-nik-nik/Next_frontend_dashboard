@@ -8,7 +8,7 @@ import {getTokenCookies} from "../../../../modules/cookie";
 import {getWeekSalary} from "../../../../services/journals/get";
 import JournalLayout from "../../../../components/layout/journals";
 
-class WeekSalary extends Component {
+class PeriodSalary extends Component {
 
     state = {
         headerTable: [],
@@ -28,7 +28,7 @@ class WeekSalary extends Component {
             result: 0,
             square: 0
         },
-        activeSalary: 'week-salary',
+        activeSalary: 'period-salary',
         allSectors: [],
         sector: '',
         link: null,
@@ -70,6 +70,7 @@ class WeekSalary extends Component {
         })
 
         this.setState({allSectors})
+        this.setState({sector: allSectors[0]})
     }
 
     addWork = () => {
@@ -295,7 +296,7 @@ class WeekSalary extends Component {
 
         sectors.map(item => {
             item.orders[0].works.map(work => {
-                if (!work.work.includes('Надбавка')) {
+                if (!work.work?.includes('Надбавка')) {
                     header = [...header, work.work]
                 }
             })
@@ -502,14 +503,14 @@ class WeekSalary extends Component {
     }
 }
 
-export default withRouter(WeekSalary)
+export default withRouter(PeriodSalary)
 
 export async function getServerSideProps({req,query}) {
 
     const token = getTokenCookies(req.headers.cookie)
     const id = query.id
 
-    let sectors, error
+    let sectors = [], error
 
     await getWeekSalary(id, token)
         .then(res  => sectors = res.data.sectors)

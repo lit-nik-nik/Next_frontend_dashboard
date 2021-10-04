@@ -1,3 +1,5 @@
+import {Form} from "react-bootstrap";
+
 export default function Thead ({title}) {
 
     const tableHead = title.map((name, index) => 

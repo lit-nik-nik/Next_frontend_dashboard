@@ -6,6 +6,22 @@ export const globalState = {
             icon: 'bi-house-door-fill'
         },
         {
+            id: 'bookkeeping',
+            label: 'Бухгалтерия',
+            link: '',
+            icon: 'bi-cash-coin',
+            submenu: [
+                {
+                    label: 'Расчет запрлаты',
+                    link: '/bookkeeping/period-calculation'
+                },
+                {
+                    label: 'Все транзакции',
+                    link: '/bookkeeping/all-transaction'
+                }
+            ]
+        },
+        {
             label: 'Прием-передача заказа',
             link: '/at-order',
             icon: 'bi-grid'
@@ -14,6 +30,13 @@ export const globalState = {
             label: 'Добавить заказ',
             link: '/order/create',
             icon: 'bi-plus-circle-fill'
+        },
+        {
+            id: 'journals',
+            label: 'Журналы',
+            link: '',
+            icon: 'bi-table',
+            submenu: []
         }
     ],
     headersTables: [

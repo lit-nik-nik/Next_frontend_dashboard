@@ -21,15 +21,15 @@ export default class JournalLayout extends Component {
                 button: 'dark'
             },
             {
-                type: 'salary/week-salary',
+                type: 'salary/period-salary',
                 name: 'Зарплата',
                 button: 'dark'
             }
         ],
         filterSalary: [
             {
-                type: 'week-salary',
-                name: 'Текущая неделя',
+                type: 'period-salary',
+                name: 'Текущий период',
                 button: 'info'
             },
             {
