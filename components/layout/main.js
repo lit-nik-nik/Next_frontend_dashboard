@@ -112,7 +112,7 @@ export class MainLayout extends Component {
                                     {collapse ? <NavbarMini link={link} menu={menu} /> : <Navbar link={link} menu={menu} />}
                                 </Col>
 
-                                <Col lg={!collapse ? 10 : 11} className='py-3 px-4'>
+                                <Col lg={!collapse ? 10 : 11} className='py-1 px-4'>
                                     {children}
                                     {errorView ?
                                         <CustomError error={errorData}/> :

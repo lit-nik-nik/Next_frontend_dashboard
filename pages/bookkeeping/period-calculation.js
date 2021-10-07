@@ -6,11 +6,13 @@ import {MainLayout} from "../../components/layout/main";
 import {withRouter} from "next/router";
 import {getTokenCookies} from "../../modules/cookie";
 import {getWeekSalary} from "../../services/journals/get";
+import ModalBookkeeping from "../../modules/modals/modal-bookkeeping";
 
 class BookkeepingCalc extends Component {
 
     state = {
-        sectors: null,
+        sector: '',
+        sectorData: null,
         headerTable: [],
         total: {
             premium: [],
@@ -30,27 +32,44 @@ class BookkeepingCalc extends Component {
         },
         activeSalary: 'period-calculation',
         allSectors: [],
-        sector: '',
+        disableSector: false,
+        disabledRestore: false,
         link: null,
         journalID: null,
+        render: 0,
+        modal: false,
+        changeSector: false
     }
 
     async componentDidMount() {
         this.setState({link: this.props.router.asPath})
         this.setState({journalID: this.props.router.query.id})
-        if (this.props.sectors[0]) this.setState({sectors: this.props.sectors})
-        this.renderHeaderTable()
         await this.addSectors()
+
+        this.props.sectors.map(async sector => {
+            if (sector.name === this.state.sector) await this.setState({sectorData: sector})
+        })
+
+        this.renderHeaderTable()
     }
 
 
     async componentDidUpdate(prevProps, prevState, snapshot) {
         if (this.props !== prevProps) {
-            this.renderHeaderTable()
             await this.addSectors()
+
+            this.renderHeaderTable()
         }
 
         if (this.state.sector !== prevState.sector) {
+            this.setState({sectorData: null})
+
+            this.props.sectors.map(async sector => {
+                if (sector.name === this.state.sector) await this.setState({sectorData: sector})
+            })
+        }
+
+        if (this.state.sectorData !== prevState.sectorData || this.state.sector !== prevState.sector || this.state.render !== prevState.render) {
             await this.addWork()
             await this.addPrem()
             await this.addTotalSquare()
@@ -58,6 +77,7 @@ class BookkeepingCalc extends Component {
             await this.addTotalPrem()
             await this.addTotalPenalty()
             await this.addResult()
+            await this.disabledSector()
         }
     }
 
@@ -75,9 +95,16 @@ class BookkeepingCalc extends Component {
         this.setState({sector: allSectors[0]})
     }
 
+    // добавление штрафов/премий
+    addPenaltyPrem = (arr) => {
+        this.setState(({sectorData}) => sectorData.otherTransactoins.data = arr)
+
+        this.setState({render: this.state.render + 1})
+    }
+
     // расчет итога по работам
     addWork = () => {
-        const {sectors} = this.props
+        const {sectorData} = this.state
         let totalCost = {
             selection: 0,
             gash: 0,
@@ -87,30 +114,22 @@ class BookkeepingCalc extends Component {
             final: 0
         }
 
-        sectors.map(item => {
-            if (item.name === this.state.sector) {
-                item.orders.map((order, oI) => {
+        if (sectorData) {
+            sectorData.orders.map((order, oI) => {
+                if (!order.isDeleted) {
                     order.works.map(work => {
-                        if (oI === 0) {
-                            if (work.work === 'Подбор') totalCost.selection = work.money
-                            else if (work.work === 'Запил') totalCost.gash = work.money
-                            else if (work.work === 'Мастер Джон') totalCost.masterJohn = work.money
-                            else if (work.work === 'Вайма') totalCost.vayma = work.money
-                            else if (work.work === 'Пятый') totalCost.fifth = work.money
-                            else if (work.work === 'Финальная очистка фасада') totalCost.final = work.money
-                        } else {
-                            if (work.work === 'Подбор') totalCost.selection += work.money
-                            else if (work.work === 'Запил') totalCost.gash += work.money
-                            else if (work.work === 'Мастер Джон') totalCost.masterJohn += work.money
-                            else if (work.work === 'Вайма') totalCost.vayma += work.money
-                            else if (work.work === 'Пятый') totalCost.fifth += work.money
-                            else if (work.work === 'Финальная очистка фасада') totalCost.final += work.money
+                        if (!work.isDeleted) {
+                            if (work.work === 'Подбор') totalCost.selection = totalCost.selection ? totalCost.selection + work.money : work.money
+                            else if (work.work === 'Запил') totalCost.gash = totalCost.gash ? totalCost.gash + work.money : work.money
+                            else if (work.work === 'Мастер Джон') totalCost.masterJohn = totalCost.masterJohn ? totalCost.masterJohn + work.money : work.money
+                            else if (work.work === 'Вайма') totalCost.vayma = totalCost.vayma ? totalCost.vayma + work.money : work.money
+                            else if (work.work === 'Пятый') totalCost.fifth = totalCost.fifth ? totalCost.fifth + work.money : work.money
+                            else if (work.work === 'Финальная очистка фасада') totalCost.final = totalCost.final ? totalCost.final + work.money : work.money
                         }
-
                     })
-                })
-            }
-        })
+                }
+            })
+        }
 
         this.setState(({total}) => {
             return (
@@ -126,53 +145,57 @@ class BookkeepingCalc extends Component {
 
     // расчет премий по работам
     addPrem = () => {
-        const {sectors} = this.props
+        const {sectorData} = this.state
         let totalPrem = [],
             objPrem = {}
 
-        sectors.map(item => {
-            if (item.name === this.state.sector) {
-                item.orders.map((order, oI) => {
-                    order.works.map(work => {
-                        if (oI === 0) {
-                            if (work.work === 'Надбавка Фин. очистка фасада') {
-                                objPrem.label = work.work
-                                objPrem.cost = work.money
-                            }
-                        } else {
-                            if (work.work === 'Надбавка Фин. очистка фасада') objPrem.cost += work.money
+        sectorData.orders.map((order, oI) => {
+            if(!order.isDeleted) {
+                order.works.map(work => {
+                    if (!work.isDeleted) {
+                        if (work.work === 'Надбавка Фин. очистка фасада') {
+                            objPrem.label = work.work
+                            objPrem.cost = objPrem.cost ? objPrem.cost + work.money : work.money
                         }
-                    })
-                })
-                if (objPrem.cost) objPrem.cost = Math.round(objPrem.cost * 100) / 100
-                if (objPrem.cost) totalPrem.push(objPrem)
-                objPrem = {}
-
-                item.orders.map((order, oI) => {
-                    order.works.map(work => {
-                        if (oI === 0) {
-                            if (work.work === 'Надбавка Мастер Джон') {
-                                objPrem.label = work.work
-                                objPrem.cost = work.money
-                            }
-                        } else {
-                            if (work.work === 'Надбавка Мастер Джон') objPrem.cost += work.money
-                        }
-                    })
-                })
-                if (objPrem.cost) objPrem.cost = Math.round(objPrem.cost * 100) / 100
-                if (objPrem.cost) totalPrem.push(objPrem)
-                objPrem = {}
-
-                item.otherTransactoins.data.map(penalty => {
-                    if (penalty.modifer === 1) {
-                        objPrem.label = `${penalty.userName}.: ${penalty.description}`
-                        objPrem.cost = +penalty.amount
-                        if (objPrem.cost) objPrem.cost = Math.round(objPrem.cost * 100) / 100
-                        if (objPrem.cost) totalPrem.push(objPrem)
-                        objPrem = {}
                     }
                 })
+            }
+        })
+        if (objPrem.cost) {
+            objPrem.cost = Math.round(objPrem.cost * 100) / 100
+            totalPrem.push(objPrem)
+            objPrem = {}
+        }
+
+        sectorData.orders.map((order, oI) => {
+            if (!order.isDeleted) {
+                order.works.map(work => {
+                    if (!work.isDeleted) {
+                        if (work.work === 'Надбавка Мастер Джон') {
+                            objPrem.label = work.work
+                            objPrem.cost = objPrem.cost ? objPrem.cost + work.money : work.money
+                        }
+                    }
+                })
+            }
+        })
+        if (objPrem.cost) {
+            objPrem.cost = Math.round(objPrem.cost * 100) / 100
+            totalPrem.push(objPrem)
+            objPrem = {}
+        }
+
+        sectorData.otherTransactoins.data.map(penalty => {
+            if (penalty.modifer === 1) {
+                objPrem.description = penalty.description
+                objPrem.label = `${penalty.userName}: ${penalty.description}`
+                objPrem.cost = +penalty.amount
+
+                if (objPrem.cost) {
+                    objPrem.cost = Math.round(objPrem.cost * 100) / 100
+                    totalPrem.push(objPrem)
+                    objPrem = {}
+                }
             }
         })
 
@@ -181,21 +204,19 @@ class BookkeepingCalc extends Component {
 
     // расчет итоговой площади
     addTotalSquare = () => {
-        const {sectors} = this.props
+        const {sectorData} = this.state
         let totalSquare = 0
 
-        sectors.map(item => {
-            if (item.name === this.state.sector) {
-                item.orders.map(order => {
-                    totalSquare += +order.works[0].square
-                })
+        sectorData.orders.map(order => {
+            if (!order.isDeleted) {
+                totalSquare += +order.works[0].square
             }
         })
 
         this.setState(({total}) => total.square = Math.round(totalSquare * 1000) / 1000)
     }
 
-    // расчет итоговой запралты
+    // расчет итоговой зарплаты
     addTotalCost = () => {
         const total = this.state.total
         let allCost = 0
@@ -209,16 +230,12 @@ class BookkeepingCalc extends Component {
 
     // расчет итогового штрафа
     addTotalPenalty = () => {
-        const {sectors} = this.props
+        const {sectorData} = this.state
         let allPenalty = 0
 
-        sectors.map(sector => {
-            if (sector.name === this.state.sector) {
-                sector.otherTransactoins.data.map(penalty => {
-                    if (penalty.modifer === -1) {
-                        allPenalty += +penalty.amount
-                    }
-                })
+        sectorData.otherTransactoins.data.map(penalty => {
+            if (penalty.modifer === -1) {
+                allPenalty += +penalty.amount
             }
         })
 
@@ -255,109 +272,106 @@ class BookkeepingCalc extends Component {
     }
 
     // отображение расчет по каждому заказу
-    renderWeekSalary = () => {
-        const {sectors} = this.state
-        let line = [], cell
+    renderWeekSalary = (data) => {
+        let line = [], cell, allCells = []
 
-        let allCells = []
+        if (data) {
+            data.orders.map((order, oI) => {
+                cell = [
+                    <td key={`${oI}_1`} className='' width={'3%'}>{oI + 1}</td>,
+                    <td key={`${oI}_2`} className=''>
+                        <Link href={`/order/${order.id}`}>
+                            <a className={`text-decoration-none ${order.isDeleted ? 'text-light' : 'text-dark'}`}>
+                                {order.itmOrderNum}
+                            </a>
+                        </Link>
 
-        return sectors.map((item, i) => {
-            if (item.name === this.state.sector) {
-                item.orders.map((order, oI) => {
-                    cell = [
-                        <td key={`${oI}_1`} className='' width={'3%'}>{oI + 1}</td>,
-                        <td key={`${oI}_2`} className=''>
-                            <Link href={`/order/${order.id}`}>
-                                <a className={`text-decoration-none ${order.isDeleted ? 'text-light' : 'text-dark'}`}>
-                                    {order.itmOrderNum}
-                                </a>
-                            </Link>
+                    </td>,
+                    <td key={`${oI}_3`} className='' width={'9%'}>{Math.round(order.works[0].square*1000)/1000}</td>
+                ]
 
-                        </td>,
-                        <td key={`${oI}_3`} className='' width={'9%'}>{Math.round(order.works[0].square*1000)/1000}</td>
-                    ]
+                allCells = [...cell]
 
-                    allCells = [...cell]
+                order.works.map((work, wI) => {
+                    if (!work.work.includes('Надбавка')) {
+                        for (let key in work) {
+                            if (key === 'money') {
+                                cell = <td key={wI} className={`${work.isDeleted ? 'bg-secondary text-light' : ''}`} width={'10%'}>
+                                    <Row>
+                                        <Col className={work.isDeleted ? 'text-decoration-line-through' : null}>
+                                            {Math.round(work[key]*100)/100} ₽
+                                        </Col>
+                                        {this.state.changeSector
+                                            ? (
+                                                <Col lg={3}>
+                                                    <Form.Check
+                                                        disabled={!work.optional}
+                                                        checked={work.isDeleted}
+                                                        onChange={(e) => {
+                                                            this.setState(({sectorData}) => {
+                                                                return (
+                                                                    sectorData.orders[oI].works[wI].isEdited = 1,
+                                                                        sectorData.orders[oI].works[wI].isDeleted = e.target.checked ? 1 : 0
+                                                                )
+                                                            })
+                                                            this.setState({render: this.state.render + 1})
+                                                        }}
+                                                    />
+                                                </Col>
+                                            ) : null}
+                                    </Row>
+                                </td>
 
-                    order.works.map((work, wI) => {
-                        if (!work.work.includes('Надбавка')) {
-                            for (let key in work) {
-                                if (key === 'money') {
-                                    cell = <td key={wI} className={`${work.isDeleted ? 'bg-danger text-light' : ''}`} width={'10%'}>
-                                        <Row>
-                                            <Col style={work.isDeleted ? {textDecoration: 'line-through'} : null}>
-                                                {Math.round(work[key]*100)/100} ₽
-                                            </Col>
-                                            {work.isDeleted
-                                                ? (
-                                                    <Col lg={3}>
-                                                        <Form.Check
-                                                            disabled={work.optional}
-                                                            value={work.isDeleted}
-                                                            onChange={(e) => {
-                                                                this.setState(({sectors}) => {
-                                                                    return (
-                                                                        sectors[i].orders[oI].works[wI].isDeleted = e.target.checked ? 1 : 0
-                                                                    )
-                                                                })
-                                                            }}
-                                                        />
-                                                    </Col>
-                                                ) : null}
-                                        </Row>
-                                    </td>
-
-                                    allCells.push(cell)
-                                }
+                                allCells.push(cell)
                             }
                         }
-                    })
+                    }
+                })
 
-                    cell = <td key={`${oI}_del`}>
-                        <Row>
-                            <Col>
+                cell = <td key={`${oI}_del`}>
+                    <Row>
+                        <Col>
+                            {this.state.changeSector ?
                                 <Form.Check
-                                    value={order.isDeleted}
+                                    checked={order.isDeleted}
                                     onChange={(e) => {
-                                        this.setState(({sectors}) => {
+                                        this.setState(({sectorData}) => {
                                             return (
-                                                sectors[i].orders[oI].isDeleted = e.target.checked ? 1 : 0
+                                                sectorData.orders[oI].isDeleted = e.target.checked ? 1 : 0
                                             )
                                         })
+                                        this.setState({render: this.state.render + 1})
                                     }}
-                                />
-                            </Col>
-                        </Row>
-                    </td>
+                                /> : null}
+                        </Col>
+                    </Row>
+                </td>
 
-                    allCells.push(cell)
+                allCells.push(cell)
 
-                    line.push(
-                        <tr
-                            className={`text-center ${order.isDeleted ? 'bg-danger text-light' : 'bg-light text-dark'}`}
-                            style={order.isDeleted ? {textDecoration: 'line-through'} : null}
-                            key={oI}
-                        >
-                            {allCells}
-                        </tr>
-                    )
-                })
-            }
-            return line
-        })
+                line.push(
+                    <tr
+                        className={`text-center ${order.isDeleted ? 'bg-secondary text-light text-decoration-line-through' : 'bg-light text-dark'}`}
+                        key={oI}
+                    >
+                        {allCells}
+                    </tr>
+                )
+            })
+        }
+
+        return line
     }
 
     // отображение заголовка таблицы
     renderHeaderTable = () => {
-        const {sectors} = this.props
+        const {sectorData} = this.state
         let header = ['№', 'Наименование', 'Площадь']
 
-        sectors.map(item => {
-            item.orders[0].works.map(work => {
-                if (!work.work?.includes('Надбавка')) {
-                    header = [...header, work.work]
-                }
-            })
+        sectorData.orders[0].works.map(work => {
+            if (!work.work?.includes('Надбавка')) {
+                header = [...header, work.work]
+            }
         })
 
         header.push('X')
@@ -367,6 +381,14 @@ class BookkeepingCalc extends Component {
 
     // отображение итоговой информации по каждой работе
     renderTotal = (total) => {
+        const params = {
+            selection: 'Подбор',
+            gash: 'Запил',
+            masterJohn: 'Мастер Джон',
+            vayma: 'Вайма',
+            fifth: 'Пятый',
+            final: 'Финальная очистка фасада'
+        }
         let line, cell = []
 
         cell.push(
@@ -384,7 +406,35 @@ class BookkeepingCalc extends Component {
         for (let key in total.cost) {
             cell.push(
                 <td className='text-center' key={key}>
-                    {total.cost[key]} ₽
+                    <Row>
+                        <Col>
+                            {total.cost[key]} ₽
+                        </Col>
+                        {this.state.changeSector ?
+                            <Col lg={3}>
+                                <Form.Check
+                                    onChange={(e) => {
+                                        for (let keyP in params) {
+                                            if (key === keyP) {
+                                                this.setState(({sectorData}) => {
+                                                    sectorData.orders.map(order => {
+                                                        order.works.map(work => {
+                                                            if (work.work === params[keyP]) {
+                                                                return (
+                                                                    work.isEdited = 1,
+                                                                    work.isDeleted = e.target.checked ? 1 : 0
+                                                                )
+                                                            }
+                                                        })
+                                                    })
+                                                })
+                                            }
+                                        }
+                                        this.setState({render: this.state.render + 1})
+                                    }}
+                                />
+                            </Col>: null}
+                    </Row>
                 </td>
             )
         }
@@ -404,11 +454,23 @@ class BookkeepingCalc extends Component {
 
             listItems.push(
                 <ListGroup.Item
-                    variant="success"
+                    variant='success'
                     key={key}
                     className='text-start'
                 >
-                    {object[key].label} - <b>{object[key].cost} ₽</b>
+
+                    <Row>
+                        <Col>
+                            {object[key].label} - <b>{object[key].cost} ₽</b>
+                        </Col>
+                        <Col lg={2} className='text-end'>
+                            <i
+                                className="bi bi-x-octagon text-danger"
+                                onClick={() => this.delPenaltyPrem(object[key].description ? object[key].description : object[key].label, object[key].label.includes('Надбавка') ? 'work' : 'other')}
+                            />
+                        </Col>
+                    </Row>
+
                 </ListGroup.Item>
             )
         }
@@ -432,7 +494,19 @@ class BookkeepingCalc extends Component {
                         key={i}
                         className='text-start'
                     >
-                        {penalty.userName}.: {penalty.description} - <b>{penalty.amount} ₽</b>
+
+                        <Row>
+                            <Col>
+                                {penalty.userName}: {penalty.description} - <b>{penalty.amount} ₽</b>
+                            </Col>
+                            <Col lg={2} className='text-end'>
+                                <i
+                                    className="bi bi-x-octagon text-danger"
+                                    onClick={() => this.delPenaltyPrem(penalty.description, 'other')}
+                                />
+                            </Col>
+                        </Row>
+
                     </ListGroup.Item>
                 )
             }
@@ -445,22 +519,90 @@ class BookkeepingCalc extends Component {
         )
     }
 
+    // удаление премии/штрафа
+    delPenaltyPrem = async (label, type) => {
+        let sectorData = this.state.sectorData,
+            data = sectorData.otherTransactoins.data
+
+        if (type === 'work') {
+            sectorData.orders.map(order => {
+                order.works.map(work => {
+                    if(work.work === label) {
+                        work.isDeleted = 1
+                        work.isEdited = 1
+                    }
+                })
+            })
+
+            this.setState({disabledRestore: true})
+        }
+
+        if (type === 'other') {
+            data.map((item, i) => {
+                if (item.description === label) {
+                    data = [...data.slice(0, i), ...data.slice(i + 1)]
+
+                    sectorData.otherTransactoins.data = data
+                }
+            })
+        }
+
+        await this.setState({sectorData})
+
+        await this.setState({render: this.state.render + 1})
+    }
+
+    // отключение выбора сектора
+    disabledSector = () => {
+        const {sectorData} = this.state
+
+        sectorData.orders.map(order => {
+            if (order.isDeleted) this.setState({disableSector: true})
+
+            order.works.map(work => {
+                if (work.isDeleted || work.isEdited) this.setState({disableSector: true})
+            })
+        })
+
+        if (sectorData.otherTransactoins.data[0]) this.setState({disableSector: true})
+    }
+
+    // восстановление надбавок
+    restorePrem = () => {
+        const {sectorData} = this.state
+
+        sectorData.orders.map(order => {
+            order.works.map(work => {
+                if(work.work.includes('Надбавка')) {
+                    work.isDeleted = 0
+                }
+            })
+        })
+
+        this.setState({sectorData})
+
+        this.setState({disabledRestore: false})
+
+        this.setState({render: this.state.render + 1})
+    }
+
     render() {
-        const {headerTable, total, link, sector, allSectors} = this.state
-        const {sectors} = this.props
+        const {headerTable, total, link, sector, allSectors, sectorData, disableSector, disabledRestore} = this.state
+
+        console.log(this.props)
 
         return (
             <MainLayout title={`Предварительный расчет`} link={link} token={this.props.token} error={this.props.error}>
-                    <Row>
+                    <Row className='sticky-top bg-white pt-3 shadow' style={{top: '60px'}}>
                         <Col lg={4}>
                             <InputGroup className="mb-3">
                                 <InputGroup.Text>Выберите участок</InputGroup.Text>
                                 <Form.Select
+                                    disabled={disableSector}
                                     value={sector}
                                     onChange={(e) => {
                                         this.setState({sector: e.target.value})
                                     }}>
-                                    <option value=''>{''}</option>
                                     {allSectors.map((sector, i) => {
                                         return (
                                             <option value={sector} key={i}>{sector}</option>
@@ -470,16 +612,33 @@ class BookkeepingCalc extends Component {
                             </InputGroup>
                         </Col>
                         <Col />
-                        <Col lg={5} className='text-end'>
+                        <Col lg={6} className='text-end'>
                             <Button
-                                className='me-3'
-                                variant='danger'>
-                                    Добавить штрафы
+                                className='me-2'
+                                variant='warning'
+                                onClick={() => this.setState({changeSector: !this.state.changeSector})}
+                            >
+                                {this.state.changeSector ? 'Заблокировать изменения' : 'Изменить расчет'}
                             </Button>
                             <Button
-                                className='me-3'
-                                variant='success'>
-                                    Подписать и отправить
+                                className='me-2'
+                                variant='info'
+                                onClick={() => this.setState({modal: true})}
+                            >
+                                Доплаты / Удержания
+                            </Button>
+                            <Button
+                                className='me-2'
+                                variant='success'
+                                onClick={() => {
+                                    let data = { sectors: [] }
+                                    data.sectors.push(sectorData)
+                                    console.log(data)
+                                    this.setState({disableSector: false})
+                                    this.setState({changeSector: false})
+                                }}
+                            >
+                                Подписать и отправить
                             </Button>
                         </Col>
                     </Row>
@@ -494,11 +653,11 @@ class BookkeepingCalc extends Component {
 
                             <Row>
                                 <Col>
-                                    <Table bordered hover className='my-3'>
+                                    <Table bordered className='my-3'>
                                         <Thead title={headerTable} />
                                         <tbody>
-                                        {this.renderWeekSalary()}
-                                        {this.renderTotal(total)}
+                                            {this.renderWeekSalary(sectorData)}
+                                            {this.renderTotal(total)}
                                         </tbody>
                                     </Table>
                                 </Col>
@@ -539,16 +698,26 @@ class BookkeepingCalc extends Component {
                                     ? <Col>
                                         <h3 className='text-start mb-3'>Доплаты:</h3>
                                         <hr/>
+                                        {disabledRestore ?
+                                            <Button
+                                                variant='outline-secondary'
+                                                className='w-100'
+                                                onClick={() => this.restorePrem()}
+                                            >
+                                                Восстановить надбавки
+                                            </Button>
+                                            : null}
+
                                         {this.renderListPrem(total.premium)}
                                     </Col>
                                     : null
                                 }
 
-                                {sectors[0].otherTransactoins.data[0]
+                                {sectorData
                                     ? <Col>
                                         <h3 className='text-start mb-3'>Удержания:</h3>
                                         <hr/>
-                                        {this.renderListPenalty(sectors[0].otherTransactoins.data)}
+                                        {this.renderListPenalty(sectorData.otherTransactoins.data)}
                                     </Col>
                                     : null
                                 }
@@ -568,6 +737,15 @@ class BookkeepingCalc extends Component {
                             </Row>
                         </>
                     ) : null}
+
+                <ModalBookkeeping
+                    show = {this.state.modal}
+                    otherTransactoins = {sectorData?.otherTransactoins}
+                    data = {sectorData ? sectorData.otherTransactoins.data : []}
+                    addPenaltyPrem = {this.addPenaltyPrem}
+                    message={'Доплаты и удержания'}
+                    onHide={() => this.setState({modal: false})}
+                />
             </MainLayout>
         )
     }
