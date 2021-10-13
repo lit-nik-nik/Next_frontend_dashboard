@@ -90,7 +90,7 @@ export default function ModalBookkeeping (props) {
                                                 userName: user,
                                                 description: penalty,
                                                 comment: comment,
-                                                amount: +cost,
+                                                amount: Math.abs(+cost),
                                                 modifer: modif
                                             }
 
@@ -105,32 +105,35 @@ export default function ModalBookkeeping (props) {
                                 </>
                             ) : null}
                         </Col>
-                        {props.data ? props.data.map((item, i) => {
-                            return (
-                                <Col lg={7}>
-                                    <Row className='border mb-1' key={i}>
-                                        <Col>
-                                            <Alert
-                                                variant='light'
-                                                className='m-0 py-2 px-1'
-                                            >
-                                                {item.userName} - {item.description}{item.comment ? ` (${item.comment})` : null}:  {item.amount * item.modifer} Руб.
+                        {props.data[0] ? (
+                            <Col lg={7}>
+                                {props.data.map((item, i) => {
+                                    return (
+                                        <Row className='border mb-1' key={i}>
+                                            <Col>
+                                                <Alert
+                                                    variant='light'
+                                                    className='m-0 py-2 px-1'
+                                                >
+                                                    {item.userName} - {item.description}{item.comment ? ` (${item.comment})` : null}:  {item.amount * item.modifer} Руб.
 
-                                            </Alert>
-                                        </Col>
-                                        <Col lg={2} className='text-end m-0 me-3 py-2 px-1'>
-                                            <i
-                                                className="bi bi-x-octagon text-danger"
-                                                onClick={async () => {
-                                                    let newData = [...props.data.slice(0, i), ...props.data.slice(i + 1)]
-                                                    await props.addPenaltyPrem(newData)
-                                                }}
-                                            />
-                                        </Col>
-                                    </Row>
-                                </Col>
-                            )
-                        }) : null}
+                                                </Alert>
+                                            </Col>
+                                            <Col lg={2} className='text-end m-0 me-3 py-2 px-1'>
+                                                <i
+                                                    className="bi bi-x-octagon text-danger"
+                                                    onClick={async () => {
+                                                        let newData = [...props.data.slice(0, i), ...props.data.slice(i + 1)]
+                                                        await props.addPenaltyPrem(newData)
+                                                    }}
+                                                />
+                                            </Col>
+                                        </Row>
+                                    )
+                                })
+                                }
+                            </Col>
+                        ) : null}
                     </Row>
 
                     <Button

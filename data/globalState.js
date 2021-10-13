@@ -45,11 +45,11 @@ export const globalState = {
             name: '№ п/п'
         },
         {
-            label: ['ORDER_NAME', 'ITM_ORDERNUM', 'NAME'],
+            label: ['ORDER_NAME', 'ITM_ORDERNUM', 'NAME', 'itmOrderNum'],
             name: 'Наименование'
         },
         {
-            label: ['PLAN_DATE'],
+            label: ['PLAN_DATE', 'datePlan'],
             name: 'Планируемая дата'
         },
         {
@@ -61,11 +61,15 @@ export const globalState = {
             name: 'Статус'
         },
         {
-            label: ['ORDER_SQUARE', 'ORDER_FASADSQ'],
+            label: ['ORDER_SQUARE', 'ORDER_FASADSQ', 'fasadSquare'],
             name: 'S сборки'
         },
         {
-            label: ['COMMENT_PLAN', 'NOTE'],
+            label: ['nameSectorInOrder'],
+            name: 'Участок в заказе'
+        },
+        {
+            label: ['COMMENT_PLAN', 'NOTE', 'comments'],
             name: 'Комментарий'
         },
         {

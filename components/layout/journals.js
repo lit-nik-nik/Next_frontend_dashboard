@@ -17,7 +17,7 @@ export default class JournalLayout extends Component {
             },
             {
                 type: 'all-orders',
-                name: 'Выполненные заказы',
+                name: 'Переданные заказы',
                 button: 'dark'
             },
             {
@@ -46,7 +46,7 @@ export default class JournalLayout extends Component {
 
         return (
             <>
-                <Row className='mb-3'>
+                <Row className='sticky-top bg-white py-2 shadow mb-3' style={{top: '60px', zIndex: 1}}>
                     <Col>
                         {pages.map((page, i) => {
                             return (

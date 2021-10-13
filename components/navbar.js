@@ -1,6 +1,6 @@
 import {Component} from "react";
 import Link from "next/link";
-import {Nav, NavDropdown, Dropdown} from 'react-bootstrap'
+import {Nav, Dropdown} from 'react-bootstrap'
 
 export default class Navbar extends Component {
 
@@ -24,7 +24,7 @@ export default class Navbar extends Component {
                                     {item.submenu.map((sub, iS) => {
                                         return (
                                             <Link href={`${sub.link}`} key={iS}>
-                                                <a className={`nav-link my-1 ${link === sub.link ? 'active bg-dark link-light' : 'link-dark'}`} style={{fontSize: 18}}>
+                                                <a className={`nav-link ${link === sub.link ? 'active bg-dark link-light' : 'link-dark'}`} style={{fontSize: 18}}>
                                                     <i className={`me-2 bi ${sub.icon}`} />
                                                     {sub.label}
                                                 </a>

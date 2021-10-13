@@ -256,7 +256,7 @@ class PeriodSalary extends Component {
                 item.orders.map((order, oI) => {
                     cell = [
                         <td key={`${oI}_1`} className='bg-light text-dark' width={'3%'}>{oI + 1}</td>,
-                        <td key={`${oI}_2`} className='bg-light text-dark'>
+                        <td key={`${oI}_2`} className='bg-light text-dark text-start ps-2'>
                             <Link href={`/order/${order.id}`}>
                                 <a className='text-dark text-decoration-none'>
                                     {order.itmOrderNum}
@@ -402,7 +402,6 @@ class PeriodSalary extends Component {
                                     onChange={(e) => {
                                         this.setState({sector: e.target.value})
                                     }}>
-                                    <option value=''>{''}</option>
                                     {allSectors.map((sector, i) => {
                                         return (
                                             <option value={sector} key={i}>{sector}</option>
@@ -423,11 +422,11 @@ class PeriodSalary extends Component {
 
                             <Row>
                                 <Col>
-                                    <Table bordered hover className='my-3'>
+                                    <Table bordered hover className='my-3' size='sm'>
                                         <Thead title={headerTable} />
                                         <tbody>
-                                        {this.renderWeekSalary()}
-                                        {this.renderTotal(total)}
+                                            {this.renderWeekSalary()}
+                                            {this.renderTotal(total)}
                                         </tbody>
                                     </Table>
                                 </Col>

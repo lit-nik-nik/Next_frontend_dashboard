@@ -17,11 +17,13 @@ export class MainLayout extends Component {
         menu: globalState.menu,
         render: 0,
         errorView: false,
-        errorData: null
+        errorData: null,
+        user: null
     }
 
     async componentDidMount() {
         if (!this.props.token) exitApp()
+        if (localStorage.getItem('user')) this.setState({user: JSON.parse(localStorage.getItem('user'))})
 
         this.addMenu()
 
@@ -90,7 +92,7 @@ export class MainLayout extends Component {
     }
 
     render() {
-        const {collapse, screenMode, menu, errorData, errorView} = this.state
+        const {collapse, screenMode, menu, errorData, errorView, user} = this.state
 
         const {children, title, link, token, error} = this.props
 
@@ -103,7 +105,7 @@ export class MainLayout extends Component {
                         </Head>
 
                         {screenMode === 'desktop' ? (
-                            <Header onCollapseNav={this.onCollapseNav} />
+                            <Header onCollapseNav={this.onCollapseNav} user={user}/>
                         ) : null}
 
                         <Container fluid className='p-0'>

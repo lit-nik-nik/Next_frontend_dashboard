@@ -45,7 +45,7 @@ class SalaryTransaction extends Component {
         await this.addTotalPrem()
         await this.addTotalPenalty()
         this.addResult()
-        this.addTest()
+        // this.addTest()
     }
 
 
@@ -246,7 +246,7 @@ class SalaryTransaction extends Component {
                 item.orders.map((order, oI) => {
                     cell = [
                         <td key={`${oI}_1`} className='bg-light text-dark' width={'3%'}>{oI + 1}</td>,
-                        <td key={`${oI}_2`} className='bg-light text-dark'>
+                        <td key={`${oI}_2`} className='bg-light text-dark text-start'>
                             <Link href={`/order/${order.id}`}>
                                 <a className='text-dark text-decoration-none'>
                                     {order.itmOrderNum}
@@ -271,7 +271,7 @@ class SalaryTransaction extends Component {
                         }
                     })
 
-                    line.push(<tr className='text-center' key={oI}>
+                    line.push(<tr key={oI}>
                         {allCells}
                     </tr>)
                 })
@@ -393,102 +393,127 @@ class SalaryTransaction extends Component {
         this.setState({test: cost})
     }
 
+    printPage = (id) => {
+        const printAndClose = () => {
+            WinPrint.print();
+            WinPrint.close();
+        }
+
+        const print = document.querySelector(`#${id}`),
+            table = print.querySelector('.table'),
+            bootstrapCss = '<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">';
+        table.style.fontSize = '12px'
+        let WinPrint = window.open('','','')
+        WinPrint.document.write(bootstrapCss);
+        WinPrint.document.write('<div id="print" class="mx-1">');
+        WinPrint.document.write(print.innerHTML);
+        WinPrint.document.write('</div>');
+        WinPrint.focus();
+        table.style.fontSize = '16px'
+        setTimeout(printAndClose, 400)
+    }
+
     render() {
         const {headerTable, total, link} = this.state
         const {sectors, router} = this.props
 
         return (
             <MainLayout title={`Транзакция № ${router.query.id}`} link={link} token={this.props.token} error={this.props.error}>
-                <Row>
+                <Row className='sticky-top bg-white py-2 shadow' style={{top: '60px', zIndex: 1}}>
                     <Col lg={2}>
                         <Button variant='outline-dark' onClick={() => this.props.router.back()}>
                             Вернуться назад
                         </Button>
                     </Col>
-                    <Col>
-                        {this.state.test}
-                    </Col>
-                </Row>
-                <Row className='my-3'>
-                    <Col>
-                        <h3 className='fw-bold text-center'>Транзакция {router.query.id} для сектора {sectors[0].name}</h3>
+                    <Col className='text-end me-3'>
+                        <Button variant='outline-info' onClick={() => this.printPage('doc-print')}>
+                            Напечатать
+                        </Button>
                     </Col>
                 </Row>
 
-                <Row>
-                    <Col>
-                        <Table bordered hover className='my-3'>
-                            <Thead title={headerTable} />
-                            <tbody>
-                            {this.renderWeekSalary()}
-                            {this.renderTotal(total)}
-                            </tbody>
-                        </Table>
-                    </Col>
-                </Row>
-
-                <Row className='mb-3'>
-                    <Col>
-                        <h3 className='text-start mb-3'>Сводный отчет:</h3>
-                        <hr/>
-                        <ListGroup>
-                            {total.cost
-                                ? <ListGroup.Item variant="light" className='text-start'>
-                                    Зарплата за период: <b>{total.allCost} ₽</b>
-                                </ListGroup.Item>
-                                : null}
-
-                            {total.allPrem
-                                ? <ListGroup.Item variant="light" className='text-start'>
-                                    Доплат всего: <b>{total.allPrem} ₽</b>
-                                </ListGroup.Item>
-                                : null}
-
-                            {total.allPenalty
-                                ? <ListGroup.Item variant="light" className='text-start'>
-                                    Удержаний всего: <b>{total.allPenalty} ₽</b>
-                                </ListGroup.Item>
-                                : null}
-
-                            {total.result
-                                ? <ListGroup.Item variant="light" className='text-start'>
-                                    К выдаче: <b>{total.result} ₽</b>
-                                </ListGroup.Item>
-                                : null}
-                        </ListGroup>
-                    </Col>
-
-                    {total.premium
-                        ? <Col>
-                            <h3 className='text-start mb-3'>Доплаты:</h3>
-                            <hr/>
-                            {this.renderListPrem(total.premium)}
+                <div id='doc-print'>
+                    <Row className='my-3'>
+                        <Col>
+                            <h3 className='fw-bold text-center'>Транзакция {router.query.id} для сектора {sectors[0].name}</h3>
                         </Col>
-                        : null
-                    }
+                    </Row>
 
-                    {sectors[0].otherTransactoins.data[0]
-                        ? <Col>
-                            <h3 className='text-start mb-3'>Удержания:</h3>
-                            <hr/>
-                            {this.renderListPenalty(sectors[0].otherTransactoins.data)}
+                    <Row>
+                        <Col>
+                            <Table bordered className='my-3' size='sm'>
+                                <Thead title={headerTable} />
+                                <tbody className='text-center'>
+                                {this.renderWeekSalary()}
+                                {this.renderTotal(total)}
+                                </tbody>
+                            </Table>
                         </Col>
-                        : null
-                    }
-                </Row>
+                    </Row>
 
-                <hr/>
+                    <Row className='mb-3'>
+                        <Col>
+                            <h3 className='text-start mb-3'>Сводный отчет:</h3>
+                            <hr/>
+                            <ListGroup>
+                                {total.cost
+                                    ? <ListGroup.Item variant="light" className='text-start'>
+                                        Зарплата за период: <b>{total.allCost} ₽</b>
+                                    </ListGroup.Item>
+                                    : null}
 
-                <Row>
-                    <Col>
-                        <p className='text-muted m-0'>
-                            * Условие получение надбавки на Мастер Джон: беспрерывная работа станка с 8:00 до 17: 00 при наличии заказов
-                        </p>
-                        <p className='text-muted m-0'>
-                            * Условие получение надбавки на ФОФ: беспрерывный прием и сдача продукции
-                        </p>
-                    </Col>
-                </Row>
+                                {total.allPrem
+                                    ? <ListGroup.Item variant="light" className='text-start'>
+                                        Доплат всего: <b>{total.allPrem} ₽</b>
+                                    </ListGroup.Item>
+                                    : null}
+
+                                {total.allPenalty
+                                    ? <ListGroup.Item variant="light" className='text-start'>
+                                        Удержаний всего: <b>{total.allPenalty} ₽</b>
+                                    </ListGroup.Item>
+                                    : null}
+
+                                {total.result
+                                    ? <ListGroup.Item variant="light" className='text-start'>
+                                        К выдаче: <b>{total.result} ₽</b>
+                                    </ListGroup.Item>
+                                    : null}
+                            </ListGroup>
+                        </Col>
+
+                        {total.premium
+                            ? <Col>
+                                <h3 className='text-start mb-3'>Доплаты:</h3>
+                                <hr/>
+                                {this.renderListPrem(total.premium)}
+                            </Col>
+                            : null
+                        }
+
+                        {sectors[0].otherTransactoins.data[0]
+                            ? <Col>
+                                <h3 className='text-start mb-3'>Удержания:</h3>
+                                <hr/>
+                                {this.renderListPenalty(sectors[0].otherTransactoins.data)}
+                            </Col>
+                            : null
+                        }
+                    </Row>
+
+                    <hr/>
+
+                    <Row>
+                        <Col>
+                            <p className='text-muted m-0' style={{fontSize: '10px'}}>
+                                * Условие получение надбавки на Мастер Джон: беспрерывная работа станка с 8:00 до 17: 00 при наличии заказов
+                            </p>
+                            <p className='text-muted m-0' style={{fontSize: '10px'}}>
+                                * Условие получение надбавки на ФОФ: беспрерывный прием и сдача продукции
+                            </p>
+                        </Col>
+                    </Row>
+                </div>
             </MainLayout>
         )
     }

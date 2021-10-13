@@ -106,7 +106,7 @@ class Order extends Component {
             if (key === 'SQUARE') bodyHeader.push('S')
             if (key === 'PRICE_COST') bodyHeader.push('Цена')
             if (key === 'COST') bodyHeader.push('Стоимость')
-            if (key === 'CALC_COMMENT') bodyHeader.push('Примечание')
+            if (key === 'COMMENT') bodyHeader.push('Примечание')
         }
 
         await this.setState({bodyTitle: bodyHeader})
@@ -190,7 +190,7 @@ class Order extends Component {
                 key === 'COST'
             ) cells.push(<td>{Math.round(+obj[key] * 100) / 100}</td>)
 
-            if (key === 'CALC_COMMENT') cells.push(<td className='text-start ps-3'>{obj[key]}</td>)
+            if (key === 'COMMENT') cells.push(<td className='text-start ps-3'>{obj[key]}</td>)
         }
 
         return cells

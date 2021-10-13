@@ -72,31 +72,23 @@ class Home extends Component {
 
     render() {
         const {link, data} = this.state
+        const {token} = this.props
 
         return (
-            <MainLayout title='Панель управления' link={link} token={this.props.token}>
+            <MainLayout title='Панель управления' link={link} token={token}>
                 <Container fluid>
-                    <Row className='mb-3 text-center'>
+                    <Row className='my-3 text-center'>
                         <Col lg={12}>
                             <h2>Панель управления</h2>
                             <hr/>
                         </Col>
 
-                        <Col lg={3}>
+                        <Col lg={4}>
+                        </Col>
+                        <Col lg={4}>
                             <Bar data={data} width={300} height={300} className='p-4 shadow rounded m-2'/>
                         </Col>
-                        <Col lg={6}>
-                            <div className='shadow rounded m-2'>
-                                <Button
-                                    type='button'
-                                    onClick={() => this.openPopup()}
-                                >Open Popup</Button>
-                            </div>
-                        </Col>
-                        <Col lg={3}>
-                            <div className='shadow rounded m-2'>
-                                3
-                            </div>
+                        <Col lg={4}>
                         </Col>
                     </Row>
                 </Container>

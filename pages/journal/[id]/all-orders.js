@@ -100,7 +100,6 @@ class AllOrdersJournal extends Component {
                     item.label.map(label => {
                         if(label === key) {
                             params.push(key)
-
                             header.push(item.name)
                         }
                     })
@@ -240,7 +239,7 @@ class AllOrdersJournal extends Component {
                         </Col>
                     </Row>
 
-                    <Table hover bordered variant={'dark'}>
+                    <Table hover bordered variant={'dark'} size='sm'>
                         <Thead title={headerTable}/>
                         <Tbody orders={allOrders} params={paramsTable} color={'table-light'}/>
                     </Table>

@@ -88,6 +88,7 @@ export default class Auth extends Component {
                 if (res.status === 200) {
                     Cookies.set('token', res.data.token)
                     Cookies.set('userId', res.data.userId)
+                    localStorage.setItem('user', JSON.stringify(res.data.user))
 
                     setTimeout(redirect, 1000)
                 } else {

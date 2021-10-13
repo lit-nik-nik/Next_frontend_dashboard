@@ -19,3 +19,15 @@
 .modal-width-30 {
     max-width: 30%;
 }
+
+.btn:focus {
+    box-shadow: 0 0 !important;
+}
+
+.dropdown-toggle::after {
+    content: none;
+}
+
+.my-dropdown-user button {
+    padding: 0;
+}

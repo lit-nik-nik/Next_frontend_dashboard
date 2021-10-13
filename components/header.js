@@ -1,4 +1,4 @@
-import {Button, Row, Col, Form} from "react-bootstrap"
+import {Button, Row, Col, Form, Dropdown, DropdownButton} from "react-bootstrap"
 import Link from "next/link"
 import style from '../styles/header.module.css'
 import Router from 'next/router'
@@ -6,6 +6,7 @@ import {useState} from "react";
 import logo from '../public/logo.png'
 import Image from "next/image";
 import exitApp from "../modules/exit";
+import ava from '../public/avatar.png'
 
 const Header = (props) => {
 
@@ -16,6 +17,15 @@ const Header = (props) => {
         Router.push(`/order/${value}`)
         setValue('')
     }
+
+    const title = <Row>
+        <Col>
+            <Image src={ava} width={45} height={45}  alt='avatar users'/>
+        </Col>
+        <Col>
+            {props.user.userName} <br/> ({props.user.sectorName})
+        </Col>
+    </Row>
 
     return (
         <>
@@ -40,7 +50,7 @@ const Header = (props) => {
                         </Col>
                     </Row>
                 </Col>
-                <Col lg={9}>
+                <Col lg={8}>
                     <Form onSubmit={e => searchOrder(e)}>
                         <input
                             className={`w-100 text-white fw-bold ${style.searchPanel}`}
@@ -51,19 +61,24 @@ const Header = (props) => {
                         />
                     </Form>
                 </Col>
-                <Col lg={1} className='bg-dark py-3 px-3 text-center text-white'>
-                    <ul className="navbar-nav">
-                        <li className="nav-item text-nowrap">
-                            <Button
-                                variant='link'
-                                type='button'
-                                className="py-0 text-decoration-none text-warning"
-                                onClick={() => exitApp()}
-                            >
+                <Col lg={2} className='bg-dark pt-1 p-0 text-center text-white'>
+                    <Dropdown drop='down'>
+                        <DropdownButton
+                            variant='dark'
+                            menuVariant='dark'
+                            align='end'
+                            title={title}
+                            className='text-end p-0 ps-1 pe-4 w-100 my-dropdown-user'
+                            style={{fontSize: 16}}
+                        >
+                            <Dropdown.Item eventKey="1">Настройки</Dropdown.Item>
+                            <Dropdown.Item eventKey="2">Полномочия</Dropdown.Item>
+                            <Dropdown.Divider />
+                            <Dropdown.Item onClick={() => exitApp()}>
                                 Выход
-                            </Button>
-                        </li>
-                    </ul>
+                            </Dropdown.Item>
+                        </DropdownButton>
+                    </Dropdown>
                 </Col>
             </Row>
         </>

@@ -18,7 +18,7 @@ function MyApp({ Component, pageProps }) {
         height={5}
         showOnShallow={true}
       />
-      <Component {...pageProps} token={token} userId={userId}/>
+      <Component {...pageProps} token={token} userId={userId} />
     </>
   )
 }

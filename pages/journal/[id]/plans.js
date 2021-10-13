@@ -1,5 +1,5 @@
 import React, {Component} from "react";
-import {Row, Col, Table, Modal, Form, Button} from "react-bootstrap";
+import {Row, Col, Table, Modal, Form, Button, InputGroup} from "react-bootstrap";
 import Thead from "../../../modules/tables/thead";
 import Tbody from "../../../modules/tables/tbody";
 import {globalState} from "../../../data/globalState";
@@ -20,6 +20,8 @@ class PlansJournal extends Component {
     }
 
     state = {
+        sectors: [],
+        activeSector: '',
         ordersPlan: [],
         headerTable: [],
         paramsTable: [],
@@ -63,10 +65,23 @@ class PlansJournal extends Component {
     async componentDidMount() {
         this.setState({link: this.props.router.asPath})
         this.setState({journalID: this.props.router.query.id})
-        await this.setState({ordersPlan: this.props.journal})
+        await this.addSectors()
+        await this.addOrderPlan()
     }
 
-    componentDidUpdate(prevProps, prevState, snapshot) {
+    async componentDidUpdate(prevProps, prevState, snapshot) {
+        if (this.props !== prevProps) {
+            this.setState({link: this.props.router.asPath})
+            this.setState({journalID: this.props.router.query.id})
+            this.setState({activeFilter: 'all'})
+            await this.addSectors()
+            await this.addOrderPlan()
+        }
+
+        if (this.state.activeSector !== prevState.activeSector) {
+            await this.addOrderPlan()
+        }
+
         if (this.state.ordersPlan !== prevState.ordersPlan) {
             this.renderHeader()
             this.filterOrder()
@@ -79,6 +94,29 @@ class PlansJournal extends Component {
         if (this.state.changeOrder.view) this.commentInput.current.focus()
     }
 
+    addSectors = () => {
+        const {journal} = this.props
+        let sectors = []
+
+        journal.map(sector => {
+            sectors.push(sector.name)
+        })
+
+        this.setState({sectors})
+        this.setState({activeSector: sectors[0]})
+    }
+
+    addOrderPlan = () => {
+        const {journal} = this.props
+        const {activeSector} = this.state
+
+        journal.map(sector => {
+            if (activeSector === sector.name) {
+                this.setState({ordersPlan: sector})
+            }
+        })
+    }
+
     filterOrder = (filter = 'all') => {
         const {ordersPlan, activeFilter} = this.state
 
@@ -87,20 +125,26 @@ class PlansJournal extends Component {
             future = []
 
         const onComment = (item) => {
+            let viewComment
+
+            item.data.comments.map(obj => {
+                viewComment = obj.text
+            })
+
             this.setState(({changeOrder}) => {
                 return (
                     changeOrder.view = true,
-                    changeOrder.id = item.ID,
-                    changeOrder.name = item.ORDER_NAME,
-                    changeOrder.comment = item.COMMENT_PLAN ? item.COMMENT_PLAN : ''
+                    changeOrder.id = item.id,
+                    changeOrder.name = item.itmOrderNum,
+                    changeOrder.comment = viewComment ? viewComment : ''
                 )
             })
         }
 
         const addEditButton = (obj, arr) => {
             obj.map(item => {
-                item.EDIT = <i
-                    className='bi bi-pencil-square btn text-primary'
+                item.data.edit = <i
+                    className='bi bi-pencil-square btn text-primary p-0'
                     style={{fontSize: 20}}
                     onClick={() => onComment(item)}
                 />
@@ -144,15 +188,15 @@ class PlansJournal extends Component {
                 headersTables.map(item => {
                     item.label.map(label => {
                         if (label === key) {
-                            if (key === 'COMMENT_PLAN') {
-                                params.push([key, 'EDIT'])
-                            } else {
-                                params.push(key)
-                            }
+                            params.push(key)
                             header.push(item.name)
                         }
                     })
                 })
+                if (key === 'data') {
+                    params.push('comments')
+                    header.push('Комментарии')
+                }
             }
         }
 
@@ -162,18 +206,28 @@ class PlansJournal extends Component {
 
     onChangeComment = async (item) => {
         const {ordersPlan} = this.state
-        let obj, index
+        let obj, index, commentObj
 
         for (let key in ordersPlan) {
-            ordersPlan[key].map((order, i) => {
-                if (order.ID === item.id) {
-                    obj = key
-                    index = i
-                }
-            })
+            if (typeof(ordersPlan[key]) === 'object') {
+                ordersPlan[key].map((order, i) => {
+                    if (order.id === item.id) {
+                        obj = key
+                        index = i
+                    }
+                })
+            }
         }
 
-        this.setState(({ordersPlan}) => ordersPlan[obj][index].COMMENT_PLAN = item.comment)
+        commentObj = {
+            id: '',
+            sector: '',
+            userId: this.props.userId,
+            userName: 'Рома',
+            text: item.comment
+        }
+
+        this.setState(({ordersPlan}) => ordersPlan[obj][index].data.comments = [...this.state.ordersPlan[obj][index].data.comments, commentObj])
 
         this.filterOrder()
     }
@@ -183,7 +237,7 @@ class PlansJournal extends Component {
     }
 
     render() {
-        const {journalID, filters, activeFilter, ordersPlan, headerTable, overdueOrders, todayOrders, futureOrders, changeOrder, paramsTable, error, link} = this.state
+        const {ordersPlan, journalID, filters, activeFilter, headerTable, overdueOrders, todayOrders, futureOrders, changeOrder, paramsTable, error, link, sectors, activeSector} = this.state
 
         return (
             <MainLayout title={`Планы журнала`} link={link} token={this.props.token} error={this.props.error}>
@@ -194,11 +248,29 @@ class PlansJournal extends Component {
                     filters={filters}
                     onChangeFilter={this.changeFilter}
                 >
-                    {ordersPlan?.overdue ? null : <Loading/>}
+
+                    <Row>
+                        <Col lg={4}>
+                            <InputGroup className="mb-3">
+                                <InputGroup.Text>Выберите участок</InputGroup.Text>
+                                <Form.Select
+                                    value={activeSector}
+                                    onChange={(e) => {
+                                        this.setState({activeSector: e.target.value})
+                                    }}>
+                                    {sectors.map((sector, i) => {
+                                        return (
+                                            <option value={sector} key={i}>{sector}</option>
+                                        )
+                                    })}
+                                </Form.Select>
+                            </InputGroup>
+                        </Col>
+                    </Row>
 
                     <Row>
                         <Col>
-                            <Table hover bordered variant={'dark'}>
+                            <Table hover bordered variant={'dark'} size='sm'>
                                 <Thead title={headerTable}/>
 
                                 {overdueOrders ?
