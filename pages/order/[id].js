@@ -157,13 +157,22 @@ class Order extends Component {
         )
     }
 
-    addLineBody = (obj, lineNumber) => {
+    addLineBody = (obj, lineNumber, prevName) => {
         let cells = []
 
         cells.push(<td>{lineNumber}</td>)
 
         for (let key in obj) {
-            if (key === 'NAME') cells.push(<td className='text-start ps-3'>{obj[key]}</td>)
+            if (key === 'NAME') {
+                if (obj[key] === prevName) {
+                    // console.log(prevName)
+                    cells.push(<td className='text-start ps-3'/>)
+                } else {
+                    // console.log(prevName)
+                    cells.push(<td className='text-start ps-3'>{obj[key]}</td>)
+                }
+
+            }
 
             if (
                 key === 'HEIGHT' ||
@@ -180,7 +189,7 @@ class Order extends Component {
                 if (obj.SQUARE === 0) SQUARE = ''
                 else SQUARE = Math.round(obj[key] * 1000) / 1000
 
-                cells.push(<td>{`${SQUARE} ${MEASURE_UNIT}`}</td>)
+                cells.push(<td style={{width: '8%'}}>{`${SQUARE} ${MEASURE_UNIT}`}</td>)
             }
         }
 
@@ -197,18 +206,31 @@ class Order extends Component {
     }
 
     bodyRender = (obj) => {
-        let bodyLines = []
+        let bodyLines = [],
+            prevName
 
         obj.map((item, i) => {
-            bodyLines.push(
-                <tr key={i} className='table-light'>
-                    {this.addLineBody(item, i+1)}
-                </tr>
-            )
+            if (item.NAME !== prevName) {
+                bodyLines.push(
+                    <tr key={i} className='table-light'>
+                        {this.addLineBody(item, i+1, prevName)}
+                    </tr>
+                )
+                prevName = item.NAME
+            } else {
+                bodyLines.push(
+                    <tr key={i} className='table-light'>
+                        {this.addLineBody(item, i+1, prevName)}
+                    </tr>
+                )
+            }
+
+
+
         })
 
         return (
-            <Table variant={'dark'} responsive hover size='sm' className='small text-center' style={{fontSize: 20}}>
+            <Table variant={'dark'} responsive bordered hover size='sm' className='small text-center' style={{fontSize: 20}}>
                 <Thead title={this.state.bodyTitle} />
                 <tbody>
                     {bodyLines}

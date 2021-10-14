@@ -4,7 +4,7 @@ import {Row, Col, FloatingLabel, Form, Button} from "react-bootstrap";
 import {getUsers} from "../services/auth/get";
 import {authUser} from "../services/auth/post";
 import bcrypt from 'bcryptjs';
-import Router from "next/router";
+import Router, {withRouter} from "next/router";
 import Link from "next/link";
 import Head from "next/head";
 import logo from "../public/logo.png"
@@ -12,8 +12,9 @@ import Image from "next/image";
 import {changeKeyboard} from "../modules/change-keyboard";
 import Cookies from 'js-cookie'
 import CustomError from "../modules/error";
+import {NologinLayout} from "../components/layout/nologin";
 
-export default class Auth extends Component {
+class Auth extends Component {
 
     constructor(props) {
         super(props);
@@ -29,10 +30,12 @@ export default class Auth extends Component {
         },
         variant: true,
         disabled: false,
-        errorData: null
+        errorData: null,
+        link: null,
     }
 
     componentDidMount() {
+        this.setState({link: this.props.router.pathname})
         if (this.props.error) this.setState({disabled: true})
 
         if (this.props.users) {
@@ -105,7 +108,7 @@ export default class Auth extends Component {
 
 
     render() {
-        const {login, disabled, errorData, variant} = this.state
+        const {login, disabled, errorData, variant, link} = this.state
 
         const loginPass =
             <>
@@ -183,52 +186,53 @@ export default class Auth extends Component {
 
         return (
             <>
-                <Head>
-                    <title>Авторизация пользователя - Массив-Юг</title>
-                </Head>
-                <Row>
-                    <Col lg={12}>
-                        <div className={`${style.authBody}`}>
-                            <main className={`form-signin bg-dark ${style.formSign}`}>
-                                <Row>
-                                    <Col className='text-center'>
-                                        <Image src={logo} alt="Массив-Юг" />
-                                    </Col>
-                                </Row>
-                                <Form onSubmit={e => this.autorization(e)} autoComplete="off">
-                                    <h1 className="h3 mb-3 fw-normal text-white text-center">Авторизация</h1>
-
-                                    {variant ? barcodes : loginPass}
-
+                <NologinLayout title='Авторизация пользователя' link={link}>
+                    <Row>
+                        <Col lg={12}>
+                            <div className={`${style.authBody}`}>
+                                <main className={`form-signin bg-dark ${style.formSign}`}>
                                     <Row>
-                                        <Col className='mb-3 text-start'>
-                                            {variant ?
-                                                variantButton('Вход по логину/паролю', 'barcode') :
-                                                variantButton('Вход по штрих-коду', 'login')
-                                            }
-                                        </Col>
-                                        <Col className='mb-3 text-end'>
-                                            <Link href='/reg'>
-                                                <a className='text-white text-decoration-none'>
-                                                    У меня нет учетки
-                                                </a>
-                                            </Link>
+                                        <Col className='text-center'>
+                                            <Image src={logo} alt="Массив-Юг" />
                                         </Col>
                                     </Row>
+                                    <Form onSubmit={e => this.autorization(e)} autoComplete="off">
+                                        <h1 className="h3 mb-3 fw-normal text-white text-center">Авторизация</h1>
 
-                                    <Button type='submit' disabled={disabled} className="w-100 btn btn-lg btn-primary">Войти</Button>
+                                        {variant ? barcodes : loginPass}
 
-                                    <CustomError error={errorData ? errorData : this.props.error} />
-                                </Form>
-                            </main>
-                        </div>
-                    </Col>
-                </Row>
+                                        <Row>
+                                            <Col className='mb-3 text-start'>
+                                                {variant ?
+                                                    variantButton('Вход по логину/паролю', 'barcode') :
+                                                    variantButton('Вход по штрих-коду', 'login')
+                                                }
+                                            </Col>
+                                            <Col className='mb-3 text-end'>
+                                                <Link href='/reg'>
+                                                    <a className='text-white text-decoration-none'>
+                                                        У меня нет учетки
+                                                    </a>
+                                                </Link>
+                                            </Col>
+                                        </Row>
+
+                                        <Button type='submit' disabled={disabled} className="w-100 btn btn-lg btn-primary">Войти</Button>
+
+                                        <CustomError error={errorData ? errorData : this.props.error} />
+                                    </Form>
+                                </main>
+                            </div>
+                        </Col>
+                    </Row>
+                </NologinLayout>
             </>
         )
     }
 
 }
+
+export default withRouter(Auth)
 
 export async function getServerSideProps() {
 

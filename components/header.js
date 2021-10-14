@@ -14,7 +14,7 @@ const Header = (props) => {
 
     const searchOrder = (e) => {
         e.preventDefault();
-        Router.push(`/order/${value}`)
+        Router.push(`/orders?filter=${value}`)
         setValue('')
     }
 

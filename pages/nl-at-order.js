@@ -1,5 +1,4 @@
-import {Button, Col, Alert, Form, InputGroup, Row, Table, Modal} from "react-bootstrap"
-import { MainLayout } from '../components/layout/main'
+import {Button, Col, Alert, Form, InputGroup, Row, Table, Modal, Container} from "react-bootstrap"
 import React, {Component} from "react";
 import Thead from "../modules/tables/thead";
 import Tbody from "../modules/tables/tbody";
@@ -10,6 +9,7 @@ import {getBarcodes} from "../services/at-order/get";
 import {postAtOrders} from "../services/at-order/post";
 import ModalWindow from "../modules/modals/modal";
 import {decriptedStr, encritptedStr} from "../modules/encription";
+import {NologinLayout} from "../components/layout/nologin";
 
 class AccTransOrder extends Component {
 
@@ -592,7 +592,7 @@ class AccTransOrder extends Component {
 
     // Отображение страницы
     render() {
-        const {data, hint, error, orders, orderChange, submit} = this.state,
+        const {data, hint, error, orders, orderChange, submit, link} = this.state,
             {accepted, transfer, order, date} = data
 
         const inputGroup = (label, data, ref, onKeyPress) => {
@@ -627,207 +627,209 @@ class AccTransOrder extends Component {
         }
 
         return (
-            <MainLayout
+            <NologinLayout
                 title='Форма приема-передачи заказа'
-                link={this.state.link}
-                token={this.props.token}
-                error={submit.error.data ? submit.error.data : this.props.error}>
-                <h2 className='text-center fw-bold mb-3'>Форма приема-передачи заказа</h2>
+                link={link}
+                error={submit.error.data ? submit.error.data : this.props.error}
+            >
+                <Container fluid className='my-3'>
+                    <h2 className='text-center fw-bold mb-3'>Форма приема-передачи заказа</h2>
 
-                <Row>
-                    <Col/>
-                    <Col lg={5}>
-                        <Alert
-                            className={`p-1 mb-3 text-center ${error.type ? 'd-none' : ''}`}
-                            variant='secondary'
-                        >
-                            {`${hint}`}
-                        </Alert>
-                        <Alert
-                            className={`p-1 mb-3 text-center ${error.type ? '' : 'd-none'}`}
-                            variant='danger'
-                        >
-                            {error.message ? error.message : '...'}
-                        </Alert>
-                    </Col>
-                    <Col/>
-                </Row>
+                    <Row>
+                        <Col/>
+                        <Col lg={5}>
+                            <Alert
+                                className={`p-1 mb-3 text-center ${error.type ? 'd-none' : ''}`}
+                                variant='secondary'
+                            >
+                                {`${hint}`}
+                            </Alert>
+                            <Alert
+                                className={`p-1 mb-3 text-center ${error.type ? '' : 'd-none'}`}
+                                variant='danger'
+                            >
+                                {error.message ? error.message : '...'}
+                            </Alert>
+                        </Col>
+                        <Col/>
+                    </Row>
 
-                <Row>
-                    <Col lg={4} className='mb-3'>
-                        {inputGroup('transfer', transfer, this.transferInput, this.handledTransfer)}
-                    </Col>
-                    <Col lg={3} className='text-center text-secondary'>
-                        <Alert
-                            className='p-2'
-                            style={{fontSize: 12}}
-                            variant={transfer.name ? 'success' : 'warning'}
-                        >
-                            {transfer.name ? transfer.name : '...'}
-                        </Alert>
-                    </Col>
-                    <Col lg={1} className='text-center'>
-                        <i
-                            className="bi bi-trash-fill btn text-danger pt-0"
-                            style={{fontSize: 24}}
-                            onClick={() => this.clearValue('transfer')}
-                        />
-                    </Col>
-                    <Col lg={3} className='text-center mb-3'>
-                        <InputGroup>
-                            <InputGroup.Text className='text-end d-block' style={{width: `35%`, whiteSpace: 'normal'}}>{date.label}</InputGroup.Text>
-                            <Form.Control
-                                type='datetime-local'
-                                id={date.id}
-                                ref={this.dateInput}
-                                onBlur={() => date.disabled || orderChange.view ? null : this.dateInput.current.focus()}
-                                autoFocus
-                                value={date.value}
-                                className='border rounded-0'
-                                readOnly={date.disabled}
-                                onChange={(e) => this.onChangeData("date", e.target.value)}
-                            />
-                        </InputGroup>
-                    </Col>
-                    <Col lg={1} className='text-center mb-3'>
-                        {date.disabled ? (
+                    <Row>
+                        <Col lg={4} className='mb-3'>
+                            {inputGroup('transfer', transfer, this.transferInput, this.handledTransfer)}
+                        </Col>
+                        <Col lg={3} className='text-center text-secondary'>
+                            <Alert
+                                className='p-2'
+                                style={{fontSize: 12}}
+                                variant={transfer.name ? 'success' : 'warning'}
+                            >
+                                {transfer.name ? transfer.name : '...'}
+                            </Alert>
+                        </Col>
+                        <Col lg={1} className='text-center'>
                             <i
-                                className="bi bi-calendar2-plus-fill text-primary btn p-0"
+                                className="bi bi-trash-fill btn text-danger pt-0"
                                 style={{fontSize: 24}}
-                                onClick={() => this.setState(({data}) => data.date.disabled = false)}
+                                onClick={() => this.clearValue('transfer')}
                             />
-                        ) : (
-                            <i
-                                className="bi bi-calendar2-check-fill text-success btn p-0"
-                                style={{fontSize: 24}}
-                                onClick={() => this.handlesDate()}
-                            />
-                        )}
-                    </Col>
-                </Row>
-
-                <Row>
-                    <hr/>
-                    <Col lg={4}>
-                        {inputGroup('accepted', accepted, this.acceptedInput, this.handledAccept)}
-                    </Col>
-                    <Col lg={3} className='text-center'>
-                        <Alert
-                            className='p-2'
-                            style={{fontSize: 12}}
-                            variant={accepted.name ? 'success' : 'warning'}
-                        >
-                            {accepted.name ? accepted.name : '...'}
-                        </Alert>
-                    </Col>
-                    <Col lg={1} className='text-center'>
-                        <i
-                            className="bi bi-trash-fill btn text-danger pt-0"
-                            style={{fontSize: 24}}
-                            onClick={() => this.clearValue('accepted')}
-                        />
-                    </Col>
-                    <Col lg={3} className={`mb-3`}>
-                        <div>
-                            <InputGroup className={`${order.hide ? 'hide-input' : ''}`}>
-                                <InputGroup.Text className='text-end d-block' style={{width: `35%`, whiteSpace: 'normal'}}>{order.label}</InputGroup.Text>
+                        </Col>
+                        <Col lg={3} className='text-center mb-3'>
+                            <InputGroup>
+                                <InputGroup.Text className='text-end d-block' style={{width: `35%`, whiteSpace: 'normal'}}>{date.label}</InputGroup.Text>
                                 <Form.Control
-                                    type='number'
-                                    id={order.id}
-                                    ref={this.orderInput}
-                                    onBlur={() => order.disabled || orderChange.view || !date.disabled ? null : this.orderInput.current.focus()}
+                                    type='datetime-local'
+                                    id={date.id}
+                                    ref={this.dateInput}
+                                    onBlur={() => date.disabled || orderChange.view ? null : this.dateInput.current.focus()}
                                     autoFocus
-                                    value={order.value}
-                                    className={`border rounded-0`}
-                                    readOnly={order.disabled}
-                                    onChange={(e) => this.onChangeData('order', e.target.value)}
-                                    onKeyPress={e => {
-                                        if (e.key === 'Enter') this.addOrder(e.target.value)
-                                    }}
+                                    value={date.value}
+                                    className='border rounded-0'
+                                    readOnly={date.disabled}
+                                    onChange={(e) => this.onChangeData("date", e.target.value)}
                                 />
                             </InputGroup>
-                        </div>
-                    </Col>
-                    <Col lg={1} className='mb-3 text-end'>
-                        {order.hide ? (
-                            <Button
-                                variant='outline-primary'
-                                type='button'
+                        </Col>
+                        <Col lg={1} className='text-center mb-3'>
+                            {date.disabled ? (
+                                <i
+                                    className="bi bi-calendar2-plus-fill text-primary btn p-0"
+                                    style={{fontSize: 24}}
+                                    onClick={() => this.setState(({data}) => data.date.disabled = false)}
+                                />
+                            ) : (
+                                <i
+                                    className="bi bi-calendar2-check-fill text-success btn p-0"
+                                    style={{fontSize: 24}}
+                                    onClick={() => this.handlesDate()}
+                                />
+                            )}
+                        </Col>
+                    </Row>
+
+                    <Row>
+                        <hr/>
+                        <Col lg={4}>
+                            {inputGroup('accepted', accepted, this.acceptedInput, this.handledAccept)}
+                        </Col>
+                        <Col lg={3} className='text-center'>
+                            <Alert
+                                className='p-2'
                                 style={{fontSize: 12}}
-                                className='p-1'
-                                onClick={() => this.setState(({data}) => data.order.hide = false)}
-                            >Ручной ввод заказа</Button>
-                        ) : (
+                                variant={accepted.name ? 'success' : 'warning'}
+                            >
+                                {accepted.name ? accepted.name : '...'}
+                            </Alert>
+                        </Col>
+                        <Col lg={1} className='text-center'>
+                            <i
+                                className="bi bi-trash-fill btn text-danger pt-0"
+                                style={{fontSize: 24}}
+                                onClick={() => this.clearValue('accepted')}
+                            />
+                        </Col>
+                        <Col lg={3} className={`mb-3`}>
+                            <div>
+                                <InputGroup className={`${order.hide ? 'hide-input' : ''}`}>
+                                    <InputGroup.Text className='text-end d-block' style={{width: `35%`, whiteSpace: 'normal'}}>{order.label}</InputGroup.Text>
+                                    <Form.Control
+                                        type='number'
+                                        id={order.id}
+                                        ref={this.orderInput}
+                                        onBlur={() => order.disabled || orderChange.view || !date.disabled ? null : this.orderInput.current.focus()}
+                                        autoFocus
+                                        value={order.value}
+                                        className={`border rounded-0`}
+                                        readOnly={order.disabled}
+                                        onChange={(e) => this.onChangeData('order', e.target.value)}
+                                        onKeyPress={e => {
+                                            if (e.key === 'Enter') this.addOrder(e.target.value)
+                                        }}
+                                    />
+                                </InputGroup>
+                            </div>
+                        </Col>
+                        <Col lg={1} className='mb-3 text-end'>
+                            {order.hide ? (
+                                <Button
+                                    variant='outline-primary'
+                                    type='button'
+                                    style={{fontSize: 12}}
+                                    className='p-1'
+                                    onClick={() => this.setState(({data}) => data.order.hide = false)}
+                                >Ручной ввод заказа</Button>
+                            ) : (
+                                <Button
+                                    variant='outline-primary'
+                                    type='button'
+                                    style={{fontSize: 12}}
+                                    className='p-1'
+                                    onClick={() => this.setState(({data}) => data.order.hide = true)}
+                                >Скрыть поле</Button>
+                            )}
+                        </Col>
+                    </Row>
+
+                    <Row>
+                        <Col lg={12}>
+                            <Table striped bordered hover responsive="lg">
+                                <Thead
+                                    title={['Наименование заказа', 'Статус заказа', 'Комментарий к заказу', '']}
+                                />
+                                <Tbody
+                                    params={['nameOrder', 'statusOrder',  ['comment', 'commentOrder'], 'delOrder']}
+                                    orders={orders}
+                                />
+                            </Table>
+                        </Col>
+                    </Row>
+
+                    <Row>
+                        <hr/>
+                        <Col lg={6} className='text-start'>
                             <Button
-                                variant='outline-primary'
+                                variant='outline-danger'
                                 type='button'
-                                style={{fontSize: 12}}
-                                className='p-1'
-                                onClick={() => this.setState(({data}) => data.order.hide = true)}
-                            >Скрыть поле</Button>
-                        )}
-                    </Col>
-                </Row>
+                                onClick={e => this.clearValue('all')}
+                            >Очистить форму</Button>
+                        </Col>
+                        <Col lg={6} className='text-end'>
+                            <Button
+                                variant='outline-success'
+                                type='button'
+                                disabled={!orders[0]}
+                                onClick={e => this.handledSubmit(e)}
+                            >Сохранить данные</Button>
+                        </Col>
+                    </Row>
 
-                <Row>
-                    <Col lg={12}>
-                        <Table striped bordered hover responsive="lg">
-                            <Thead
-                                title={['Наименование заказа', 'Статус заказа', 'Комментарий к заказу', '']}
+                    <Modal show={this.state.orderChange.view} centered>
+                        <Modal.Header className='text-center d-block'>
+                            {`Введите комментарий к заказу - ${orderChange.nameOrder}`}
+                        </Modal.Header>
+                        <Modal.Body>
+                            <Form.Control
+                                type="text"
+                                ref={this.commentInput}
+                                onBlur={() => this.commentInput.current.focus()}
+                                value={orderChange.comment}
+                                className='border rounded-0'
+                                onChange={e => this.setState(({orderChange}) => orderChange.comment = e.target.value)}
+                                onKeyPress={e => {
+                                    if (e.key === 'Enter') this.changeCommentOrder()
+                                }}
                             />
-                            <Tbody
-                                params={['nameOrder', 'statusOrder',  ['comment', 'commentOrder'], 'delOrder']}
-                                orders={orders}
-                            />
-                        </Table>
-                    </Col>
-                </Row>
+                        </Modal.Body>
+                    </Modal>
 
-                <Row>
-                    <hr/>
-                    <Col lg={6} className='text-start'>
-                        <Button
-                            variant='outline-danger'
-                            type='button'
-                            onClick={e => this.clearValue('all')}
-                        >Очистить форму</Button>
-                    </Col>
-                    <Col lg={6} className='text-end'>
-                        <Button
-                            variant='outline-success'
-                            type='button'
-                            disabled={!orders[0]}
-                            onClick={e => this.handledSubmit(e)}
-                        >Сохранить данные</Button>
-                    </Col>
-                </Row>
-
-                <Modal show={this.state.orderChange.view} centered>
-                    <Modal.Header className='text-center d-block'>
-                        {`Введите комментарий к заказу - ${orderChange.nameOrder}`}
-                    </Modal.Header>
-                    <Modal.Body>
-                        <Form.Control
-                            type="text"
-                            ref={this.commentInput}
-                            onBlur={() => this.commentInput.current.focus()}
-                            value={orderChange.comment}
-                            className='border rounded-0'
-                            onChange={e => this.setState(({orderChange}) => orderChange.comment = e.target.value)}
-                            onKeyPress={e => {
-                                if (e.key === 'Enter') this.changeCommentOrder()
-                            }}
-                        />
-                    </Modal.Body>
-                </Modal>
-
-                <ModalWindow
-                    show={submit.data.view}
-                    clearData={this.clearForm}
-                    message={submit.data.message}
-                    orders={submit.data.orders}
-                />
-            </MainLayout>
+                    <ModalWindow
+                        show={submit.data.view}
+                        clearData={this.clearForm}
+                        message={submit.data.message}
+                        orders={submit.data.orders}
+                    />
+                </Container>
+            </NologinLayout>
         )
     }
 }

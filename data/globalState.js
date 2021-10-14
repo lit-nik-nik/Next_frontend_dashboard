@@ -6,6 +6,11 @@ export const globalState = {
             icon: 'bi-house-door-fill'
         },
         {
+            label: 'Все заказы',
+            link: '/orders',
+            icon: 'bi-table'
+        },
+        {
             id: 'bookkeeping',
             label: 'Бухгалтерия',
             link: '',
@@ -35,7 +40,7 @@ export const globalState = {
             id: 'journals',
             label: 'Журналы',
             link: '',
-            icon: 'bi-table',
+            icon: 'bi-journal-text',
             submenu: []
         }
     ],
@@ -49,6 +54,63 @@ export const globalState = {
             name: 'Наименование'
         },
         {
+            label: ['orderType'],
+            name: 'Тип заказа'
+        },
+        {
+            label: ['manager'],
+            name: 'Менеджер'
+        },
+        {
+            label: ['city'],
+            name: 'Город'
+        },
+        {
+            label: ['fasadMaterial'],
+            name: 'Материал'
+        },
+        {
+            label: ['fasadModel'],
+            name: 'Модель'
+        },
+        {
+            label: ['color'],
+            name: 'Цвет'
+        },
+        {
+            label: ['totalCost'],
+            name: 'Полная стоимость'
+        },
+        {
+            label: ['cost'],
+            name: 'Стоимость'
+        },
+        {
+            label: ['pay'],
+            name: 'Оплата'
+        },
+        {
+            label: ['debt'],
+            name: 'Долг'
+        },
+        {
+            label: ['square'],
+            name: 'Площадь'
+        },
+        {
+            label: ['dateSave'],
+            name: 'Дата перв. сохр.'
+        },
+        {
+            label: ['dateFirstStage'],
+            name: 'Дата начала производства'
+        },
+        {
+            label: ['datePlanPack'],
+            name: 'Дата план. упаковки'
+        },
+
+        {
             label: ['PLAN_DATE', 'datePlan'],
             name: 'Планируемая дата'
         },
@@ -57,7 +119,7 @@ export const globalState = {
             name: 'Дата'
         },
         {
-            label: ['STATUS_NAME', 'STATUS_DESCRIPTION'],
+            label: ['STATUS_NAME', 'STATUS_DESCRIPTION', 'status'],
             name: 'Статус'
         },
         {

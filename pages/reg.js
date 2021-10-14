@@ -5,13 +5,14 @@ import Link from "next/link";
 import {getUsers} from "../services/auth/get";
 import Head from "next/head";
 import {regUser} from "../services/reg/post";
-import Router from "next/router";
+import Router, {withRouter} from "next/router";
 import ModalWindow from "../modules/modals/modal";
 import Image from "next/image";
 import logo from "../public/logo.png";
 import CustomError from "../modules/error";
+import {NologinLayout} from "../components/layout/nologin";
 
-export default class Reg extends Component {
+class Reg extends Component {
 
     state = {
         users: [],
@@ -73,6 +74,7 @@ export default class Reg extends Component {
     }
 
     componentDidMount() {
+        this.setState({link: this.props.router.pathname})
         if (this.props.error) this.setState({disabled: true})
 
         if (this.props.users) {
@@ -293,53 +295,54 @@ export default class Reg extends Component {
 
 
     render() {
-        const {inputs, disabled, errorData, reg} = this.state
+        const {inputs, disabled, errorData, reg, link} = this.state
 
         return (
             <>
-                <Head>
-                    <title>Регистрация пользователя - Массив-Юг</title>
-                </Head>
-                <Row>
-                    <Col lg={12}>
-                        <div className={style.authBody}>
-                            <main className={`form-signin bg-dark ${style.formSign}`}>
-                                <Row>
-                                    <Col className='text-center'>
-                                        <Image src={logo} alt="Массив-Юг" />
-                                    </Col>
-                                </Row>
-                                <Form onSubmit={e => this.formSubmit(e)} autoComplete="off">
-                                    <h1 className="h3 mb-3 fw-normal text-white text-center">Зарегистрируйся</h1>
+                <NologinLayout title='Регистрация пользователя' link={link}>
+                    <Row>
+                        <Col lg={12}>
+                            <div className={style.authBody}>
+                                <main className={`form-signin bg-dark ${style.formSign}`}>
+                                    <Row>
+                                        <Col className='text-center'>
+                                            <Image src={logo} alt="Массив-Юг" />
+                                        </Col>
+                                    </Row>
+                                    <Form onSubmit={e => this.formSubmit(e)} autoComplete="off">
+                                        <h1 className="h3 mb-3 fw-normal text-white text-center">Зарегистрируйся</h1>
 
-                                    {this.renderInput(inputs)}
+                                        {this.renderInput(inputs)}
 
-                                    <Col className='text-end mb-3'>
-                                        <Link href='/auth'>
-                                            <a className='text-decoration-none text-white'>
-                                                Я вспомнил свою учетку
-                                            </a>
-                                        </Link>
-                                    </Col>
+                                        <Col className='text-end mb-3'>
+                                            <Link href='/auth'>
+                                                <a className='text-decoration-none text-white'>
+                                                    Я вспомнил свою учетку
+                                                </a>
+                                            </Link>
+                                        </Col>
 
-                                    <Button type='submit' disabled={disabled} className="w-100 btn btn-lg btn-primary">Сохранить</Button>
-                                </Form>
+                                        <Button type='submit' disabled={disabled} className="w-100 btn btn-lg btn-primary">Сохранить</Button>
+                                    </Form>
 
-                                <ModalWindow
-                                    show={reg.view}
-                                    onHide={()=> this.setState(({reg}) => reg.view = false)}
-                                    message={reg.message}
-                                />
+                                    <ModalWindow
+                                        show={reg.view}
+                                        onHide={()=> this.setState(({reg}) => reg.view = false)}
+                                        message={reg.message}
+                                    />
 
-                                <CustomError error={errorData ? errorData : this.props.error}/>
-                            </main>
-                        </div>
-                    </Col>
-                </Row>
+                                    <CustomError error={errorData ? errorData : this.props.error}/>
+                                </main>
+                            </div>
+                        </Col>
+                    </Row>
+                </NologinLayout>
             </>
         )
     }
 }
+
+export default withRouter(Reg)
 
 export async function getServerSideProps() {
 

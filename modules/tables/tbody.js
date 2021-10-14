@@ -73,8 +73,17 @@ export default class Tbody extends Component {
                         {order[param[0]]} {order[param[1]]}
                     </td>
                 )
-                else if (param === 'datePlan' || param === 'PLAN_DATE' || param === 'TS' || param === 'DATE_ADDED' || param === 'TRANSFER_DATE') cell.push(
-                    <td className='align-middle text-center' style={{width: '8%'}} key={index}>
+                else if (
+                    param === 'datePlan' ||
+                    param === 'PLAN_DATE' ||
+                    param === 'TS' ||
+                    param === 'DATE_ADDED' ||
+                    param === 'TRANSFER_DATE' ||
+                    param === 'dateSave' ||
+                    param === 'dateFirstStage' ||
+                    param === 'datePlanPack'
+                ) cell.push(
+                    <td className='align-middle text-center' style={{width: 'auto'}} key={index}>
                         {new Date(order[param]).toLocaleString().slice(0,10)}
                     </td>
                 )
