@@ -10,12 +10,11 @@ import ava from '../public/avatar.png'
 
 const Header = (props) => {
 
-    const [value, setValue] = useState('')
+    const [value, setValue] = useState(props.search ? props.search : '')
 
     const searchOrder = (e) => {
         e.preventDefault();
         Router.push(`/orders?filter=${value}`)
-        setValue('')
     }
 
     const title = <Row>
@@ -55,7 +54,7 @@ const Header = (props) => {
                         <input
                             className={`w-100 text-white fw-bold ${style.searchPanel}`}
                             type="text"
-                            placeholder="Поиск по номеру заказа"
+                            placeholder="Поиск по заказам"
                             value={value}
                             onChange={e => setValue(e.target.value)}
                         />

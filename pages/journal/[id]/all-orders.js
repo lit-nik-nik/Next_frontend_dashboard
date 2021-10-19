@@ -36,31 +36,35 @@ class AllOrdersJournal extends Component {
         headerTable: [],
         paramsTable: [],
         error: null,
-        link: null
+        link: null,
+        noSearch: '',
+        loading: true
     }
 
     async componentDidMount() {
+        if (this.props.data.count === 0) {
+            this.setState({noSearch: 'Данные находятся за гранью доступного'})
+            this.setState({loading: false})
+        } else {
+            this.setState({loading: false})
+        }
+
         this.setState({link: this.props.router.asPath})
-        await this.addData()
+        await this.addData(this.props.data)
         this.renderHeader()
     }
 
     async componentDidUpdate(prevProps, prevState, snapshot) {
-        if (
-            this.state.activePage !== prevState.activePage
-        ) {
+        if (this.state.activePage !== prevState.activePage) {
+            this.setState({loading: true})
             await this.changeData()
         }
     }
 
-    addData = () => {
-        const {data} = this.props
-
-        if (data) {
-            this.setState({allOrders: data.orders})
-            this.setState({counts: data.count})
-            this.setState({pages: data.pages})
-        }
+    addData = (data) => {
+        this.setState({allOrders: data.orders})
+        this.setState({counts: data.count})
+        this.setState({pages: data.pages})
     }
 
     changeData = async () => {
@@ -73,15 +77,14 @@ class AllOrdersJournal extends Component {
         if (startDate) sDate = new Date(startDate).toLocaleString().slice(0,10)
         if (endDate) eDate = new Date(endDate).toLocaleString().slice(0,10)
 
-
         await getAdoptedOrderJournal(id, token, activePage, limit, sDate, eDate, search)
             .then(res => data = res.data)
             .catch(err => error = err.response?.data)
 
+        this.setState({loading: false})
+
         if (data) {
-            this.setState({allOrders: data.orders})
-            this.setState({counts: data.count})
-            this.setState({pages: data.pages})
+            this.addData(data)
         }
         else if (error) {
             this.setState({error})
@@ -225,24 +228,29 @@ class AllOrdersJournal extends Component {
 
                     <hr/>
 
-                    <Row>
-                        <Col>
-                            <PaginationTable activePage={+activePage} lastPage={pages} onClick={this.changeActivePage}/>
-                        </Col>
-                        <Col>
-                            {allOrders[0] ? null : <Loading/>}
-                        </Col>
-                        <Col className='text-end'>
-                            <Alert variant='light p-2'>
-                                Всего заказов - {this.state.counts} на {this.state.pages} страниц
-                            </Alert>
-                        </Col>
-                    </Row>
+                    {this.state.loading ? (
+                        <Loading/>
+                    ) : this.state.noSearch ? (
+                        <Col className='text-muted text-center'>{this.state.noSearch}</Col>
+                    ) : (
+                        <>
+                            <Row>
+                                <Col>
+                                    <PaginationTable activePage={+activePage} lastPage={pages} onClick={this.changeActivePage}/>
+                                </Col>
+                                <Col className='text-end'>
+                                    <Alert variant='light p-2'>
+                                        Всего заказов - {this.state.counts} на {this.state.pages} страниц
+                                    </Alert>
+                                </Col>
+                            </Row>
 
-                    <Table hover bordered variant={'dark'} size='sm'>
-                        <Thead title={headerTable}/>
-                        <Tbody orders={allOrders} params={paramsTable} color={'table-light'}/>
-                    </Table>
+                            <Table hover bordered variant={'dark'} size='sm'>
+                                <Thead title={headerTable}/>
+                                <Tbody orders={allOrders} params={paramsTable} color={'table-light'}/>
+                            </Table>
+                        </>
+                    )}
 
                     <CustomError error={error} />
                 </JournalLayout>

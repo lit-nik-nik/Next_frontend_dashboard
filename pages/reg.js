@@ -40,7 +40,6 @@ class Reg extends Component {
                 id: 'telephone',
                 label: 'Телефон',
                 type: 'tel',
-                pattern: '8[0-9]{10}',
                 placeholder: '11 цифр начиная с 8',
                 value: '',
             },
@@ -112,8 +111,8 @@ class Reg extends Component {
     }
 
     compareInputs = (value, i) => {
-        const {inputs} = this.state,
-            reg = /^8\d{10}/
+        const {inputs} = this.state
+        let reg = /8\d{10}/g
 
         if (inputs[i].id === 'telephone') {
             if (reg.test(inputs[i].value) && inputs[i].value.length === 11) this.setState(({inputs}) => inputs[i].compare = true)
@@ -155,10 +154,10 @@ class Reg extends Component {
                                     type={item.type}
                                     id={`${item.id}-${item.type}-${index}`}
                                     key={index}
-                                    onClick={e => this.setState(({inputs}) => {
+                                    onClick={async e => {
+                                        await this.setState(({inputs}) => inputs[i].value = e.target.ariaLabel)
                                         this.compareInputs(e.target.ariaLabel, i)
-                                        inputs[i].value = e.target.ariaLabel
-                                    })}
+                                    }}
                                 />
                             ))}
                         </Col>
@@ -176,10 +175,10 @@ class Reg extends Component {
                                 type={item.type}
                                 placeholder={item.label}
                                 value={item.value}
-                                onChange={e => this.setState(({inputs}) => {
+                                onChange={async e => {
+                                    await this.setState(({inputs}) => inputs[i].value = e.target.value)
                                     this.comparePass(i)
-                                    return inputs[i].value = e.target.value
-                                })}
+                                }}
                             />
                         </Col>
                     </FormGroup>
@@ -196,10 +195,10 @@ class Reg extends Component {
                                 type={item.type}
                                 placeholder={item.label}
                                 value={item.value}
-                                onChange={e => this.setState(({inputs}) => {
+                                onChange={async e => {
+                                    await this.setState(({inputs}) => inputs[i].value = e.target.value)
                                     this.compareLogin(i)
-                                    return inputs[i].value = e.target.value
-                                })}
+                                }}
                             />
                         </Col>
                     </FormGroup>
@@ -217,10 +216,10 @@ class Reg extends Component {
                                 placeholder={`${item.label} (${item.placeholder})`}
                                 value={item.value}
                                 pattern={item.pattern}
-                                onChange={e => this.setState(({inputs}) => {
+                                onChange={async e => {
+                                    await this.setState(({inputs}) => inputs[i].value = e.target.value)
                                     this.compareInputs(e.target.value, i)
-                                    inputs[i].value = e.target.value
-                                })}
+                                }}
                             />
                         </Col>
                     </FormGroup>
@@ -237,10 +236,10 @@ class Reg extends Component {
                                 type={item.type}
                                 placeholder={item.label}
                                 value={item.value}
-                                onChange={e => this.setState(({inputs}) => {
+                                onChange={async e => {
+                                    await this.setState(({inputs}) => inputs[i].value = e.target.value)
                                     this.compareInputs(e.target.value, i)
-                                    inputs[i].value = e.target.value
-                                })}
+                                }}
                             />
                         </Col>
                     </FormGroup>

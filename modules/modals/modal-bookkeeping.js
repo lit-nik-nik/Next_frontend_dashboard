@@ -1,22 +1,30 @@
 import {Button, Form, Modal, Row, Col, Alert} from "react-bootstrap";
-import React, {useState} from "react";
-import {pathToRegexp} from "next/dist/next-server/lib/router/utils/path-match";
+import React, {useEffect, useState} from "react";
 
 export default function ModalBookkeeping (props) {
 
     const [penalty, setPenalty] = useState('');
     const [comment, setComment] = useState('');
     const [user, setUser] = useState('');
-    const [cost, setCost] = useState(0);
+    const [cost, setCost] = useState('');
     const [modif, setModif] = useState(0);
+    const [active, setActive] = useState(false)
 
     const clearState = () => {
         setPenalty('')
         setComment('')
         setUser('')
-        setCost(0)
+        setCost('')
         setModif(0)
     }
+
+    useEffect(() => {
+        if (penalty && user && cost) {
+            setActive(true)
+        } else {
+            setActive(false)
+        }
+    })
 
     return (
         <>
@@ -65,7 +73,13 @@ export default function ModalBookkeeping (props) {
                                     />
 
                                     <Alert variant='secondary' className='m-0 p-1'>Работник</Alert>
-                                    <Form.Select className='mb-2' value={user} onChange={(e) => setUser(e.target.value)}>
+                                    <Form.Select
+                                        className='mb-2'
+                                        value={user}
+                                        onChange={(e) => {
+                                            setUser(e.target.value)
+                                        }}
+                                    >
                                         <option value=''/>
                                         {props.otherTransactoins.users.map((user, i) => {
                                             return <option key={i} value={user}>{user}</option>
@@ -78,14 +92,18 @@ export default function ModalBookkeeping (props) {
                                         className='mb-2'
                                         placeholder='Сумма'
                                         value={cost}
-                                        onChange={(e) => setCost(e.target.value)}
+                                        onChange={e => {
+                                            setCost(e.target.value)
+                                        }}
                                     />
 
                                     <Button
                                         variant='secondary'
                                         className='w-100'
+                                        disabled={!active}
                                         onClick={async () => {
                                             let newData
+
                                             let itemData = {
                                                 userName: user,
                                                 description: penalty,

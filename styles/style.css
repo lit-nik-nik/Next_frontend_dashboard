@@ -31,3 +31,8 @@
 .my-dropdown-user button {
     padding: 0;
 }
+
+.sticky-bottom {
+    position: sticky;
+    bottom: 0
+}

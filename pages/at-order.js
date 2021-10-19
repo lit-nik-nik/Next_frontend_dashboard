@@ -295,7 +295,6 @@ class AccTransOrder extends Component {
 
     //поиск и проверка заказа
     handledOrder = async (value) => {
-        const {data} = this.state
         let order
 
         await getOrder(value)
@@ -303,7 +302,7 @@ class AccTransOrder extends Component {
                 order = res.data.order
             })
             .catch(err => {
-                this.addError(err.response.data.message)
+                this.addError(err.response?.data.message)
             })
 
         if (order) {
@@ -770,8 +769,14 @@ class AccTransOrder extends Component {
                 </Row>
 
                 <Row>
+                    <Col className='text-muted text-end mb-3'>
+                        Выбрано заказов - {orders.length}
+                    </Col>
+                </Row>
+
+                <Row>
                     <Col lg={12}>
-                        <Table striped bordered hover responsive="lg">
+                        <Table striped bordered hover responsive="lg" size='sm'>
                             <Thead
                                 title={['Наименование заказа', 'Статус заказа', 'Комментарий к заказу', '']}
                             />
@@ -783,8 +788,8 @@ class AccTransOrder extends Component {
                     </Col>
                 </Row>
 
-                <Row>
-                    <hr/>
+                <Row className='sticky-bottom bg-white my-0 pb-3'>
+                    <hr />
                     <Col lg={6} className='text-start'>
                         <Button
                             variant='outline-danger'

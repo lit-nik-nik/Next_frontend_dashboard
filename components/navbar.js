@@ -4,16 +4,63 @@ import {Nav, Dropdown} from 'react-bootstrap'
 
 export default class Navbar extends Component {
 
+    state = {
+        links: null
+    }
+
+    componentDidMount() {
+        this.addLinks()
+    }
+
+    componentDidUpdate(prevProps, prevState, snapshot) {
+    }
+
+    addLinks = () => {
+        const links = JSON.parse(localStorage.getItem('user')).links
+
+        this.setState({links})
+    }
 
     createMenu = () => {
         const {link, menu} = this.props
+        const {links} = this.state
         let newMenu = []
 
-        if (menu) {
+        if (menu && links) {
             menu.map((item, i) => {
-                newMenu.push(
-                    <>
-                        {item.submenu ? (
+                let menuItem
+
+                if (item.submenu) {
+                    let subItem = []
+
+                    item.submenu.map((sub, iS) => {
+                        if (item.id === 'journals') {
+                            subItem.push(
+                                <Link href={`${sub.link}`} key={iS}>
+                                    <a className={`nav-link ${link === sub.link ? 'active bg-dark link-light' : 'link-dark'}`} style={{fontSize: 18}}>
+                                        <i className={`me-2 bi ${sub.icon}`} />
+                                        {sub.label}
+                                    </a>
+                                </Link>
+                            )
+                        } else {
+                            links.map(perm => {
+                                if (perm.link === sub.link) {
+                                    subItem.push(
+                                        <Link href={`${sub.link}`} key={iS}>
+                                            <a className={`nav-link ${link === sub.link ? 'active bg-dark link-light' : 'link-dark'}`} style={{fontSize: 18}}>
+                                                <i className={`me-2 bi ${sub.icon}`} />
+                                                {sub.label}
+                                            </a>
+                                        </Link>
+                                    )
+                                }
+                            })
+                        }
+                    })
+
+                    if (subItem[0]) {
+                        menuItem =
                             <Dropdown drop='end' key={i}>
                                 <Dropdown.Toggle variant='light' className='text-start px-3 w-100' style={{fontSize: 18}}>
                                     <i className={`me-2 bi ${item.icon}`} />
@@ -21,19 +68,17 @@ export default class Navbar extends Component {
                                 </Dropdown.Toggle>
 
                                 <Dropdown.Menu>
-                                    {item.submenu.map((sub, iS) => {
-                                        return (
-                                            <Link href={`${sub.link}`} key={iS}>
-                                                <a className={`nav-link ${link === sub.link ? 'active bg-dark link-light' : 'link-dark'}`} style={{fontSize: 18}}>
-                                                    <i className={`me-2 bi ${sub.icon}`} />
-                                                    {sub.label}
-                                                </a>
-                                            </Link>
-                                        )
-                                    })}
+                                    {subItem}
                                 </Dropdown.Menu>
                             </Dropdown>
-                        ) : (
+
+                        newMenu.push(menuItem)
+                    }
+
+                } else {
+                    links.map(perm => {
+                        if (item.link === perm.link) {
+                            menuItem =
                                 <Link href={`${item.link}`} key={i}>
                                     <a className={`nav-link my-1 ${link === item.link ? 'active bg-dark link-light' : 'link-dark'}`} style={{fontSize: 18}}>
                                         {item.submenu ? <i className="bi bi-chevron-right me-3" /> : null}
@@ -41,9 +86,11 @@ export default class Navbar extends Component {
                                         {item.label}
                                     </a>
                                 </Link>
-                            )}
-                    </>
-                )
+
+                            newMenu.push(menuItem)
+                        }
+                    })
+                }
             })
         }
 

@@ -301,16 +301,18 @@ class Order extends Component {
                     <Col lg={3}>
                         <h4 className='text-center fw-bold'>План изготовления заказа:</h4>
                         {order ? this.planRender(plans) : null}
-                        <div className='text-center'>
-                            <h4 className='fw-bold my-3'>Изображение товара</h4>
-                            <img
-                                src={`data:image/jpeg;base64,${image}`}
-                                alt="test"
-                                width={300}
-                                className='rounded-3 shadow'
-                                onClick={() => this.setState({modalView: true})}
-                            />
-                        </div>
+                        {image ? (
+                            <div className='text-center'>
+                                <h4 className='fw-bold my-3'>Приложение к заказу:</h4>
+                                <img
+                                    src={`data:image/jpeg;base64,${image}`}
+                                    alt="test"
+                                    width={300}
+                                    className='rounded-3 shadow'
+                                    onClick={() => this.setState({modalView: true})}
+                                />
+                            </div>
+                        ) : null}
                     </Col>
                 </Row>
 

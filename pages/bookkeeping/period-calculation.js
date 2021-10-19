@@ -454,12 +454,14 @@ class BookkeepingCalc extends Component {
                         <Col>
                             {object[key].label} - <b>{object[key].cost} ₽</b>
                         </Col>
-                        <Col lg={2} className='text-end'>
-                            <i
-                                className="bi bi-x-octagon text-danger"
-                                onClick={() => this.delPenaltyPrem(object[key].description ? object[key] : object[key].label, object[key].label.includes('Надбавка') ? 'work' : 'other')}
-                            />
-                        </Col>
+                        {this.state.changeSector ? (
+                            <Col lg={2} className='text-end'>
+                                <i
+                                    className="bi bi-x-octagon text-danger"
+                                    onClick={() => this.delPenaltyPrem(object[key].description ? object[key] : object[key].label, object[key].label.includes('Надбавка') ? 'work' : 'other')}
+                                />
+                            </Col>
+                        ) : null}
                     </Row>
 
                 </ListGroup.Item>
@@ -490,12 +492,14 @@ class BookkeepingCalc extends Component {
                             <Col>
                                 {penalty.userName}: {penalty.description} - <b>{penalty.amount} ₽</b>
                             </Col>
-                            <Col lg={2} className='text-end'>
-                                <i
-                                    className="bi bi-x-octagon text-danger"
-                                    onClick={() => this.delPenaltyPrem(penalty, 'other')}
-                                />
-                            </Col>
+                            {this.state.changeSector ? (
+                                <Col lg={2} className='text-end'>
+                                    <i
+                                        className="bi bi-x-octagon text-danger"
+                                        onClick={() => this.delPenaltyPrem(penalty, 'other')}
+                                    />
+                                </Col>
+                            ) : null}
                         </Row>
 
                     </ListGroup.Item>

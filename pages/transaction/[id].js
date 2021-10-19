@@ -360,7 +360,7 @@ class SalaryTransaction extends Component {
                         key={i}
                         className='text-start'
                     >
-                        {penalty.userName}.: {penalty.description} - <b>{penalty.amount} ₽</b>
+                        {penalty.userName ? `${penalty.userName}: ` : null}{penalty.description}{penalty.comment ? ` (${penalty.comment})` : null} - <b>{penalty.amount} ₽</b>
                     </ListGroup.Item>
                 )
             }

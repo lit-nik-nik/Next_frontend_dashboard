@@ -22,6 +22,7 @@ class PlansJournal extends Component {
     state = {
         sectors: [],
         activeSector: '',
+        numbersSectors: 0,
         ordersPlan: [],
         headerTable: [],
         paramsTable: [],
@@ -59,10 +60,20 @@ class PlansJournal extends Component {
         },
         link: null,
         journalID: null,
-        error: null
+        error: null,
+        loading: true,
+        noSearch: ''
     }
 
     async componentDidMount() {
+        if (!this.props.journal[0]) {
+            console.log(this.props.journal[0])
+            this.setState({loading: false})
+            this.setState({noSearch: 'Данные находятся за гранью доступного'})
+        } else {
+            this.setState({loading: false})
+        }
+
         this.setState({link: this.props.router.asPath})
         this.setState({journalID: this.props.router.query.id})
         await this.addSectors()
@@ -70,6 +81,17 @@ class PlansJournal extends Component {
     }
 
     async componentDidUpdate(prevProps, prevState, snapshot) {
+        if (this.props.journal !== prevProps.journal) {
+            if (!this.props.journal[0]) {
+                this.setState({loading: false})
+                this.setState({noSearch: 'Данные находятся за гранью доступного'})
+            } else {
+                this.setState({loading: false})
+                this.setState({noSearch: ''})
+            }
+            this.setState({ordersPlan: null})
+        }
+
         if (this.props !== prevProps) {
             this.setState({link: this.props.router.asPath})
             this.setState({journalID: this.props.router.query.id})
@@ -102,6 +124,11 @@ class PlansJournal extends Component {
             sectors.push(sector.name)
         })
 
+        if (sectors.length > 1) {
+            sectors.push('Все участки')
+        }
+
+        this.setState({numbersSectors: journal.length})
         this.setState({sectors})
         this.setState({activeSector: sectors[0]})
     }
@@ -237,7 +264,7 @@ class PlansJournal extends Component {
     }
 
     render() {
-        const {ordersPlan, journalID, filters, activeFilter, headerTable, overdueOrders, todayOrders, futureOrders, changeOrder, paramsTable, error, link, sectors, activeSector} = this.state
+        const {journalID, filters, activeFilter, headerTable, overdueOrders, todayOrders, futureOrders, changeOrder, paramsTable, error, link, sectors, activeSector, numbersSectors} = this.state
 
         return (
             <MainLayout title={`Планы журнала`} link={link} token={this.props.token} error={this.props.error}>
@@ -249,44 +276,55 @@ class PlansJournal extends Component {
                     onChangeFilter={this.changeFilter}
                 >
 
-                    <Row>
-                        <Col lg={4}>
-                            <InputGroup className="mb-3">
-                                <InputGroup.Text>Выберите участок</InputGroup.Text>
-                                <Form.Select
-                                    value={activeSector}
-                                    onChange={(e) => {
-                                        this.setState({activeSector: e.target.value})
-                                    }}>
-                                    {sectors.map((sector, i) => {
-                                        return (
-                                            <option value={sector} key={i}>{sector}</option>
-                                        )
-                                    })}
-                                </Form.Select>
-                            </InputGroup>
-                        </Col>
-                    </Row>
+                    {numbersSectors <= 1 ? null : (
+                        <Row>
+                            <Col lg={4}>
+                                <InputGroup className="mb-3">
+                                    <InputGroup.Text>Выберите участок</InputGroup.Text>
+                                    <Form.Select
+                                        value={activeSector}
+                                        onChange={(e) => {
+                                            this.setState({activeSector: e.target.value})
+                                        }}>
+                                        {sectors.map((sector, i) => {
+                                            return (
+                                                <option value={sector} key={i}>{sector}</option>
+                                            )
+                                        })}
+                                    </Form.Select>
+                                </InputGroup>
+                            </Col>
+                        </Row>
+                    )}
 
-                    <Row>
-                        <Col>
-                            <Table hover bordered variant={'dark'} size='sm'>
-                                <Thead title={headerTable}/>
+                    {this.state.loading ? (
+                        <Loading/>
+                    ) : this.state.noSearch ? (
+                        <Col className='text-muted text-center'>{this.state.noSearch}</Col>
+                    ) : (
+                        <Row>
+                            <Col lg={12} className='text-muted text-end mb-3'>
+                                Участок - {activeSector}
+                            </Col>
+                            <Col>
+                                <Table hover bordered variant={'dark'} size='sm'>
+                                    <Thead title={headerTable}/>
 
-                                {overdueOrders ?
-                                    <Tbody orders={overdueOrders} params={paramsTable} color={'table-danger'}/>
-                                    : null}
+                                    {overdueOrders ?
+                                        <Tbody orders={overdueOrders} params={paramsTable} color={'table-danger'}/>
+                                        : null}
 
-                                {todayOrders ?
-                                    <Tbody orders={todayOrders} params={paramsTable} color={'table-primary'}/>
-                                    : null}
+                                    {todayOrders ?
+                                        <Tbody orders={todayOrders} params={paramsTable} color={'table-primary'}/>
+                                        : null}
 
-                                {futureOrders ?
-                                    <Tbody orders={futureOrders} params={paramsTable} color={'table-success'}/>
-                                    : null}
-                            </Table>
-                        </Col>
-                    </Row>
+                                    {futureOrders ?
+                                        <Tbody orders={futureOrders} params={paramsTable} color={'table-success'}/>
+                                        : null}
+                                </Table>
+                            </Col>
+                        </Row>
+                    )}
 
                     <Modal show={changeOrder.view} onHide={() => this.setState(({changeOrder}) => changeOrder.view = false)}
                            centered>

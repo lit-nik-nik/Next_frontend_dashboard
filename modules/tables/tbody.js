@@ -69,7 +69,7 @@ export default class Tbody extends Component {
                     </td>
                 )
                 else if (typeof(param) === 'object') cell.push(
-                    <td className='align-middle text-center' key={index}>
+                    <td className='align-middle text-center' style={{width: 'auto'}} key={index}>
                         {order[param[0]]} {order[param[1]]}
                     </td>
                 )
@@ -164,7 +164,7 @@ export default class Tbody extends Component {
                     )
                 }
                 else cell.push(
-                    <td className='align-middle text-center' style={{width: '12%'}} key={index}>
+                    <td className='align-middle text-center' style={{width: 'auto'}} key={index}>
                         {order[param]}
                     </td>
                 )

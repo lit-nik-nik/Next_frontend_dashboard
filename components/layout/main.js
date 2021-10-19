@@ -94,7 +94,7 @@ export class MainLayout extends Component {
     render() {
         const {collapse, screenMode, menu, errorData, errorView, user} = this.state
 
-        const {children, title, link, token, error} = this.props
+        const {children, title, link, token, error, search} = this.props
 
         return (
             <>
@@ -105,7 +105,7 @@ export class MainLayout extends Component {
                         </Head>
 
                         {screenMode === 'desktop' ? (
-                            <Header onCollapseNav={this.onCollapseNav} user={user}/>
+                            <Header onCollapseNav={this.onCollapseNav} user={user} search={search ? search : ''}/>
                         ) : null}
 
                         <Container fluid className='p-0'>
