@@ -21,7 +21,7 @@ const Header = (props) => {
         <Col>
             <Image src={ava} width={45} height={45}  alt='avatar users'/>
         </Col>
-        <Col>
+        <Col style={{fontSize: 16}}>
             {props.user.userName} <br/> ({props.user.sectorName})
         </Col>
     </Row>

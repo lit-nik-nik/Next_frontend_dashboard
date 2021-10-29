@@ -43,12 +43,16 @@ class Auth extends Component {
         }
 
         this.barcodesInput.current.focus()
+
+        if (!Cookies.get('token')) localStorage.setItem('user', '')
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
         const {variant} = this.state
 
         if (variant) this.barcodesInput.current.focus()
+
+        if (!Cookies.get('token')) localStorage.setItem('user', '')
     }
 
     clearInput = (value) => {
@@ -89,8 +93,8 @@ class Auth extends Component {
         await authUser(user, hash, newBarcode)
             .then(res => {
                 if (res.status === 200) {
-                    Cookies.set('token', res.data.token)
-                    Cookies.set('userId', res.data.userId)
+                    Cookies.set('token', res.data.token, {expires: 10/24})
+                    Cookies.set('userId', res.data.userId, {expires: 10/24})
                     localStorage.setItem('user', JSON.stringify(res.data.user))
 
                     setTimeout(redirect, 1000)

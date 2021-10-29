@@ -332,36 +332,38 @@ class BookkeepingCalc extends Component {
                 allCells = [...cell]
 
                 order.works.map((work, wI) => {
-                    if (!work.work.includes('Надбавка')) {
-                        for (let key in work) {
-                            if (key === 'money') {
-                                cell = <td key={wI} className={`${work.isDeleted ? 'bg-secondary text-light' : ''}`} width={'10%'}>
-                                    <Row>
-                                        <Col className={work.isDeleted ? 'text-decoration-line-through' : null}>
-                                            {Math.round(work[key]*100)/100} ₽
-                                        </Col>
-                                        {this.state.changeSector
-                                            ? (
-                                                <Col lg={3}>
-                                                    <Form.Check
-                                                        disabled={!work.optional}
-                                                        checked={work.isDeleted}
-                                                        onChange={(e) => {
-                                                            this.setState(({sectorData}) => {
-                                                                return (
-                                                                    sectorData.orders[oI].works[wI].isEdited = 1,
-                                                                        sectorData.orders[oI].works[wI].isDeleted = e.target.checked ? 1 : 0
-                                                                )
-                                                            })
-                                                            this.setState({render: this.state.render + 1})
-                                                        }}
-                                                    />
-                                                </Col>
-                                            ) : null}
-                                    </Row>
-                                </td>
+                    if (work.work) {
+                        if (!work.work.includes('Надбавка')) {
+                            for (let key in work) {
+                                if (key === 'money') {
+                                    cell = <td key={wI} className={`${work.isDeleted ? 'bg-secondary text-light' : ''}`} width={'10%'}>
+                                        <Row>
+                                            <Col className={work.isDeleted ? 'text-decoration-line-through' : null}>
+                                                {Math.round(work[key]*100)/100} ₽
+                                            </Col>
+                                            {this.state.changeSector
+                                                ? (
+                                                    <Col lg={3}>
+                                                        <Form.Check
+                                                            disabled={!work.optional}
+                                                            checked={work.isDeleted}
+                                                            onChange={(e) => {
+                                                                this.setState(({sectorData}) => {
+                                                                    return (
+                                                                        sectorData.orders[oI].works[wI].isEdited = 1,
+                                                                            sectorData.orders[oI].works[wI].isDeleted = e.target.checked ? 1 : 0
+                                                                    )
+                                                                })
+                                                                this.setState({render: this.state.render + 1})
+                                                            }}
+                                                        />
+                                                    </Col>
+                                                ) : null}
+                                        </Row>
+                                    </td>
 
-                                allCells.push(cell)
+                                    allCells.push(cell)
+                                }
                             }
                         }
                     }
@@ -663,7 +665,7 @@ class BookkeepingCalc extends Component {
 
         return (
             <MainLayout title={`Предварительный расчет`} link={link} token={this.props.token} error={this.props.error}>
-                    <Row className='sticky-top bg-white pt-3 shadow' style={{top: '60px', zIndex: 1}}>
+                    <Row className='sticky-top bg-white pt-3 border border-start-0 border-end-0 border-top-0' style={{top: '60px', zIndex: 1}}>
                         <Col lg={4}>
                             <InputGroup className="mb-3">
                                 <InputGroup.Text>Выберите участок</InputGroup.Text>

@@ -46,7 +46,7 @@ export default class JournalLayout extends Component {
 
         return (
             <>
-                <Row className='sticky-top bg-white py-2 shadow mb-3' style={{top: '60px', zIndex: 5}}>
+                <Row className='sticky-top bg-white py-2 border border-end-0 border-start-0 border-top-0 mb-3' style={{top: '60px', zIndex: 5}}>
                     <Col>
                         {pages.map((page, i) => {
                             return (

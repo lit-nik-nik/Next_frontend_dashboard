@@ -4,6 +4,7 @@ import NextNprogress from 'nextjs-progressbar'
 import "../styles/style.css"
 import "../styles/responsive.css"
 import Cookies from 'js-cookie'
+import {serverDate} from "../next.config";
 
 function MyApp({ Component, pageProps }) {
     const token = Cookies.get('token'),
@@ -18,7 +19,7 @@ function MyApp({ Component, pageProps }) {
         height={5}
         showOnShallow={true}
       />
-      <Component {...pageProps} token={token} userId={userId} />
+      <Component {...pageProps} token={token} userId={userId}/>
     </>
   )
 }

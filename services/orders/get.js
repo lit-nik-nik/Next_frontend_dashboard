@@ -1,7 +1,4 @@
-import axios from "axios";
-import {myOptions} from "../settings";
-
-const API_URI = process.env.API_DB_URI
+import {myAxios, myOptions} from "../settings";
 
 export const getOrders = async (token, page, filter, limit = 100) => {
 
@@ -9,8 +6,7 @@ export const getOrders = async (token, page, filter, limit = 100) => {
 
     if (filter) filterAll.filter = `&_filter=${filter}`
 
-
-    let res = await axios.get(`${API_URI}/orders?_page=${page}&_limit=${limit}${filterAll.filter}`, myOptions(token))
+    let res = await myAxios.get(`/orders?_page=${page}&_limit=${limit}${filterAll.filter}`, myOptions(token))
 
     return res
 }

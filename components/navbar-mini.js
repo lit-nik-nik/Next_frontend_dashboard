@@ -16,7 +16,11 @@ export default class NavbarMini extends Component {
     }
 
     addLinks = () => {
-        const links = JSON.parse(localStorage.getItem('user')).links
+        let links = []
+
+        if (localStorage.getItem('user')) {
+            links = JSON.parse(localStorage.getItem('user')).links
+        }
 
         this.setState({links})
     }

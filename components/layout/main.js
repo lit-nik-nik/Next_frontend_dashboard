@@ -8,6 +8,7 @@ import {globalState} from "../../data/globalState";
 import {getJournals} from "../../services/journals/get";
 import exitApp from "../../modules/exit";
 import CustomError from "../../modules/error";
+import Cookies from 'js-cookie';
 
 export class MainLayout extends Component {
 
@@ -18,12 +19,21 @@ export class MainLayout extends Component {
         render: 0,
         errorView: false,
         errorData: null,
-        user: null
+        user: {},
+        checkToken: null
     }
 
     async componentDidMount() {
         if (!this.props.token) exitApp()
-        if (localStorage.getItem('user')) this.setState({user: JSON.parse(localStorage.getItem('user'))})
+        if (localStorage.getItem('user')) {
+            const {userName, sectorName} = JSON.parse(localStorage.getItem('user'))
+            this.setState(({user}) => {
+                return (
+                    user.userName = userName,
+                    user.sectorName = sectorName
+                )
+            })
+        }
 
         this.addMenu()
 
@@ -34,13 +44,24 @@ export class MainLayout extends Component {
         this.onResize()
 
         window.addEventListener('resize', this.onResize)
+
+        this.setState({checkToken: setInterval(this.checkToken, 1800000)})
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
+
     }
 
     componentWillUnmount() {
         window.removeEventListener('resize', this.onResize)
+        clearInterval(this.state.checkToken)
+    }
+
+    checkToken = () => {
+        const token = Cookies.get('token')
+
+        if (!token) exitApp()
+        else console.log(token.length)
     }
 
     onResize = async () => {

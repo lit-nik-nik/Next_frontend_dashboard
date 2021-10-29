@@ -1,9 +1,9 @@
-import axios from "axios";
-
-const API_URI = process.env.API_DB_URI
+import {myAxios} from "../settings";
 
 export const getBarcodes = async () => {
+    return await myAxios.get(`/api/at-order/data`)
+}
 
-    return await axios.get(`${API_URI}/api/at-order/data`)
-
+export const getOrderAt = async (id) => {
+    return await myAxios.get(`/orders/exists/${id}`)
 }

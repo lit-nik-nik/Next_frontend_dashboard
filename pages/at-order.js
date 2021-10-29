@@ -3,10 +3,9 @@ import { MainLayout } from '../components/layout/main'
 import React, {Component} from "react";
 import Thead from "../modules/tables/thead";
 import Tbody from "../modules/tables/tbody";
-import {getOrder} from "../services/order/get";
 import {withRouter} from "next/router";
 import {changeKeyboard} from "../modules/change-keyboard";
-import {getBarcodes} from "../services/at-order/get";
+import {getBarcodes, getOrderAt} from "../services/at-order/get";
 import {postAtOrders} from "../services/at-order/post";
 import ModalWindow from "../modules/modals/modal";
 import {decriptedStr, encritptedStr} from "../modules/encription";
@@ -297,7 +296,7 @@ class AccTransOrder extends Component {
     handledOrder = async (value) => {
         let order
 
-        await getOrder(value)
+        await getOrderAt(value)
             .then(res => {
                 order = res.data.order
             })
@@ -308,9 +307,9 @@ class AccTransOrder extends Component {
         if (order) {
             this.setState(({data}) => {
                 return (
-                    data.order.nameOrder = order.header[0].ITM_ORDERNUM,
-                    data.order.idOrder = order.header[0].ID,
-                    data.order.statusOrder = order.header[0].STATUS_DESCRIPTION
+                    data.order.nameOrder = order.itmOrderNum,
+                    data.order.idOrder = order.id,
+                    data.order.statusOrder = order.status
                 )
             })
         } else {
@@ -327,7 +326,7 @@ class AccTransOrder extends Component {
     // добавление даты передачи заказа
     handlesDate = async (localDate) => {
         const {date} = this.state.data,
-            nowDate = new Date(Date.now() - date.tzoffset).toISOString().slice(0, -5)
+            nowDate = new Date(this.props.date - date.tzoffset).toISOString().slice(0, -5)
         let isoDate
 
         if (localDate) {
@@ -337,7 +336,6 @@ class AccTransOrder extends Component {
                 await this.setState(({data}) => data.date.value = nowDate)
             }
         }
-
 
         if (date.value > nowDate) {
             this.addError('Будущее еще не наступило')
@@ -385,8 +383,6 @@ class AccTransOrder extends Component {
 
         await postAtOrders(form)
             .then(res => {
-                console.log('res')
-                console.log(res)
                 this.setState(({submit}) => {
                     return (
                         submit.data.view = true,
@@ -396,8 +392,6 @@ class AccTransOrder extends Component {
                 })
             })
             .catch(err => {
-                console.log('err')
-                console.log(err.response)
                 this.setState(({submit}) => {
                     return (
                         submit.error.data = err.response?.data
@@ -841,7 +835,9 @@ export default withRouter(AccTransOrder)
 
 export async function getServerSideProps() {
 
-    let barcodes, error
+    let barcodes, error, date
+
+    date = Date.now()
 
     await getBarcodes()
         .then(res  => barcodes = res.data.barcodes)
@@ -850,7 +846,8 @@ export async function getServerSideProps() {
     if (barcodes) {
         return {
             props: {
-                barcodes
+                barcodes,
+                date
             }
         }
     }

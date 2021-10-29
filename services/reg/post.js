@@ -1,10 +1,7 @@
-import axios from "axios";
-
-const API_URI = process.env.API_DB_URI
+import {myAxios} from "../settings";
 
 export const regUser = async (data) => {
-
-    return await axios.post(`${API_URI}/api/auth/register`, data)
+    return await myAxios.post(`/api/auth/register`, data)
         .then(res => res)
         .catch(err => err.response)
 

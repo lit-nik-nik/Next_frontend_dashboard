@@ -1,6 +1,4 @@
-import axios from "axios";
-
-const API_URI = process.env.API_DB_URI
+import {myAxios} from "../settings";
 
 export const authUser = async (login, pass, barcode) => {
     let data
@@ -13,9 +11,6 @@ export const authUser = async (login, pass, barcode) => {
         }
     }
 
-    return await axios.post(`${API_URI}/api/auth/login`, data)
-        .then(res => res)
-        .catch(err => err.response)
-
+    return await myAxios.post(`/api/auth/login`, data)
 
 }

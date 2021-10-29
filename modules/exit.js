@@ -5,10 +5,8 @@ import Cookies from 'js-cookie'
 export default function exitApp () {
     const redirect = () => Router.push('/auth')
 
-    Cookies.remove('token')
-    Cookies.remove('userId')
-    Cookies.remove('userName')
-
+    Cookies.set('token', '')
+    Cookies.set('userId', '')
 
     setTimeout(redirect, 2000)
 }

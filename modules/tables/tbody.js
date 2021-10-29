@@ -163,6 +163,20 @@ export default class Tbody extends Component {
                         </td>
                     )
                 }
+                else if (param === 'workingTime') {
+                    if (order[param]) {
+                        cell.push(
+                            <td className='align-middle text-center' style={{width: 'auto'}} key={index}>
+                                {this.renderToTime(order[param])}
+                            </td>
+                        )
+                    } else {
+                        cell.push(
+                            <td className='align-middle text-center' style={{width: 'auto'}} key={index} />
+                        )
+                    }
+
+                }
                 else cell.push(
                     <td className='align-middle text-center' style={{width: 'auto'}} key={index}>
                         {order[param]}
@@ -180,6 +194,28 @@ export default class Tbody extends Component {
 
         return line;
     }
+
+    renderToTime = (time) => {
+        const year = (365 * 24 * 60 * 60 * 1000);
+        const month = (30 * 24 * 60 * 60 * 1000);
+        const week = (7 * 24 * 60 * 60 * 1000);
+        const day = (24 * 60 * 60 * 1000);
+        const hour = (60 * 60 * 1000);
+        const minute = (60 * 1000);
+        const years = Math.floor(time / year);
+        const months = Math.floor(time % year / month);
+        const weeks = Math.floor(time % month / week);
+        const days = Math.floor(time % week / day);
+        const hours = Math.floor(time % day / hour);
+        const minutes = Math.floor(time % hour / minute);
+        let str;
+
+        str = `${years ? years + 'г.' : ''} ${months ? months + 'м.' : ''} ${weeks ? weeks + 'н.' : ''} ` +
+            `${days ? days + 'д.' : ''} ${hours ? (String(hours).length === 1 ? '0' + String(hours) : hours) : '00'}:` +
+            `${minutes ? (String(minutes).length === 1 ? '0' + String(minutes) : minutes) : '00'}`;
+
+        return str.trim();
+    };
 
     render() {
         return (

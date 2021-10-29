@@ -1,15 +1,13 @@
-import axios from "axios";
+import {myAxios, myOptions} from "../settings";
 
-const API_URI = process.env.API_DB_URI
-
-export const getOrder = async (id) => {
-    return await axios.get(`${API_URI}/orders/${id}`)
+export const getOrder = async (id, token) => {
+    return await myAxios.get(`/orders/${id}`, myOptions(token))
 }
 
-export const getImageOrder = async (id) => {
+export const getImageOrder = async (id, token) => {
     let image;
 
-    await axios.get(`${API_URI}/orders/sample/${id}`, {responseType: 'arraybuffer'})
+    await myAxios.get(`/orders/sample/${id}`, {responseType: 'arraybuffer', headers: {'Authorization': token}})
         .then(res => image = Buffer.from(res.data, 'binary').toString('base64'))
 
     return image

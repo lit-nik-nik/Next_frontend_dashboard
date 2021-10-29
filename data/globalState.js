@@ -149,6 +149,10 @@ export const globalState = {
         {
             label: ['MONEY'],
             name: 'Зарплата'
+        },
+        {
+            label: ['workingTime'],
+            name: 'Время'
         }
     ]
 }

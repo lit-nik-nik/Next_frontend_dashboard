@@ -1,5 +1,5 @@
 import React, {Component} from "react";
-import {Row, Col, Table, Modal, Form, Button, InputGroup} from "react-bootstrap";
+import {Row, Col, Table, Modal, Form, InputGroup, Alert} from "react-bootstrap";
 import Thead from "../../../modules/tables/thead";
 import Tbody from "../../../modules/tables/tbody";
 import {globalState} from "../../../data/globalState";
@@ -8,9 +8,9 @@ import Loading from "../../../modules/loading";
 import CustomError from "../../../modules/error";
 import {withRouter} from "next/router";
 import {getTokenCookies} from "../../../modules/cookie";
-import {getWeekSalary} from "../../../services/journals/get";
 import {MainLayout} from "../../../components/layout/main";
 import JournalLayout from "../../../components/layout/journals";
+import {postCommentJournal} from "../../../services/journals/post";
 
 class PlansJournal extends Component {
 
@@ -52,22 +52,29 @@ class PlansJournal extends Component {
             }
         ],
         activeFilter: 'all',
-        changeOrder: {
+        changeComment: {
             view: false,
             id: null,
             name: null,
-            comment: ''
+            dataId: null,
+            userId: null,
+            userName: null,
+            data: [],
+            comment: null
         },
         link: null,
         journalID: null,
         error: null,
         loading: true,
-        noSearch: ''
+        noSearch: '',
+        isOwner: false,
+        updatePage: null
     }
 
     async componentDidMount() {
+        this.setState({isOwner: JSON.parse(localStorage.getItem('user')).isOwner})
+
         if (!this.props.journal[0]) {
-            console.log(this.props.journal[0])
             this.setState({loading: false})
             this.setState({noSearch: 'Данные находятся за гранью доступного'})
         } else {
@@ -76,8 +83,11 @@ class PlansJournal extends Component {
 
         this.setState({link: this.props.router.asPath})
         this.setState({journalID: this.props.router.query.id})
-        await this.addSectors()
-        await this.addOrderPlan()
+
+        await this.addSectors(this.props.journal)
+        await this.addOrderPlan(this.props.journal)
+
+        this.setState({updatePage: setInterval(this.updateData, 300000)})
     }
 
     async componentDidUpdate(prevProps, prevState, snapshot) {
@@ -96,12 +106,12 @@ class PlansJournal extends Component {
             this.setState({link: this.props.router.asPath})
             this.setState({journalID: this.props.router.query.id})
             this.setState({activeFilter: 'all'})
-            await this.addSectors()
-            await this.addOrderPlan()
+            await this.addSectors(this.props.journal)
+            await this.addOrderPlan(this.props.journal)
         }
 
         if (this.state.activeSector !== prevState.activeSector) {
-            await this.addOrderPlan()
+            await this.addOrderPlan(this.props.journal)
         }
 
         if (this.state.ordersPlan !== prevState.ordersPlan) {
@@ -113,11 +123,34 @@ class PlansJournal extends Component {
             this.filterOrder()
         }
 
-        if (this.state.changeOrder.view) this.commentInput.current.focus()
+        if (this.state.changeComment.view) this.commentInput.current.focus()
     }
 
-    addSectors = () => {
-        const {journal} = this.props
+    componentWillUnmount() {
+        clearInterval(this.state.updatePage)
+    }
+
+    updateData = async () => {
+        const {token} = this.props
+        const id = this.state.journalID
+
+        let journal, error
+
+        await getOrderJournal(id, token)
+            .then(res  => journal = res.data.journal)
+            .catch(err => error = err.response?.data)
+
+        if (journal) {
+            await this.addSectors(journal)
+            await this.addOrderPlan(journal)
+        }
+
+        if (error) {
+            console.log(error)
+        }
+    }
+
+    addSectors = (journal) => {
         let sectors = []
 
         journal.map(sector => {
@@ -133,8 +166,7 @@ class PlansJournal extends Component {
         this.setState({activeSector: sectors[0]})
     }
 
-    addOrderPlan = () => {
-        const {journal} = this.props
+    addOrderPlan = (journal) => {
         const {activeSector} = this.state
 
         journal.map(sector => {
@@ -144,6 +176,74 @@ class PlansJournal extends Component {
         })
     }
 
+    changeComment = (item) => {
+        const userName = JSON.parse(localStorage.getItem('user')).userName,
+            {userId} = this.props
+
+        let viewComment = {
+            userId: userId,
+            userName: userName,
+            text: '',
+            dataId: 0
+        }
+
+        item.data.comments.map(obj => {
+            if (+obj.userId === +userId) {
+                viewComment.userId = obj.userId
+                viewComment.userName = obj.userName
+                viewComment.text = obj.text
+                viewComment.dataId = obj.id
+            }
+        })
+
+        this.setState(({changeComment}) => {
+            return (
+                changeComment.view = true,
+                    changeComment.id = item.id,
+                    changeComment.name = item.itmOrderNum,
+                    changeComment.data = item.data.comments,
+                    changeComment.userId = viewComment.userId,
+                    changeComment.userName = viewComment.userName,
+                    changeComment.dataId = viewComment.dataId,
+                    changeComment.comment = viewComment.text
+            )
+        })
+    }
+
+    selectComment = (value) => {
+        const {changeComment} = this.state
+        const userName = JSON.parse(localStorage.getItem('user')).userName
+        let search
+
+        changeComment.data.map((comment, i) => {
+            if (+value === +comment.userId) {
+                return search = comment
+            } else {
+                return false
+            }
+        })
+
+        if (search) {
+            this.setState(({changeComment}) => {
+                return (
+                    changeComment.userId = search.userId,
+                    changeComment.userName = search.userName,
+                    changeComment.dataId = search.id,
+                    changeComment.comment = search.text
+                )
+            })
+        } else {
+            this.setState(({changeComment}) => {
+                return (
+                    changeComment.userId = this.props.userId,
+                    changeComment.userName = userName,
+                    changeComment.dataId = 0,
+                    changeComment.comment = ''
+                )
+            })
+        }
+    }
+
     filterOrder = (filter = 'all') => {
         const {ordersPlan, activeFilter} = this.state
 
@@ -151,29 +251,12 @@ class PlansJournal extends Component {
             today = [],
             future = []
 
-        const onComment = (item) => {
-            let viewComment
-
-            item.data.comments.map(obj => {
-                viewComment = obj.text
-            })
-
-            this.setState(({changeOrder}) => {
-                return (
-                    changeOrder.view = true,
-                    changeOrder.id = item.id,
-                    changeOrder.name = item.itmOrderNum,
-                    changeOrder.comment = viewComment ? viewComment : ''
-                )
-            })
-        }
-
         const addEditButton = (obj, arr) => {
             obj.map(item => {
                 item.data.edit = <i
                     className='bi bi-pencil-square btn text-primary p-0'
                     style={{fontSize: 20}}
-                    onClick={() => onComment(item)}
+                    onClick={() => this.changeComment(item)}
                 />
                 arr.push(item)
             })
@@ -231,40 +314,70 @@ class PlansJournal extends Component {
         this.setState({paramsTable: params})
     }
 
-    onChangeComment = async (item) => {
-        const {ordersPlan} = this.state
-        let obj, index, commentObj
-
-        for (let key in ordersPlan) {
-            if (typeof(ordersPlan[key]) === 'object') {
-                ordersPlan[key].map((order, i) => {
-                    if (order.id === item.id) {
-                        obj = key
-                        index = i
-                    }
-                })
-            }
-        }
-
-        commentObj = {
-            id: '',
-            sector: '',
-            userId: this.props.userId,
-            userName: 'Рома',
-            text: item.comment
-        }
-
-        this.setState(({ordersPlan}) => ordersPlan[obj][index].data.comments = [...this.state.ordersPlan[obj][index].data.comments, commentObj])
-
-        this.filterOrder()
-    }
-
     changeFilter = (value) => {
         this.setState({activeFilter: value})
     }
 
+    submitComment = async (comment) => {
+        const {token} = this.props
+        let data = {}
+
+        data.orderId = comment.id
+        data.dataId = comment.dataId
+        data.text = comment.comment
+
+        await postCommentJournal(data, token)
+            .then(res => {
+                if (res.status === 201 || res.status === 200) {
+                    this.getPlans()
+                }
+            })
+            .catch(err => console.log(err.response?.data))
+    }
+
+    getPlans = async () => {
+        const {journalID} = this.state
+        const {token} = this.props
+        let journal, error
+
+        await getOrderJournal(journalID)
+            .then(res  => journal = res.data.journal)
+            .catch(err => console.log(err.response?.data))
+
+        await this.addSectors(journal)
+        await this.addOrderPlan(journal)
+
+    }
+
+    renderOption = () => {
+        const {changeComment} = this.state
+        const user = {
+            userId: this.props.userId,
+            userName: JSON.parse(localStorage.getItem('user')).userName,
+        }
+        let option = [], count = 0
+
+        changeComment.data.map(comment => {
+            if (+comment.userId === +user.userId) count = 1
+        })
+
+        changeComment.data.map(comment => {
+            if (comment.userId !== user.userId && !count) {
+                option.push(<option value={user.userId} key={user.userId}>{user.userName}</option>)
+                count = 1
+            }
+        })
+
+        changeComment.data.map(comment => {
+            option.push(<option value={comment.userId} key={comment.id}>{comment.userName}</option>)
+        })
+
+        return option
+    }
+
     render() {
-        const {journalID, filters, activeFilter, headerTable, overdueOrders, todayOrders, futureOrders, changeOrder, paramsTable, error, link, sectors, activeSector, numbersSectors} = this.state
+        const {journalID, filters, activeFilter, headerTable, overdueOrders, todayOrders, futureOrders,
+            changeComment, paramsTable, error, link, sectors, activeSector, numbersSectors} = this.state
 
         return (
             <MainLayout title={`Планы журнала`} link={link} token={this.props.token} error={this.props.error}>
@@ -275,7 +388,6 @@ class PlansJournal extends Component {
                     filters={filters}
                     onChangeFilter={this.changeFilter}
                 >
-
                     {numbersSectors <= 1 ? null : (
                         <Row>
                             <Col lg={4}>
@@ -306,7 +418,8 @@ class PlansJournal extends Component {
                             <Col lg={12} className='text-muted text-end mb-3'>
                                 Участок - {activeSector}
                             </Col>
-                            <Col>
+
+                            <Col style={{height: '75vh', overflow: "auto"}}>
                                 <Table hover bordered variant={'dark'} size='sm'>
                                     <Thead title={headerTable}/>
 
@@ -326,25 +439,47 @@ class PlansJournal extends Component {
                         </Row>
                     )}
 
-                    <Modal show={changeOrder.view} onHide={() => this.setState(({changeOrder}) => changeOrder.view = false)}
-                           centered>
+                    <Modal show={changeComment.view}
+                           onHide={() => this.setState(({changeComment}) => changeComment.view = false)}
+                           centered
+                    >
                         <Modal.Header className='text-center d-block bg-dark text-white text-uppercase'>
                             Введите комментарий к заказу
                             <br/>
-                            <b>{changeOrder.name}</b>
+                            <b>{changeComment.name}</b>
                         </Modal.Header>
                         <Modal.Body className='my-4'>
+                            <Alert variant='light' className='m-0 mb-1 p-0 text-center'>
+                                Пользователь
+                            </Alert>
+                            <Form.Select
+                                size="sm"
+                                className='mb-3'
+                                value={changeComment.userId}
+                                disabled={!this.state.isOwner}
+                                onChange={e => this.selectComment(e.target.value)}
+                            >
+                                {changeComment.data[0] ?
+                                    this.renderOption() :
+                                    <option value={changeComment.userId} >{changeComment.userName}</option>
+                                }
+                            </Form.Select>
+
+                            <Alert variant='light' className='m-0 mb-1 p-0 text-center'>
+                                Комментарий
+                            </Alert>
                             <Form.Control
                                 type="text"
+                                size='sm'
                                 ref={this.commentInput}
                                 autoFocus
-                                value={changeOrder.comment}
+                                value={changeComment.comment}
                                 className='border rounded-0 text-center'
-                                onChange={e => this.setState(({changeOrder}) => changeOrder.comment = e.target.value)}
+                                onChange={e => this.setState(({changeComment}) => changeComment.comment = e.target.value)}
                                 onKeyPress={e => {
                                     if (e.key === 'Enter') {
-                                        this.setState(({changeOrder}) => changeOrder.view = false)
-                                        this.onChangeComment(changeOrder)
+                                        this.setState(({changeComment}) => changeComment.view = false)
+                                        this.submitComment(changeComment)
                                     }
                                 }}
                             />

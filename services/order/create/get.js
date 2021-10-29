@@ -1,14 +1,9 @@
-import axios from "axios";
-import {myOptions} from "../../settings";
-
-const API_URI = process.env.API_DB_URI
+import {myAxios, myOptions} from "../../settings";
 
 export const getListsOrder = async (token) => {
-    const options = myOptions(token)
-
     let listOrder = {}
 
-    await axios.get(`${API_URI}/lists`, options)
+    await myAxios.get(`/lists`, myOptions(token))
         .then(res  => {
             for (let key in res.data.lists) {
                 if (key !== 'employers') listOrder[key] = res.data.lists[key]

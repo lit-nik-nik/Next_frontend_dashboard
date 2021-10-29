@@ -245,10 +245,14 @@ class AllOrdersJournal extends Component {
                                 </Col>
                             </Row>
 
-                            <Table hover bordered variant={'dark'} size='sm'>
-                                <Thead title={headerTable}/>
-                                <Tbody orders={allOrders} params={paramsTable} color={'table-light'}/>
-                            </Table>
+                            <Row>
+                                <Col style={{height: '60vh', overflow: "auto"}}>
+                                    <Table hover bordered variant={'dark'} size='sm'>
+                                        <Thead title={headerTable}/>
+                                        <Tbody orders={allOrders} params={paramsTable} color={'table-light'}/>
+                                    </Table>
+                                </Col>
+                            </Row>
                         </>
                     )}
 
