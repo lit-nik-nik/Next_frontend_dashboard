@@ -386,8 +386,6 @@ class AccTransOrder extends Component {
             )
         })
 
-        console.log(form)
-
         await postAtOrders(form)
             .then(res => {
                 this.setState(({submit}) => {

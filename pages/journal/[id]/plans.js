@@ -87,7 +87,7 @@ class PlansJournal extends Component {
         await this.addSectors(this.props.journal)
         await this.addOrderPlan(this.props.journal)
 
-        this.setState({updatePage: setInterval(this.updateData, 300000)})
+        this.setState({updatePage: setInterval(this.getPlans, 300000)})
     }
 
     async componentDidUpdate(prevProps, prevState, snapshot) {
@@ -128,26 +128,6 @@ class PlansJournal extends Component {
 
     componentWillUnmount() {
         clearInterval(this.state.updatePage)
-    }
-
-    updateData = async () => {
-        const {token} = this.props
-        const id = this.state.journalID
-
-        let journal, error
-
-        await getOrderJournal(id, token)
-            .then(res  => journal = res.data.journal)
-            .catch(err => error = err.response?.data)
-
-        if (journal) {
-            await this.addSectors(journal)
-            await this.addOrderPlan(journal)
-        }
-
-        if (error) {
-            console.log(error)
-        }
     }
 
     addSectors = (journal) => {
@@ -320,7 +300,7 @@ class PlansJournal extends Component {
 
     submitComment = async (comment) => {
         const {token} = this.props
-        let data = {}
+        let data = {}, error
 
         data.orderId = comment.id
         data.dataId = comment.dataId
@@ -332,7 +312,11 @@ class PlansJournal extends Component {
                     this.getPlans()
                 }
             })
-            .catch(err => console.log(err.response?.data))
+            .catch(err => error = err.response?.data)
+
+        if (error) {
+            await this.setState({error})
+        }
     }
 
     getPlans = async () => {
@@ -340,13 +324,18 @@ class PlansJournal extends Component {
         const {token} = this.props
         let journal, error
 
-        await getOrderJournal(journalID)
+        await getOrderJournal(journalID, token)
             .then(res  => journal = res.data.journal)
-            .catch(err => console.log(err.response?.data))
+            .catch(err => error = err.response?.data)
 
-        await this.addSectors(journal)
-        await this.addOrderPlan(journal)
+        if(journal) {
+            await this.addSectors(journal)
+            await this.addOrderPlan(journal)
+        }
 
+        if(error) {
+            this.setState({error})
+        }
     }
 
     renderOption = () => {
@@ -388,8 +377,8 @@ class PlansJournal extends Component {
                     filters={filters}
                     onChangeFilter={this.changeFilter}
                 >
-                    {numbersSectors <= 1 ? null : (
-                        <Row>
+                    <Row className='mt-3'>
+                        {numbersSectors <= 1 ? null : (
                             <Col lg={4}>
                                 <InputGroup className="mb-3">
                                     <InputGroup.Text>Выберите участок</InputGroup.Text>
@@ -406,8 +395,12 @@ class PlansJournal extends Component {
                                     </Form.Select>
                                 </InputGroup>
                             </Col>
-                        </Row>
-                    )}
+                        )}
+                        <Col/>
+                        <Col lg={4} className='text-muted text-end mb-3'>
+                            Участок - {activeSector}
+                        </Col>
+                    </Row>
 
                     {this.state.loading ? (
                         <Loading/>
@@ -415,10 +408,6 @@ class PlansJournal extends Component {
                         <Col className='text-muted text-center'>{this.state.noSearch}</Col>
                     ) : (
                         <Row>
-                            <Col lg={12} className='text-muted text-end mb-3'>
-                                Участок - {activeSector}
-                            </Col>
-
                             <Col style={{height: '75vh', overflow: "auto"}}>
                                 <Table hover bordered variant={'dark'} size='sm'>
                                     <Thead title={headerTable}/>
@@ -486,7 +475,7 @@ class PlansJournal extends Component {
                         </Modal.Body>
                     </Modal>
 
-                    <CustomError error={error}/>
+                    <CustomError error={error} cleanError={() => this.setState({error: null})}/>
                 </JournalLayout>
             </MainLayout>
         )

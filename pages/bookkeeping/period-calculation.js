@@ -642,7 +642,6 @@ class BookkeepingCalc extends Component {
 
         await patchTransaction(this.props.token, data)
             .then(res => {
-                console.log(res)
                 if (res.status === 201) {
                     this.setState(({submitModal}) => {
                         return (

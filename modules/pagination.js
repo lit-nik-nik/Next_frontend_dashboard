@@ -59,6 +59,7 @@ export default class PaginationTable extends Component {
                 <li className={"page-item"}>
                     <Button
                         type='link'
+                        variant='dark'
                         className="page-link"
                         disabled={activePage === 1}
                         onClick={() => onClick(1)}
@@ -74,6 +75,7 @@ export default class PaginationTable extends Component {
                 <li className={"page-item"}>
                     <Button
                         type='link'
+                        variant='dark'
                         className="page-link"
                         disabled={activePage === lastPage}
                         onClick={() => onClick(lastPage)}

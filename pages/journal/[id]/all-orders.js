@@ -127,134 +127,126 @@ class AllOrdersJournal extends Component {
                 <JournalLayout
                     journalID={this.props.id}
                     activePage={'all-orders'}
+                    changeOpenFilter={() => this.setState({activeFilter: !this.state.activeFilter})}
+                    openFilter={activeFilter}
                 >
                     <Row>
-                        <Col className='mb-3 text-center text-uppercase fw-bold'>
-                            <h3>{title}</h3>
-                        </Col>
-                    </Row>
-
-                    <hr/>
-
-                    <Row className='mb-3'>
-                        <Col lg={12} className='text-center fw-bold h4 text-uppercase'>
-                            <Button
-                                type='button'
-                                variant='outline-dark'
-                                className='me-3'
-                                active={activeFilter}
-                                onClick={() => this.setState({activeFilter: !this.state.activeFilter})}
-                            >
-                                {activeFilter ? 'Скрыть фильтры' : 'Открыть фильтры'}
-                            </Button>
-                        </Col>
-
-                        {activeFilter
-                            ? (
-                            <>
-                                <Col lg={12}>
-                                    <InputGroup className="mb-3">
-                                        <InputGroup.Text>Произвольный поиск</InputGroup.Text>
-                                        <FormControl
-                                            placeholder="Произвольный поиск"
-                                            value={filter.search}
-                                            onChange={(e) => this.setState(({filter}) => {
-                                                return filter.search = e.target.value
-                                            })}
-                                            onKeyPress={(e) => {
-                                                if (e.key === 'Enter') {
-                                                    this.setState({activePage: 1})
-                                                    this.changeData()
-                                                }
-                                            }}
-                                        />
-                                    </InputGroup>
-                                </Col>
-
-                                <Col lg={4}>
-                                    <InputGroup className="mb-3">
-                                        <InputGroup.Text>Кол-во заказов на странице</InputGroup.Text>
-                                        <FormControl
-                                            placeholder="Заказы"
-                                            value={filter.limit}
-                                            onChange={(e) => this.setState(({filter}) => {
-                                                return filter.limit = e.target.value
-                                            })}
-                                            onKeyPress={(e) => {
-                                                if (e.key === 'Enter') this.changeData()
-                                            }}
-                                        />
-                                    </InputGroup>
-                                </Col>
-
-                                <Col lg={4}>
-                                    <InputGroup className="mb-3">
-                                        <InputGroup.Text>Дата начала</InputGroup.Text>
-                                        <FormControl
-                                            placeholder="Дата начала"
-                                            type='date'
-                                            value={filter.startDate}
-                                            onChange={(e) => this.setState(({filter}) => {
-                                                return filter.startDate = e.target.value
-                                            })}
-                                            onKeyPress={(e) => {
-                                                if (e.key === 'Enter') this.changeData()
-                                            }}
-                                        />
-                                    </InputGroup>
-                                </Col>
-
-                                <Col lg={4}>
-                                    <InputGroup className="mb-3">
-                                        <InputGroup.Text>Дата окончания</InputGroup.Text>
-                                        <FormControl
-                                            placeholder="Дата окончания"
-                                            type='date'
-                                            value={filter.endDate}
-                                            onChange={(e) => this.setState(({filter}) => {
-                                                return filter.endDate = e.target.value
-                                            })}
-                                            onKeyPress={(e) => {
-                                                if (e.key === 'Enter') this.changeData()
-                                            }}
-                                        />
-                                    </InputGroup>
-                                </Col>
-                            </>
-                            )
-                            : null
-                        }
-                    </Row>
-
-                    <hr/>
-
-                    {this.state.loading ? (
-                        <Loading/>
-                    ) : this.state.noSearch ? (
-                        <Col className='text-muted text-center'>{this.state.noSearch}</Col>
-                    ) : (
-                        <>
+                        <Col lg={activeFilter ? 10 : 12}>
                             <Row>
-                                <Col>
-                                    <PaginationTable activePage={+activePage} lastPage={pages} onClick={this.changeActivePage}/>
+                                <Col className='mt-3 text-center text-uppercase fw-bold'>
+                                    <h3>{title}</h3>
                                 </Col>
-                                <Col className='text-end'>
-                                    <Alert variant='light p-2'>
-                                        Всего заказов - {this.state.counts} на {this.state.pages} страниц
+                            </Row>
+
+                            <hr/>
+
+                            {this.state.loading ? (
+                                <Loading/>
+                            ) : this.state.noSearch ? (
+                                <Col className='text-muted text-center'>{this.state.noSearch}</Col>
+                            ) : (
+                                <>
+                                    <Row>
+                                        <Col lg={6}>
+                                            <PaginationTable activePage={+activePage} lastPage={pages} onClick={this.changeActivePage}/>
+                                        </Col>
+                                        <Col lg={6} className='text-end'>
+                                            <Alert variant='light p-2'>
+                                                Всего заказов - {this.state.counts} на {this.state.pages} страниц
+                                            </Alert>
+                                        </Col>
+
+                                        <Col lg={12} style={{height: '65vh', overflow: "auto"}}>
+                                            <Table hover bordered variant={'dark'} size='sm'>
+                                                <Thead title={headerTable}/>
+                                                <Tbody orders={allOrders} params={paramsTable} color={'table-light'}/>
+                                            </Table>
+                                        </Col>
+                                    </Row>
+                                </>
+                            )}
+                        </Col>
+                        <Col lg={2} className={`${activeFilter ? null : 'd-none'} border border-top-0 border-end-0 border-bottom-0 pt-3`}>
+                            <Row>
+                                <Col lg={12} className='mb-3 text-center'>Фильтры</Col>
+
+                                <Col lg={12} className='mb-3'>
+                                    <Alert variant='secondary' className='p-1 text-center mb-1'>
+                                        Произвольный поиск
                                     </Alert>
-                                </Col>
-                            </Row>
 
-                            <Row>
-                                <Col style={{height: '60vh', overflow: "auto"}}>
-                                    <Table hover bordered variant={'dark'} size='sm'>
-                                        <Thead title={headerTable}/>
-                                        <Tbody orders={allOrders} params={paramsTable} color={'table-light'}/>
-                                    </Table>
+                                    <FormControl
+                                        placeholder="Введите данные"
+                                        value={filter.search}
+                                        onChange={(e) => this.setState(({filter}) => {
+                                            return filter.search = e.target.value
+                                        })}
+                                        onKeyPress={(e) => {
+                                            if (e.key === 'Enter') {
+                                                this.setState({activePage: 1})
+                                                this.changeData()
+                                            }
+                                        }}
+                                    />
+                                </Col>
+
+                                <Col lg={12} className='mb-3'>
+                                    <Alert variant='secondary' className='p-1 text-center mb-1'>
+                                        Кол-во заказов на странице
+                                    </Alert>
+
+                                    <FormControl
+                                        placeholder="Заказы"
+                                        value={filter.limit}
+                                        onChange={(e) => this.setState(({filter}) => {
+                                            return filter.limit = e.target.value
+                                        })}
+                                        onKeyPress={(e) => {
+                                            if (e.key === 'Enter') this.changeData()
+                                        }}
+                                    />
+                                </Col>
+
+                                <Col lg={12} className='mb-3'>
+                                    <Alert variant='secondary' className='p-1 text-center mb-1'>
+                                        Дата начала
+                                    </Alert>
+
+                                    <FormControl
+                                        placeholder="Дата начала"
+                                        type='date'
+                                        value={filter.startDate}
+                                        onChange={(e) => this.setState(({filter}) => {
+                                            return filter.startDate = e.target.value
+                                        })}
+                                        onKeyPress={(e) => {
+                                            if (e.key === 'Enter') this.changeData()
+                                        }}
+                                    />
+                                </Col>
+
+                                <Col lg={12} className='mb-3'>
+                                    <Alert variant='secondary' className='p-1 text-center mb-1'>
+                                        Дата окончания
+                                    </Alert>
+
+                                    <FormControl
+                                        placeholder="Дата окончания"
+                                        type='date'
+                                        value={filter.endDate}
+                                        onChange={(e) => this.setState(({filter}) => {
+                                            return filter.endDate = e.target.value
+                                        })}
+                                        onKeyPress={(e) => {
+                                            if (e.key === 'Enter') this.changeData()
+                                        }}
+                                    />
                                 </Col>
                             </Row>
-                        </>
-                    )}
+                        </Col>
+                    </Row>
+
+
 
                     <CustomError error={error} />
                 </JournalLayout>

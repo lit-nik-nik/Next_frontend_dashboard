@@ -36,3 +36,12 @@
     position: sticky;
     bottom: 0
 }
+
+.page-link, .page-link:hover {
+    color: black;
+}
+
+.page-item.active .page-link {
+    background-color: black;
+    border-color: black;
+}

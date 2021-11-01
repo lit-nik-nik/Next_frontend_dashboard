@@ -61,7 +61,6 @@ export class MainLayout extends Component {
         const token = Cookies.get('token')
 
         if (!token) exitApp()
-        else console.log(token.length)
     }
 
     onResize = async () => {
@@ -138,9 +137,9 @@ export class MainLayout extends Component {
                                 <Col lg={!collapse ? 10 : 11} className='py-1 px-4'>
                                     {children}
                                     {errorView ?
-                                        <CustomError error={errorData}/> :
+                                        <CustomError error={errorData} cleanError={() => this.setState({errorData: null})} /> :
                                         error ?
-                                            <CustomError error={error}/> :
+                                            <CustomError error={error} /> :
                                             null
                                     }
                                 </Col>

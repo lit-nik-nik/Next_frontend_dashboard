@@ -393,7 +393,7 @@ class PeriodSalary extends Component {
                     activePage={'salary'}
                     activeSalary={activeSalary}
                 >
-                    <Row>
+                    <Row className='mt-3'>
                         <Col lg={4}>
                             <InputGroup className="mb-3">
                                 <InputGroup.Text>Выберите участок</InputGroup.Text>

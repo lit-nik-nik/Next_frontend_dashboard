@@ -42,11 +42,11 @@ export default class JournalLayout extends Component {
 
     render() {
         const {pages, filterSalary} = this.state
-        const {activePage, journalID, filters, activeFilter, onChangeFilter, activeSalary, children} = this.props
+        const {activePage, journalID, filters, activeFilter, onChangeFilter, activeSalary, children, changeOpenFilter, openFilter} = this.props
 
         return (
             <>
-                <Row className='sticky-top bg-white py-2 border border-end-0 border-start-0 border-top-0 mb-3' style={{top: '60px', zIndex: 5}}>
+                <Row className='sticky-top bg-white py-2 border border-end-0 border-start-0 border-top-0' style={{top: '60px', zIndex: 5}}>
                     <Col>
                         {pages.map((page, i) => {
                             return (
@@ -84,7 +84,16 @@ export default class JournalLayout extends Component {
                                     </Link>
                                 )
                             })
-                                : null
+                                : changeOpenFilter ? <Button
+                                    type='button'
+                                    variant='outline-dark'
+                                    className='me-3'
+                                    active={openFilter}
+                                    onClick={() => changeOpenFilter()}
+                                >
+                                    {openFilter ? 'Скрыть фильтры' : 'Открыть фильтры'}
+                                </Button>
+                                    : null
                         }
                     </Col>
                 </Row>

@@ -47,7 +47,10 @@ export default class CustomError extends Component {
             <>
                 <Modal
                     show={errorView}
-                    onHide={() => this.setState({errorView: false})}
+                    onHide={() => {
+                        this.setState({errorView: false})
+                        if (this.props.cleanError) this.props.cleanError()
+                    }}
                     size='lg'
                     aria-labelledby="contained-modal-title-vcenter"
                     centered

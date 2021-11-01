@@ -23,7 +23,7 @@ class BookkeepingAllTransaction extends Component {
     async componentDidUpdate(prevProps, prevState, snapshot) {}
 
     render() {
-        const {link, journalID, activeSalary} = this.state
+        const {link} = this.state
         const {transactions} = this.props
 
         return (

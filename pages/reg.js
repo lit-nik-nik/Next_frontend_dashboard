@@ -330,7 +330,7 @@ class Reg extends Component {
                                         message={reg.message}
                                     />
 
-                                    <CustomError error={errorData ? errorData : this.props.error}/>
+                                    <CustomError error={errorData ? errorData : this.props.error} />
                                 </main>
                             </div>
                         </Col>

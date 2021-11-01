@@ -103,11 +103,7 @@ class Auth extends Component {
                     this.setState({login: {user, pass: '', barcode: newBarcode}})
                 }
             })
-            .catch(err => {
-                console.log('err')
-                console.log(err)
-                this.setState({errorData: err.response?.data})
-            })
+            .catch(err => this.setState({errorData: err.response?.data}))
     }
 
 
