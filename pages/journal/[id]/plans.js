@@ -308,11 +308,15 @@ class PlansJournal extends Component {
 
         await postCommentJournal(data, token)
             .then(res => {
+                console.log(res)
                 if (res.status === 201 || res.status === 200) {
                     this.getPlans()
                 }
             })
-            .catch(err => error = err.response?.data)
+            .catch(err => {
+                console.log(err)
+                error = err.response?.data
+            })
 
         if (error) {
             await this.setState({error})

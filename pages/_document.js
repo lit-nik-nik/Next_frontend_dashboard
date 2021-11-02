@@ -1,4 +1,5 @@
 import Document, { Html, Head, Main, NextScript } from 'next/document'
+import Version from "../modules/version";
 
 class MyDocument extends Document {
   static async getInitialProps(ctx) {
@@ -16,6 +17,7 @@ class MyDocument extends Document {
         <body style={{overflowX: "hidden"}}>
           <Main />
           <NextScript />
+          <Version />
         </body>
       </Html>
     )
