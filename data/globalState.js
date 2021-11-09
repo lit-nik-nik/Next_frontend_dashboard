@@ -13,7 +13,7 @@ export const globalState = {
         {
             id: 'bookkeeping',
             label: 'Бухгалтерия',
-            link: '',
+            link: '/bookkeeping',
             icon: 'bi-cash-coin',
             submenu: [
                 {

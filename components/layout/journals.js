@@ -69,7 +69,7 @@ export default class JournalLayout extends Component {
                                         key={i}
                                         onClick={() => onChangeFilter(filter.type)}
                                     >
-                                        {filter.name}
+                                        {filter.name} ({filter.number})
                                     </Button>
                                 )
                             })

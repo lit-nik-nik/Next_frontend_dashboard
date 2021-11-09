@@ -1,6 +1,7 @@
 import {Component} from "react";
 import Link from "next/link";
 import {Nav, Dropdown} from 'react-bootstrap'
+import Version from "../modules/version";
 
 export default class Navbar extends Component {
 
@@ -108,6 +109,8 @@ export default class Navbar extends Component {
                 <Nav className="flex-column">
                     {this.createMenu()}
                 </Nav>
+
+                <Version />
             </div>
         )
     }

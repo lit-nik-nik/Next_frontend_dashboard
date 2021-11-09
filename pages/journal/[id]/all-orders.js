@@ -3,7 +3,7 @@ import {getAdoptedOrderJournal} from "../../../services/journals/get";
 import {globalState} from "../../../data/globalState";
 import Thead from "../../../modules/tables/thead";
 import Tbody from "../../../modules/tables/tbody";
-import {Table, Row, Col, Alert, InputGroup, FormControl, Button} from "react-bootstrap";
+import {Table, Row, Col, Alert, FormControl, Button, InputGroup, Form} from "react-bootstrap";
 import PaginationTable from "../../../modules/pagination";
 import Loading from "../../../modules/loading";
 import CustomError from "../../../modules/error";
@@ -11,6 +11,7 @@ import {withRouter} from "next/router";
 import {getTokenCookies} from "../../../modules/cookie";
 import {MainLayout} from "../../../components/layout/main";
 import JournalLayout from "../../../components/layout/journals";
+import {format, previousMonday, previousSunday, startOfWeek, endOfWeek} from 'date-fns'
 
 class AllOrdersJournal extends Component {
 
@@ -74,8 +75,8 @@ class AllOrdersJournal extends Component {
 
         let data, error, sDate = '', eDate = ''
 
-        if (startDate) sDate = new Date(startDate).toLocaleString().slice(0,10)
-        if (endDate) eDate = new Date(endDate).toLocaleString().slice(0,10)
+        if (startDate) sDate = format(new Date(startDate), 'dd.MM.yyyy')
+        if (endDate) eDate = format(new Date(endDate), 'dd.MM.yyyy')
 
         await getAdoptedOrderJournal(id, token, activePage, limit, sDate, eDate, search)
             .then(res => data = res.data)
@@ -119,6 +120,66 @@ class AllOrdersJournal extends Component {
         this.setState({allOrders: []})
     }
 
+    // отображение заказов за сегодня
+    filterTodayOrder = async () => {
+        let d = new Date(JSON.parse(this.props.date)),
+            date = format(d, 'yyyy-MM-dd')
+
+        await this.setState(({filter}) => {
+            return (
+                filter.startDate = date,
+                filter.endDate = date
+            )
+        })
+
+        this.changeData()
+    }
+
+    // отображение заказов за прошедшую неделю
+    filterLastWeekOrder = async () => {
+        let d = new Date(JSON.parse(this.props.date)),
+            prevSunday = previousSunday(d),
+            lastSunday = format(prevSunday, 'yyyy-MM-dd'),
+            lastMonday = format(previousMonday(prevSunday), 'yyyy-MM-dd')
+
+        await this.setState(({filter}) => {
+            return (
+                filter.startDate = lastMonday,
+                filter.endDate = lastSunday
+            )
+        })
+
+        this.changeData()
+    }
+
+    // отображение заказов за текущую неделю
+    filterCurrentWeekOrder = async () => {
+        let d = new Date(JSON.parse(this.props.date)),
+            currentMonday = format(startOfWeek(d, { weekStartsOn: 1 }), 'yyyy-MM-dd'),
+            currentSunday = format(endOfWeek(d, { weekStartsOn: 1 }), 'yyyy-MM-dd')
+
+        await this.setState(({filter}) => {
+            return (
+                filter.startDate = currentMonday,
+                filter.endDate = currentSunday
+            )
+        })
+
+        this.changeData()
+    }
+
+    // отображение всех заказов
+    filterAllOrder = async () => {
+        await this.setState(({filter}) => {
+            return (
+                filter.startDate = '',
+                filter.endDate = ''
+            )
+        })
+
+        this.changeData()
+    }
+
     render() {
         const {headerTable, paramsTable, allOrders, activePage, pages, error, link, title, filter, activeFilter} = this.state
 
@@ -135,6 +196,34 @@ class AllOrdersJournal extends Component {
                             <Row>
                                 <Col className='mt-3 text-center text-uppercase fw-bold'>
                                     <h3>{title}</h3>
+                                    <Button
+                                        variant='outline-secondary'
+                                        className='me-3'
+                                        onClick={() => this.filterTodayOrder()}
+                                    >
+                                        Сегодня
+                                    </Button>
+                                    <Button
+                                        variant='outline-secondary'
+                                        className='me-3'
+                                        onClick={() => this.filterCurrentWeekOrder()}
+                                    >
+                                        Текущая неделя
+                                    </Button>
+                                    <Button
+                                        variant='outline-secondary'
+                                        className='me-3'
+                                        onClick={() => this.filterLastWeekOrder()}
+                                    >
+                                        Прошедшая неделя
+                                    </Button>
+                                    <Button
+                                        variant='outline-secondary'
+                                        className='me-3'
+                                        onClick={() => this.filterAllOrder()}
+                                    >
+                                        Все
+                                    </Button>
                                 </Col>
                             </Row>
 
@@ -263,7 +352,7 @@ export async function getServerSideProps({req,query}) {
     const token = getTokenCookies(req.headers.cookie)
     const id = query.id
 
-    let data, error
+    let data, error, date = new Date()
 
     await getAdoptedOrderJournal(id, token)
         .then(res  => data = res.data)
@@ -274,7 +363,8 @@ export async function getServerSideProps({req,query}) {
         return {
             props: {
                 data,
-                id
+                id,
+                date: JSON.stringify(date)
             }
         }
     } else if (error) {

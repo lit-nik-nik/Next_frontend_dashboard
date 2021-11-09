@@ -1,6 +1,7 @@
 import {Component} from "react";
 import Link from "next/link";
 import {Dropdown, Nav, OverlayTrigger, Tooltip} from "react-bootstrap";
+import Version from "../modules/version";
 
 export default class NavbarMini extends Component {
 
@@ -68,25 +69,27 @@ export default class NavbarMini extends Component {
                             })
                         }
                     })
+                    if (subItem[0]) {
+                        menuItem =
+                            <Dropdown drop='end' key={i}>
+                                <OverlayTrigger
+                                    placement='right'
+                                    delay={{ show: 250, hide: 250 }}
+                                    overlay={this.renderTooltip(item)}
+                                >
+                                    <Dropdown.Toggle variant='light' className='text-start px-3 w-100' style={{fontSize: 18}}>
+                                        <i className={`me-2 bi ${item.icon}`} />
+                                    </Dropdown.Toggle>
+                                </OverlayTrigger>
 
-                    menuItem =
-                        <Dropdown drop='end' key={i}>
-                            <OverlayTrigger
-                                placement='right'
-                                delay={{ show: 250, hide: 250 }}
-                                overlay={this.renderTooltip(item)}
-                            >
-                                <Dropdown.Toggle variant='light' className='text-start px-3 w-100' style={{fontSize: 18}}>
-                                    <i className={`me-2 bi ${item.icon}`} />
-                                </Dropdown.Toggle>
-                            </OverlayTrigger>
+                                <Dropdown.Menu>
+                                    {subItem}
+                                </Dropdown.Menu>
+                            </Dropdown>
 
-                            <Dropdown.Menu>
-                                {subItem}
-                            </Dropdown.Menu>
-                        </Dropdown>
+                        newMenu.push(menuItem)
+                    }
 
-                    newMenu.push(menuItem)
                 } else {
                     links.map(perm => {
                         if (item.link === perm.link) {
@@ -126,6 +129,8 @@ export default class NavbarMini extends Component {
                 <Nav className="flex-column">
                     {this.createMenu()}
                 </Nav>
+
+                <Version />
             </div>
         )
     }

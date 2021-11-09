@@ -2,6 +2,7 @@ import {Container, Col, Row, Nav, Navbar} from "react-bootstrap";
 import {Component} from "react";
 import Head from "next/head";
 import Link from "next/link";
+import Version from "../../modules/version";
 
 export class NologinLayout extends Component {
 
@@ -62,6 +63,8 @@ export class NologinLayout extends Component {
                         <Col className='py-1 px-4'>
                             {children}
                         </Col>
+
+                        <Version />
                     </Row>
                 </Container>
             </>

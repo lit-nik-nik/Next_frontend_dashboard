@@ -1,5 +1,5 @@
 import React, {Component} from "react";
-import {Row, Col, Table, Modal, Form, InputGroup, Alert} from "react-bootstrap";
+import {Row, FloatingLabel, Col, Table, Modal, Form, Alert, Button, FormControl} from "react-bootstrap";
 import Thead from "../../../modules/tables/thead";
 import Tbody from "../../../modules/tables/tbody";
 import {globalState} from "../../../data/globalState";
@@ -20,6 +20,7 @@ class PlansJournal extends Component {
     }
 
     state = {
+        title: 'Планы',
         sectors: [],
         activeSector: '',
         numbersSectors: 0,
@@ -32,23 +33,27 @@ class PlansJournal extends Component {
         filters: [
             {
                 type: 'all',
-                name: 'Все',
-                button: 'info'
+                name: `Все`,
+                button: 'info',
+                number: 0
             },
             {
                 type: 'overdue',
-                name: 'Просроченные',
-                button: 'danger'
+                name: `Просроченные`,
+                button: 'danger',
+                number: 0
             },
             {
                 type: 'forToday',
                 name: 'Текущие заказы',
-                button: 'primary'
+                button: 'primary',
+                number: 0
             },
             {
                 type: 'forFuture',
                 name: 'Будущие заказы',
-                button: 'success'
+                button: 'success',
+                number: 0
             }
         ],
         activeFilter: 'all',
@@ -68,7 +73,8 @@ class PlansJournal extends Component {
         loading: true,
         noSearch: '',
         isOwner: false,
-        updatePage: null
+        updatePage: null,
+        search: ''
     }
 
     async componentDidMount() {
@@ -86,6 +92,7 @@ class PlansJournal extends Component {
 
         await this.addSectors(this.props.journal)
         await this.addOrderPlan(this.props.journal)
+        this.countOrders()
 
         this.setState({updatePage: setInterval(this.getPlans, 300000)})
     }
@@ -112,15 +119,13 @@ class PlansJournal extends Component {
 
         if (this.state.activeSector !== prevState.activeSector) {
             await this.addOrderPlan(this.props.journal)
+            this.countOrders()
         }
 
         if (this.state.ordersPlan !== prevState.ordersPlan) {
             this.renderHeader()
-            this.filterOrder()
-        }
-
-        if (this.state.activeFilter !== prevState.activeFilter) {
-            this.filterOrder()
+            await this.filterOrder()
+            this.countOrders()
         }
 
         if (this.state.changeComment.view) this.commentInput.current.focus()
@@ -130,6 +135,7 @@ class PlansJournal extends Component {
         clearInterval(this.state.updatePage)
     }
 
+    // формирование секторов в плане
     addSectors = (journal) => {
         let sectors = []
 
@@ -146,16 +152,22 @@ class PlansJournal extends Component {
         this.setState({activeSector: sectors[0]})
     }
 
+    // выбор заказов плана в соответствии с выбраным сектором
     addOrderPlan = (journal) => {
         const {activeSector} = this.state
 
-        journal.map(sector => {
-            if (activeSector === sector.name) {
-                this.setState({ordersPlan: sector})
-            }
-        })
+        if (activeSector === 'Все участки') {
+            this.allOrderAllSectors()
+        } else {
+            journal.map(sector => {
+                if (activeSector === sector.name) {
+                    this.setState({ordersPlan: sector})
+                }
+            })
+        }
     }
 
+    // изменение комментария к заказу
     changeComment = (item) => {
         const userName = JSON.parse(localStorage.getItem('user')).userName,
             {userId} = this.props
@@ -190,6 +202,7 @@ class PlansJournal extends Component {
         })
     }
 
+    // выбор комментария пользователя
     selectComment = (value) => {
         const {changeComment} = this.state
         const userName = JSON.parse(localStorage.getItem('user')).userName
@@ -224,12 +237,11 @@ class PlansJournal extends Component {
         }
     }
 
-    filterOrder = (filter = 'all') => {
-        const {ordersPlan, activeFilter} = this.state
+    // формирование и фильтр таблицы заказов
+    filterOrder = async (filter = 'all') => {
+        const {ordersPlan} = this.state
 
-        let overdue = [],
-            today = [],
-            future = []
+        let overdue = [], today = [], future = []
 
         const addEditButton = (obj, arr) => {
             obj.map(item => {
@@ -248,25 +260,14 @@ class PlansJournal extends Component {
             addEditButton(ordersPlan.forFuture, future)
         }
 
-        if (activeFilter === 'all') {
-            this.setState({overdueOrders: overdue})
-            this.setState({todayOrders: today})
-            this.setState({futureOrders: future})
-        } else if (activeFilter === 'overdue') {
-            this.setState({overdueOrders: overdue})
-            this.setState({todayOrders: []})
-            this.setState({futureOrders: []})
-        } else if (activeFilter === 'forToday') {
-            this.setState({overdueOrders: []})
-            this.setState({todayOrders: today})
-            this.setState({futureOrders: []})
-        } else if (activeFilter === 'forFuture') {
-            this.setState({overdueOrders: []})
-            this.setState({todayOrders: []})
-            this.setState({futureOrders: future})
-        }
+        await this.setState({overdueOrders: overdue})
+        await this.setState({todayOrders: today})
+        await this.setState({futureOrders: future})
+
+        this.countOrders()
     }
 
+    // создание заголовка таблицы
     renderHeader = () => {
         const {ordersPlan} = this.state,
             {headersTables} = globalState
@@ -294,10 +295,12 @@ class PlansJournal extends Component {
         this.setState({paramsTable: params})
     }
 
+    // изменение фильтра заказов
     changeFilter = (value) => {
         this.setState({activeFilter: value})
     }
 
+    // отправка комментария в базу
     submitComment = async (comment) => {
         const {token} = this.props
         let data = {}, error
@@ -323,6 +326,7 @@ class PlansJournal extends Component {
         }
     }
 
+    // получение плана с сервера
     getPlans = async () => {
         const {journalID} = this.state
         const {token} = this.props
@@ -342,6 +346,7 @@ class PlansJournal extends Component {
         }
     }
 
+    // формирования выбора пользователя и комментария
     renderOption = () => {
         const {changeComment} = this.state
         const user = {
@@ -368,9 +373,67 @@ class PlansJournal extends Component {
         return option
     }
 
+    // поиск заказов
+    searchOrder = () => {
+        const {search, overdueOrders, todayOrders, futureOrders} = this.state
+        let overdue = [], today = [], future = []
+
+        const ordersMap = (obj, newObj) => {
+            obj.map(order => {
+                const itmOrder = order.itmOrderNum.toUpperCase()
+
+                if (itmOrder.includes(search)) newObj.push(order)
+            })
+        }
+
+        if (search) {
+            ordersMap(overdueOrders, overdue)
+            ordersMap(todayOrders, today)
+            ordersMap(futureOrders, future)
+
+            this.setState({overdueOrders: overdue})
+            this.setState({todayOrders: today})
+            this.setState({futureOrders: future})
+
+            this.countOrders()
+        }
+    }
+
+    // выбор всех заказов по всем участкам
+    allOrderAllSectors = () => {
+        const {journal} = this.props
+        let overdue = [], today = [], future = []
+
+        journal.map(sector => {
+            overdue = [...overdue, ...sector.overdue]
+            today = [...today, ...sector.forToday]
+            future = [...future, ...sector.forFuture]
+        })
+
+        this.setState({overdueOrders: overdue})
+        this.setState({todayOrders: today})
+        this.setState({futureOrders: future})
+    }
+
+    // подсчет кол-ва заказов
+    countOrders = () => {
+        const {filters, overdueOrders, futureOrders, todayOrders} = this.state
+        let overdueCounts = overdueOrders.length,
+            todayCounts = todayOrders.length,
+            futureCounts = futureOrders.length,
+            allCounts = overdueCounts + todayCounts + futureCounts
+
+        filters.map((filter, i) => {
+            if (filter.type === 'all') this.setState(({filters}) => filters[i].number = allCounts)
+            if (filter.type === 'overdue') this.setState(({filters}) => filters[i].number = overdueCounts)
+            if (filter.type === 'forToday') this.setState(({filters}) => filters[i].number = todayCounts)
+            if (filter.type === 'forFuture') this.setState(({filters}) => filters[i].number = futureCounts)
+        })
+    }
+
     render() {
         const {journalID, filters, activeFilter, headerTable, overdueOrders, todayOrders, futureOrders,
-            changeComment, paramsTable, error, link, sectors, activeSector, numbersSectors} = this.state
+            changeComment, paramsTable, error, link, sectors, activeSector, numbersSectors, title} = this.state
 
         return (
             <MainLayout title={`Планы журнала`} link={link} token={this.props.token} error={this.props.error}>
@@ -381,11 +444,15 @@ class PlansJournal extends Component {
                     filters={filters}
                     onChangeFilter={this.changeFilter}
                 >
+
                     <Row className='mt-3'>
-                        {numbersSectors <= 1 ? null : (
-                            <Col lg={4}>
-                                <InputGroup className="mb-3">
-                                    <InputGroup.Text>Выберите участок</InputGroup.Text>
+                        {numbersSectors <= 1 ? <Col lg={2} /> : (
+                            <Col lg={2}>
+                                <FloatingLabel
+                                    controlId="floatingInput"
+                                    label="Выберите участок"
+                                    className="mb-3"
+                                >
                                     <Form.Select
                                         value={activeSector}
                                         onChange={(e) => {
@@ -397,12 +464,50 @@ class PlansJournal extends Component {
                                             )
                                         })}
                                     </Form.Select>
-                                </InputGroup>
+                                </FloatingLabel>
                             </Col>
                         )}
-                        <Col/>
-                        <Col lg={4} className='text-muted text-end mb-3'>
-                            Участок - {activeSector}
+                        <Col lg={2} />
+
+                        <Col lg={4} className=''>
+                            <FloatingLabel
+                                style={{width: '90%', display: 'inline-block'}}
+                                controlId="searchName"
+                                label="Поиск по наименованию"
+                                className="mb-3"
+                            >
+                                <FormControl
+                                    placeholder="Поиск по наименованию"
+                                    value={this.state.search}
+                                    onChange={async (e) => {
+                                        await this.setState({search: e.target.value.toUpperCase()})
+                                        await this.filterOrder()
+                                        this.searchOrder()
+                                    }}
+                                />
+                            </FloatingLabel>
+
+                            {this.state.search ? (
+                                <Button
+                                    className='border-0 inline-input'
+                                    variant='outline-danger'
+                                    onClick={() => {
+                                        this.setState({search: ''})
+                                        this.filterOrder()
+                                    }}
+                                >
+                                    X
+                                </Button>
+                            ) : null}
+                        </Col>
+                        <Col lg={1} />
+                        <Col lg={3} className='text-end'>
+                            <Alert
+                                className='m-0'
+                                variant='light'
+                            >
+                                Участок - {activeSector}
+                            </Alert>
                         </Col>
                     </Row>
 
@@ -416,15 +521,15 @@ class PlansJournal extends Component {
                                 <Table hover bordered variant={'dark'} size='sm'>
                                     <Thead title={headerTable}/>
 
-                                    {overdueOrders ?
+                                    {activeFilter === 'all' || activeFilter === 'overdue' ?
                                         <Tbody orders={overdueOrders} params={paramsTable} color={'table-danger'}/>
                                         : null}
 
-                                    {todayOrders ?
+                                    {activeFilter === 'all' || activeFilter === 'forToday' ?
                                         <Tbody orders={todayOrders} params={paramsTable} color={'table-primary'}/>
                                         : null}
 
-                                    {futureOrders ?
+                                    {activeFilter === 'all' || activeFilter === 'forFuture' ?
                                         <Tbody orders={futureOrders} params={paramsTable} color={'table-success'}/>
                                         : null}
                                 </Table>

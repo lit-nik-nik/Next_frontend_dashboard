@@ -45,3 +45,9 @@
     background-color: black;
     border-color: black;
 }
+
+.inline-input {
+    position: relative;
+    top: 0%;
+    right: 7%;
+}
