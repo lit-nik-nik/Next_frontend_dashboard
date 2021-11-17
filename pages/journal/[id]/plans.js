@@ -11,6 +11,7 @@ import {getTokenCookies} from "../../../modules/cookie";
 import {MainLayout} from "../../../components/layout/main";
 import JournalLayout from "../../../components/layout/journals";
 import {postCommentJournal} from "../../../services/journals/post";
+import {changeKeyboard} from "../../../modules/change-keyboard";
 
 class PlansJournal extends Component {
 
@@ -45,13 +46,13 @@ class PlansJournal extends Component {
             },
             {
                 type: 'forToday',
-                name: 'Текущие заказы',
+                name: 'Текущие',
                 button: 'primary',
                 number: 0
             },
             {
                 type: 'forFuture',
-                name: 'Будущие заказы',
+                name: 'Будущие',
                 button: 'success',
                 number: 0
             }
@@ -237,7 +238,7 @@ class PlansJournal extends Component {
         }
     }
 
-    // формирование и фильтр таблицы заказов
+    // формирование таблицы заказов
     filterOrder = async (filter = 'all') => {
         const {ordersPlan} = this.state
 
@@ -380,9 +381,12 @@ class PlansJournal extends Component {
 
         const ordersMap = (obj, newObj) => {
             obj.map(order => {
-                const itmOrder = order.itmOrderNum.toUpperCase()
+                const itmOrder = order.itmOrderNum.toUpperCase(),
+                    upperSearch = search.toUpperCase()
 
-                if (itmOrder.includes(search)) newObj.push(order)
+                console.log(changeKeyboard(upperSearch))
+
+                if (itmOrder.includes(upperSearch)) newObj.push(order)
             })
         }
 
@@ -480,7 +484,7 @@ class PlansJournal extends Component {
                                     placeholder="Поиск по наименованию"
                                     value={this.state.search}
                                     onChange={async (e) => {
-                                        await this.setState({search: e.target.value.toUpperCase()})
+                                        await this.setState({search: e.target.value})
                                         await this.filterOrder()
                                         this.searchOrder()
                                     }}

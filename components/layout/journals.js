@@ -12,7 +12,7 @@ export default class JournalLayout extends Component {
         pages: [
             {
                 type: 'plans',
-                name: 'Планы',
+                name: 'План',
                 button: 'dark'
             },
             {

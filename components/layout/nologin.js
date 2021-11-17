@@ -3,6 +3,7 @@ import {Component} from "react";
 import Head from "next/head";
 import Link from "next/link";
 import Version from "../../modules/version";
+import CustomError from "../../modules/error";
 
 export class NologinLayout extends Component {
 
@@ -23,20 +24,9 @@ export class NologinLayout extends Component {
         ]
     }
 
-    async componentDidMount() {
-    }
-
-    componentDidUpdate(prevProps, prevState, snapshot) {
-    }
-
-    componentWillUnmount() {
-    }
-
-
-
     render() {
 
-        const {children, title, link} = this.props
+        const {children, title, link, error} = this.props
         const {nav} = this.state
 
         return (
@@ -63,6 +53,8 @@ export class NologinLayout extends Component {
                         <Col className='py-1 px-4'>
                             {children}
                         </Col>
+
+                        {error ? <CustomError error={error} /> : null}
 
                         <Version />
                     </Row>

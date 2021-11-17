@@ -4,8 +4,11 @@ export const changeKeyboard = (value) => {
         g: 'п', h: 'р', j: 'о', k: 'л', l: 'д', z: 'я', x: 'ч', c: 'с', v: 'м', b: 'и', n: 'т', m: 'ь',
         Q: 'Й', W: 'Ц', E: 'У', R: 'К', T: 'Е', Y: 'Н', U: 'Г', I: 'Ш', O: 'Щ', P: 'З', A: 'Ф', S: 'Ы', D: 'В', F: 'А',
         G: 'П', H: 'Р', J: 'О', K: 'Л', L: 'Д', Z: 'Я', X: 'Ч', C: 'С', V: 'М', B: 'И', N: 'Т', M: 'Ь'
-    }
+    },
+        searchEN = '',
+        searchRU = ''
     let array = []
+
 
     for (let i = 0; i < value.length; i++) {
         if (/[0-9]/g.test(+value[i])) array.push(value[i])
