@@ -115,7 +115,9 @@ export default class CompAccTransOrder extends Component {
         }
         else this.addDate()
 
-        await this.receiveExtraData()
+        if (localStorage.getItem('extraData')) {
+            this.setState(({data}) => data.allExtraData = JSON.parse(localStorage.getItem('extraData')))
+        }
 
         if (localStorage.getItem('orders')) {
             JSON.parse(localStorage.getItem('orders')).map(async order => {
@@ -137,7 +139,12 @@ export default class CompAccTransOrder extends Component {
             if (data.transfer.value) localStorage.setItem('transfer', encritptedStr(data.transfer.value))
             if (data.accepted.value) localStorage.setItem('accepted', encritptedStr(data.accepted.value))
             if (data.date.value) localStorage.setItem('date', data.date.value)
-            if (ordersID[0]) localStorage.setItem('orders', JSON.stringify(ordersID))
+            if (ordersID.length > 0) localStorage.setItem('orders', JSON.stringify(ordersID))
+            if (data.allExtraData.length > 0) localStorage.setItem('extraData', JSON.stringify(data.allExtraData))
+        }
+
+        if (this.state.extraData !== prevState.extraData) {
+            this.addOrderToTable()
         }
     }
 
@@ -145,6 +152,7 @@ export default class CompAccTransOrder extends Component {
         localStorage.removeItem('date')
         localStorage.removeItem('transfer')
         localStorage.removeItem('accepted')
+        localStorage.removeItem('extraData')
         localStorage.removeItem('orders')
     }
 
@@ -396,13 +404,12 @@ export default class CompAccTransOrder extends Component {
 
             arrOrder.extraData = ''
 
-            {this.state.extraData[0] ?
-                arrOrder.iconChangeExtraData = <i
+            arrOrder.iconChangeExtraData =
+                <i
                     className='bi bi-pencil-square btn text-warning'
                     style={{fontSize: 20}}
                     onClick={() => this.viewExtraDataOrder(arrOrder.idOrder)}
                 />
-                : arrOrder.iconChangeExtraData = ''}
 
 
             arrOrder.delOrder =
@@ -411,6 +418,7 @@ export default class CompAccTransOrder extends Component {
                     style={{fontSize: 24}}
                     onClick={() => this.deleteOrder(arrOrder.idOrder)}
                 />
+
 
             if (!orders[0]) {
                 this.setState({ordersID: [...this.state.ordersID, +order.idOrder]})
@@ -544,7 +552,7 @@ export default class CompAccTransOrder extends Component {
     // очистка данных сохраненных в вводе
     clearValue = async (area) => {
         if (area === 'transfer') {
-            this.setState(({data, hint}) => {
+            this.setState(({data}) => {
                 return (
                     data.transfer.value = '',
                         data.transfer.name = '',
@@ -553,6 +561,7 @@ export default class CompAccTransOrder extends Component {
                         data.order.disabled = true
                 )
             })
+            this.clearValue('allOrders')
             this.addHint(1)
             localStorage.removeItem('transfer')
         }
@@ -562,10 +571,10 @@ export default class CompAccTransOrder extends Component {
                 this.setState(({data}) => {
                     return (
                         data.accepted.value = '',
-                            data.accepted.name = '',
-                            data.accepted.disabled = false,
-                            data.transfer.disabled = true,
-                            data.order.disabled = true
+                        data.accepted.name = '',
+                        data.accepted.disabled = false,
+                        data.transfer.disabled = true,
+                        data.order.disabled = true
                     )
                 })
                 this.addHint(2)
@@ -573,11 +582,12 @@ export default class CompAccTransOrder extends Component {
                 this.setState(({data}) => {
                     return (
                         data.accepted.value = '',
-                            data.accepted.name = ''
+                        data.accepted.name = ''
                     )
                 })
                 this.addHint(1)
             }
+            this.clearValue('allOrders')
             localStorage.removeItem('accepted')
         }
 
@@ -591,6 +601,25 @@ export default class CompAccTransOrder extends Component {
                 )
             })
             this.addHint(3)
+        }
+
+        if (area === 'allOrders') {
+            await this.setState({ordersID: []})
+            await this.setState({orders: []})
+            await this.setState({extraData: []})
+            await this.setState(({data}) => {
+                return (
+                    data.order.nameOrder = '',
+                    data.order.idOrder = '',
+                    data.order.statusOrder = '',
+                    data.order.value = '',
+                    data.order.disabled = true,
+                    data.order.extraData = [],
+                    data.allExtraData = []
+                )
+            })
+            localStorage.removeItem('orders')
+            localStorage.removeItem('extraData')
         }
 
         if (area === 'all') {
@@ -620,6 +649,7 @@ export default class CompAccTransOrder extends Component {
             localStorage.removeItem('accepted')
             localStorage.removeItem('date')
             localStorage.removeItem('orders')
+            localStorage.removeItem('extraData')
             this.addDate()
             this.addHint(1)
         }
@@ -627,9 +657,10 @@ export default class CompAccTransOrder extends Component {
 
     // удаление заказа из объекта заказов
     deleteOrder = (id) => {
-        const {orders, ordersID} = this.state
-        let localOrders = ordersID
-        let newArr = orders
+        const {orders, ordersID, data} = this.state
+        let localOrders = ordersID,
+            newArr = orders,
+            allExtraData = []
 
         orders.map((item, i) => {
             if (item.idOrder === id) {
@@ -645,6 +676,15 @@ export default class CompAccTransOrder extends Component {
                 localStorage.setItem('orders', localOrders)
             }
         })
+
+        data.allExtraData.map((data, i) => {
+            if (data.orderId !== id) {
+                allExtraData.push(data)
+            }
+        })
+
+        this.setState(({data}) => data.allExtraData = allExtraData)
+
     }
 
     // сохранение данных поля ввода в state
@@ -751,7 +791,6 @@ export default class CompAccTransOrder extends Component {
             <>
                 <h2 className='text-center fw-bold mb-3'>
                     Форма приема-передачи заказа
-                    {extraData.length > 0 ? ` (с ${extraData.length } доп. свойствами)` : ` (без доп. свойств)`}
                 </h2>
 
                 <Row>
@@ -944,7 +983,7 @@ export default class CompAccTransOrder extends Component {
                                     <Form.Control
                                         type={changeType(item.type)}
                                         autoFocus
-                                        value={item.type === 'TIMESTAMP' ? format(item.data, "yyyy-MM-dd'T'HH:mm:ss") : item.data}
+                                        value={item.type === 'TIMESTAMP' ? format(new Date(item.data), "yyyy-MM-dd'T'HH:mm:ss") : item.data}
                                         className='border rounded-0'
                                         onChange={e => {
                                             if (item.type === 'TIMESTAMP') {

@@ -74,17 +74,24 @@ export default class Tbody extends Component {
                     if (param[0] === 'extraData') {
                         cell.push(
                             <td className='align-middle text-center' style={{width: 'auto'}} key={index}>
-                                {this.props.allExtraData.map((data, edi) => {
-                                    if (data.orderId === order.idOrder) {
-                                        if (data.type === 'TIMESTAMP') {
-                                            return <p className='mb-1' key={`${data.orderId}-${edi}`}>{data.name}: {format(data.data, 'dd.MM.yy hh:mm')}</p>
-                                        } else {
-                                            return <p className='mb-1' key={`${data.orderId}-${edi}`}>{data.name}: {data.data}</p>
-                                        }
-                                    }
-                                })}
-
-                                {order[param[1]]}
+                                <Row>
+                                    <Col lg={10}>
+                                        {this.props.allExtraData.map((data, edi) => {
+                                            if (data.orderId === order.idOrder) {
+                                                if (data.type === 'TIMESTAMP') {
+                                                    return <p className='mb-1' key={`${data.orderId}-${edi}`}>{data.name}: {format(new Date(data.data), 'dd.MM.yy hh:mm')}</p>
+                                                } else {
+                                                    return <p className='mb-1' key={`${data.orderId}-${edi}`}>{data.name}: {data.data}</p>
+                                                }
+                                            }
+                                        })}
+                                    </Col>
+                                    <Col lg={2}>
+                                        {this.props.allExtraData.length > 0 ? (
+                                            order[param[1]]
+                                        ) : null}
+                                    </Col>
+                                </Row>
                             </td>
                         )
                     } else {
