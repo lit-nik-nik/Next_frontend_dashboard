@@ -115,7 +115,7 @@ export const globalState = {
             name: 'Планируемая дата'
         },
         {
-            label: ['DATE_ADDED', 'TRANSFER_DATE'],
+            label: ['DATE_ADDED', 'TRANSFER_DATE', 'date'],
             name: 'Дата'
         },
         {
@@ -135,11 +135,15 @@ export const globalState = {
             name: 'Комментарий'
         },
         {
-            label: ['TRANSFER'],
+            label: ['extraData'],
+            name: 'Доп. поля'
+        },
+        {
+            label: ['TRANSFER', 'transfer'],
             name: 'Передающий участок'
         },
         {
-            label: ['ACCEPTED'],
+            label: ['ACCEPTED', 'accepted'],
             name: 'Принимающий участок'
         },
         {

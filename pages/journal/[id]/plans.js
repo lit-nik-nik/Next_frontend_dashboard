@@ -21,10 +21,11 @@ class PlansJournal extends Component {
     }
 
     state = {
-        title: 'Планы',
+        title: 'Планы журнала',
         sectors: [],
         activeSector: '',
         numbersSectors: 0,
+        squareOrders: 0,
         ordersPlan: [],
         headerTable: [],
         paramsTable: [],
@@ -94,6 +95,7 @@ class PlansJournal extends Component {
         await this.addSectors(this.props.journal)
         await this.addOrderPlan(this.props.journal)
         this.countOrders()
+        this.countSquare()
 
         this.setState({updatePage: setInterval(this.getPlans, 300000)})
     }
@@ -121,12 +123,18 @@ class PlansJournal extends Component {
         if (this.state.activeSector !== prevState.activeSector) {
             await this.addOrderPlan(this.props.journal)
             this.countOrders()
+            this.countSquare()
+        }
+
+        if (this.state.activeFilter !== prevState.activeFilter) {
+            this.countSquare()
         }
 
         if (this.state.ordersPlan !== prevState.ordersPlan) {
             this.renderHeader()
             await this.filterOrder()
             this.countOrders()
+            this.countSquare()
         }
 
         if (this.state.changeComment.view) this.commentInput.current.focus()
@@ -266,6 +274,7 @@ class PlansJournal extends Component {
         await this.setState({futureOrders: future})
 
         this.countOrders()
+        this.countSquare()
     }
 
     // создание заголовка таблицы
@@ -312,13 +321,11 @@ class PlansJournal extends Component {
 
         await postCommentJournal(data, token)
             .then(res => {
-                console.log(res)
                 if (res.status === 201 || res.status === 200) {
                     this.getPlans()
                 }
             })
             .catch(err => {
-                console.log(err)
                 error = err.response?.data
             })
 
@@ -384,8 +391,6 @@ class PlansJournal extends Component {
                 const itmOrder = order.itmOrderNum.toUpperCase(),
                     upperSearch = search.toUpperCase()
 
-                console.log(changeKeyboard(upperSearch))
-
                 if (itmOrder.includes(upperSearch)) newObj.push(order)
             })
         }
@@ -400,6 +405,7 @@ class PlansJournal extends Component {
             this.setState({futureOrders: future})
 
             this.countOrders()
+            this.countSquare()
         }
     }
 
@@ -435,12 +441,44 @@ class PlansJournal extends Component {
         })
     }
 
+    // подсчет площади заказов
+    countSquare = async () => {
+        const {activeFilter, overdueOrders, futureOrders, todayOrders} = this.state
+        let overdueSquare,
+            todaySquare,
+            futureSquare,
+            allSquare
+
+        const count = (arr) => {
+            let count = 0
+
+            arr.map(order => count += order.generalSquare)
+
+            count = Math.round(count * 100) / 100
+
+            return count
+        }
+
+        overdueSquare = count(overdueOrders)
+        futureSquare = count(futureOrders)
+        todaySquare = count(todayOrders)
+
+        allSquare = overdueSquare + todaySquare + futureSquare
+
+        allSquare = Math.round(allSquare * 100) / 100
+
+        if (activeFilter === 'all') await this.setState({squareOrders: allSquare})
+        else if (activeFilter === 'overdue') await this.setState({squareOrders: overdueSquare})
+        else if (activeFilter === 'forToday') await this.setState({squareOrders: todaySquare})
+        else if (activeFilter === 'forFuture') await this.setState({squareOrders: futureSquare})
+    }
+
     render() {
         const {journalID, filters, activeFilter, headerTable, overdueOrders, todayOrders, futureOrders,
-            changeComment, paramsTable, error, link, sectors, activeSector, numbersSectors, title} = this.state
+            changeComment, paramsTable, error, link, sectors, activeSector, numbersSectors, title, squareOrders} = this.state
 
         return (
-            <MainLayout title={`Планы журнала`} link={link} token={this.props.token} error={this.props.error}>
+            <MainLayout title={title} link={link} token={this.props.token} error={this.props.error}>
                 <JournalLayout
                     journalID={journalID}
                     activePage={'plans'}
@@ -507,10 +545,16 @@ class PlansJournal extends Component {
                         <Col lg={1} />
                         <Col lg={3} className='text-end'>
                             <Alert
-                                className='m-0'
+                                className='m-0 p-0'
                                 variant='light'
                             >
                                 Участок - {activeSector}
+                            </Alert>
+                            <Alert
+                                className='m-0 p-0'
+                                variant='light'
+                            >
+                                Общая площадь - {squareOrders} м2
                             </Alert>
                         </Col>
                     </Row>
@@ -600,6 +644,7 @@ export default withRouter(PlansJournal)
 export async function getServerSideProps({req,query}) {
 
     const token = getTokenCookies(req.headers.cookie)
+    const cookies = req.headers.cookie
     const id = query.id
 
     let journal, error
@@ -612,13 +657,15 @@ export async function getServerSideProps({req,query}) {
     if (journal) {
         return {
             props: {
-                journal
+                journal,
             }
         }
     } else if (error) {
         return {
             props: {
-                error
+                error,
+                cookiesServ: cookies,
+                tokenServ: token
             }
         }
     } else {

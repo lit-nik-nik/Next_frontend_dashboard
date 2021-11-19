@@ -110,12 +110,34 @@ export default class Tbody extends Component {
                     param === 'TRANSFER_DATE' ||
                     param === 'dateSave' ||
                     param === 'dateFirstStage' ||
-                    param === 'datePlanPack'
-                ) cell.push(
-                    <td className='align-middle text-center' style={{width: 'auto'}} key={index}>
-                        {new Date(order[param]).toLocaleString().slice(0,10)}
-                    </td>
-                )
+                    param === 'datePlanPack' ||
+                    param === 'date'
+                ) {
+                    cell.push(
+                        <td className='align-middle text-center' style={{width: 'auto'}} key={index}>
+                            {new Date(order[param]).toLocaleString().slice(0,10)}
+                        </td>
+                    )
+                }
+                else if (param === 'extraData') {
+                    cell.push(
+                        <td className='align-middle text-center' style={{width: 'auto'}} key={index}>
+                            <Row>
+                                <Col lg={12}>
+                                    {order.data.extraData.map((data, edi) => {
+                                        console.log(data)
+                                        if (data.name === 'Время упаковки') {
+                                            return <p className='mb-1' key={`${data.orderId}-${edi}`}>{data.name}: {format(new Date(data.data), 'hh:mm dd.MM.yy')}</p>
+                                        } else {
+                                            return <p className='mb-1' key={`${data.orderId}-${edi}`}>{data.name}: {data.data}</p>
+                                        }
+
+                                    })}
+                                </Col>
+                            </Row>
+                        </td>
+                    )
+                }
                 else if (param === 'nameSectorInOrder') cell.push(
                     <td className='align-middle text-center' style={{width: '18%'}} key={index}>
                         <Row>
@@ -159,7 +181,10 @@ export default class Tbody extends Component {
                                             className='text-decoration-none text-dark p-0 m-0 ms-3'
                                             onClick={() => this.setState({hideComments: !this.state.hideComments})}
                                         >
-                                            {this.state.hideComments ? 'Развернуть' : 'Скрыть'}
+                                            {this.state.hideComments ?
+                                                <i className="bi bi-plus-lg"/> :
+                                                <i className="bi bi-dash-lg"/>
+                                            }
                                         </Button>
                                     </Col>
                                     <Col lg={1}>

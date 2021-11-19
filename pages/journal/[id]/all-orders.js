@@ -101,12 +101,23 @@ class AllOrdersJournal extends Component {
         if (allOrders) {
             for (let key in allOrders[0]) {
                 headersTables.map(item => {
-                    item.label.map(label => {
-                        if(label === key) {
-                            params.push(key)
-                            header.push(item.name)
+                    if (key === 'data') {
+                        for (let dataKey in allOrders[0][key]) {
+                            item.label.map(label => {
+                                if (label === dataKey) {
+                                    params.push(dataKey)
+                                    header.push(item.name)
+                                }
+                            })
                         }
-                    })
+                    } else {
+                        item.label.map(label => {
+                            if (label === key) {
+                                params.push(key)
+                                header.push(item.name)
+                            }
+                        })
+                    }
                 })
             }
         }

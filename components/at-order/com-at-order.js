@@ -4,7 +4,7 @@ import Thead from "../../modules/tables/thead";
 import Tbody from "../../modules/tables/tbody";
 import {changeKeyboard} from "../../modules/change-keyboard";
 import {getOrderAt} from "../../services/at-order/get";
-import {addExtraData} from "../../services/at-order/post";
+import {addExtraData, postAtOrders} from "../../services/at-order/post";
 import ModalWindow from "../../modules/modals/modal";
 import {decriptedStr, encritptedStr} from "../../modules/encription";
 import { format } from 'date-fns'
@@ -49,6 +49,7 @@ export default class CompAccTransOrder extends Component {
                 hide: true,
                 extraData: [],
                 extraDataView: false,
+                extraDataDisabled: true
             },
             date: {
                 tzoffset: new Date().getTimezoneOffset() * 60000,
@@ -1009,7 +1010,7 @@ export default class CompAccTransOrder extends Component {
                                 className='w-100'
                                 onClick={async () => {
                                     await this.saveAllExtraData(order.extraData)
-                                    this.addOrderToTable()
+                                    if (data.allExtraData.length > 0) this.addOrderToTable()
                                 }}
                             >
                                 Сохранить
