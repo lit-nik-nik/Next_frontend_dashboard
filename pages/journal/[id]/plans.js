@@ -12,6 +12,7 @@ import {MainLayout} from "../../../components/layout/main";
 import JournalLayout from "../../../components/layout/journals";
 import {postCommentJournal} from "../../../services/journals/post";
 import {changeKeyboard} from "../../../modules/change-keyboard";
+import orders from "../../orders";
 
 class PlansJournal extends Component {
 
@@ -133,6 +134,12 @@ class PlansJournal extends Component {
         if (this.state.ordersPlan !== prevState.ordersPlan) {
             this.renderHeader()
             await this.filterOrder()
+            this.countOrders()
+            this.countSquare()
+        }
+
+        if (this.state.search !== prevState.search) {
+            await this.searchOrder()
             this.countOrders()
             this.countSquare()
         }
@@ -382,51 +389,54 @@ class PlansJournal extends Component {
     }
 
     // поиск заказов
-    searchOrder = (value) => {
-        const {overdueOrders, todayOrders, futureOrders} = this.state
+    searchOrder = () => {
+        const {search, ordersPlan} = this.state
         let overdue = [], today = [], future = []
-
-        console.log(overdueOrders)
-        console.log(todayOrders)
-        console.log(futureOrders)
 
         const ordersMap = (obj, newObj) => {
             obj.map(order => {
                 const itmOrder = order.itmOrderNum.toUpperCase(),
-                    upperSearch = value.toUpperCase()
+                    upperSearch = search.toUpperCase()
 
                 if (itmOrder.includes(upperSearch)) newObj.push(order)
             })
         }
 
-        if (value) {
-            ordersMap(overdueOrders, overdue)
-            ordersMap(todayOrders, today)
-            ordersMap(futureOrders, future)
+        if (search) {
+            ordersMap(ordersPlan.overdue, overdue)
+            ordersMap(ordersPlan.forToday, today)
+            ordersMap(ordersPlan.forFuture, future)
 
             this.setState({overdueOrders: overdue})
             this.setState({todayOrders: today})
             this.setState({futureOrders: future})
-
-            this.countOrders()
-            this.countSquare()
+        } else {
+            this.setState({overdueOrders: ordersPlan.overdue})
+            this.setState({todayOrders: ordersPlan.forToday})
+            this.setState({futureOrders: ordersPlan.forFuture})
         }
     }
 
     // выбор всех заказов по всем участкам
     allOrderAllSectors = async () => {
         const {journal} = this.props
-        let overdue = [], today = [], future = []
+        let newOrdersPlan = {
+                id: 100,
+                name: 'Все заказы',
+                overdue: [],
+                forToday: [],
+                forFuture: [],
+            }
 
         journal.map(sector => {
-            overdue = [...overdue, ...sector.overdue]
-            today = [...today, ...sector.forToday]
-            future = [...future, ...sector.forFuture]
+            newOrdersPlan.overdue = [...newOrdersPlan.overdue, ...sector.overdue]
+            newOrdersPlan.forToday = [...newOrdersPlan.forToday, ...sector.forToday]
+            newOrdersPlan.forFuture = [...newOrdersPlan.forFuture, ...sector.forFuture]
         })
 
-        await this.setState({overdueOrders: overdue})
-        await this.setState({todayOrders: today})
-        await this.setState({futureOrders: future})
+        await this.setState({ordersPlan: newOrdersPlan})
+
+        this.filterOrder()
 
         this.countOrders()
         this.countSquare()
@@ -528,10 +538,7 @@ class PlansJournal extends Component {
                                 <FormControl
                                     placeholder="Поиск по наименованию"
                                     value={this.state.search}
-                                    onChange={async (e) => {
-                                        await this.setState({search: e.target.value})
-                                        this.searchOrder(e.target.value)
-                                    }}
+                                    onChange={e => this.setState({search: e.target.value})}
                                 />
                             </FloatingLabel>
 
@@ -539,10 +546,7 @@ class PlansJournal extends Component {
                                 <Button
                                     className='border-0 inline-input'
                                     variant='outline-danger'
-                                    onClick={() => {
-                                        this.setState({search: ''})
-                                        this.filterOrder()
-                                    }}
+                                    onClick={() => this.setState({search: ''})}
                                 >
                                     X
                                 </Button>

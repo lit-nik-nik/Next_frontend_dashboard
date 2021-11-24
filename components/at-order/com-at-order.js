@@ -793,8 +793,6 @@ export default class CompAccTransOrder extends Component {
             )
         })
 
-        console.log(form)
-
         await postAtOrders(form)
             .then(res => {
                 this.setState(({submit}) => {

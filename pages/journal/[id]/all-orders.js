@@ -220,7 +220,7 @@ class AllOrdersJournal extends Component {
 
         const count = (arr) => {
             let count = 0
-            arr.map(order => count += order.ORDER_FASADSQ)
+            arr.map(order =>  count += order.fasadSquare)
             count = Math.round(count * 100) / 100
             return count
         }
