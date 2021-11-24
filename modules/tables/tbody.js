@@ -79,7 +79,7 @@ export default class Tbody extends Component {
                                         {this.props.allExtraData.map((data, edi) => {
                                             if (data.orderId === order.idOrder) {
                                                 if (data.type === 'TIMESTAMP') {
-                                                    return <p className='mb-1' key={`${data.orderId}-${edi}`}>{data.name}: {format(new Date(data.data), 'dd.MM.yy hh:mm')}</p>
+                                                    return <p className='mb-1' key={`${data.orderId}-${edi}`}>{data.name}: {format(new Date(data.data), 'HH:mm dd.MM.yy')}</p>
                                                 } else {
                                                     return <p className='mb-1' key={`${data.orderId}-${edi}`}>{data.name}: {data.data}</p>
                                                 }
@@ -127,7 +127,7 @@ export default class Tbody extends Component {
                                     {order.data.extraData.map((data, edi) => {
                                         console.log(data)
                                         if (data.name === 'Время упаковки') {
-                                            return <p className='mb-1' key={`${data.orderId}-${edi}`}>{data.name}: {format(new Date(data.data), 'hh:mm dd.MM.yy')}</p>
+                                            return <p className='mb-1' key={`${data.orderId}-${edi}`}>{data.name}: {format(new Date(data.data), 'HH:mm dd.MM.yy')}</p>
                                         } else {
                                             return <p className='mb-1' key={`${data.orderId}-${edi}`}>{data.name}: {data.data}</p>
                                         }

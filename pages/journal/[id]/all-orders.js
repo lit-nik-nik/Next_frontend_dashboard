@@ -23,6 +23,7 @@ class AllOrdersJournal extends Component {
         title: 'Выполненные заказы',
         filters: [],
         allOrders: [],
+        squareOrders: 0,
         counts: null,
         pages: null,
         filter: {
@@ -53,6 +54,7 @@ class AllOrdersJournal extends Component {
         this.setState({link: this.props.router.asPath})
         await this.addData(this.props.data)
         this.renderHeader()
+        this.countSquare()
     }
 
     async componentDidUpdate(prevProps, prevState, snapshot) {
@@ -60,14 +62,20 @@ class AllOrdersJournal extends Component {
             this.setState({loading: true})
             await this.changeData()
         }
+
+        if (this.state.allOrders !== prevState.allOrders) {
+            this.countSquare()
+        }
     }
 
+    // внесенние полученных данных в state
     addData = (data) => {
         this.setState({allOrders: data.orders})
         this.setState({counts: data.count})
         this.setState({pages: data.pages})
     }
 
+    // получение заказов с сервера
     changeData = async () => {
         const {token, id} = this.props
         const {activePage, filter} = this.state
@@ -92,6 +100,7 @@ class AllOrdersJournal extends Component {
         }
     }
 
+    // формирование заголовка таблицы
     renderHeader = () => {
         const {allOrders} = this.state,
             {headersTables} = globalState
@@ -126,6 +135,7 @@ class AllOrdersJournal extends Component {
         this.setState({paramsTable: params})
     }
 
+    // изменение активной страницы
     changeActivePage = (page) => {
         this.setState({activePage: page})
         this.setState({allOrders: []})
@@ -142,6 +152,9 @@ class AllOrdersJournal extends Component {
                 filter.endDate = date
             )
         })
+
+        this.setState({activePage: 1})
+        this.setState({loading: true})
 
         this.changeData()
     }
@@ -160,6 +173,9 @@ class AllOrdersJournal extends Component {
             )
         })
 
+        this.setState({activePage: 1})
+        this.setState({loading: true})
+
         this.changeData()
     }
 
@@ -176,6 +192,9 @@ class AllOrdersJournal extends Component {
             )
         })
 
+        this.setState({activePage: 1})
+        this.setState({loading: true})
+
         this.changeData()
     }
 
@@ -188,11 +207,31 @@ class AllOrdersJournal extends Component {
             )
         })
 
+        this.setState({activePage: 1})
+        this.setState({loading: true})
+
         this.changeData()
     }
 
+    // подсчет площади заказов
+    countSquare = async () => {
+        const {allOrders} = this.state
+        let allSquare
+
+        const count = (arr) => {
+            let count = 0
+            arr.map(order => count += order.ORDER_FASADSQ)
+            count = Math.round(count * 100) / 100
+            return count
+        }
+
+        allSquare = count(allOrders)
+
+        await this.setState({squareOrders: allSquare})
+    }
+
     render() {
-        const {headerTable, paramsTable, allOrders, activePage, pages, error, link, title, filter, activeFilter} = this.state
+        const {headerTable, paramsTable, allOrders, activePage, pages, error, link, title, filter, activeFilter, squareOrders} = this.state
 
         return (
             <MainLayout title={title} link={link} token={this.props.token} error={this.props.error}>
@@ -238,7 +277,7 @@ class AllOrdersJournal extends Component {
                                 </Col>
                             </Row>
 
-                            <hr/>
+                            <hr className='mt-3 mb-2'/>
 
                             {this.state.loading ? (
                                 <Loading/>
@@ -250,9 +289,18 @@ class AllOrdersJournal extends Component {
                                         <Col lg={6}>
                                             <PaginationTable activePage={+activePage} lastPage={pages} onClick={this.changeActivePage}/>
                                         </Col>
-                                        <Col lg={6} className='text-end'>
-                                            <Alert variant='light p-2'>
+                                        <Col lg={6} className='text-end mb-2'>
+                                            <Alert
+                                                className='m-0 p-0'
+                                                variant='light'
+                                            >
                                                 Всего заказов - {this.state.counts} на {this.state.pages} страниц
+                                            </Alert>
+                                            <Alert
+                                                className='m-0 p-0'
+                                                variant='light'
+                                            >
+                                                Общая площадь - {squareOrders} м2
                                             </Alert>
                                         </Col>
 

@@ -48,6 +48,8 @@ export default class CompAccTransOrder extends Component {
                 statusOrder: '',
                 hide: true,
                 extraData: [],
+                extraTime: null,
+                extraDate: null,
                 extraDataView: false,
                 extraDataDisabled: true
             },
@@ -328,13 +330,14 @@ export default class CompAccTransOrder extends Component {
     // добавление доп свойств к заказу
     addExtraData = (id) => {
         const {extraData} = this.state
-        let orderExtraData = []
+        let orderExtraData = [],
+            extraTime, extraDate
 
         extraData.map(item => {
             let newExtra
 
             if (item.type === 'TIMESTAMP') {
-                newExtra = {...item, orderId: id, data: new Date(this.props.date)}
+                newExtra = {...item, orderId: id}
             } else {
                 newExtra = {...item, orderId: id}
             }
@@ -342,7 +345,16 @@ export default class CompAccTransOrder extends Component {
             orderExtraData.push(newExtra)
         })
 
-        this.setState(({data}) => data.order.extraData = orderExtraData)
+        extraTime = format(new Date(this.props.date), "HH:mm")
+        extraDate = format(new Date(this.props.date), "yyyy-MM-dd")
+
+        this.setState(({data}) => {
+            return (
+                data.order.extraData = orderExtraData,
+                data.order.extraTime = extraTime,
+                data.order.extraDate = extraDate
+            )
+        })
 
         this.setState(({data}) => data.order.extraDataView = true)
     }
@@ -494,9 +506,10 @@ export default class CompAccTransOrder extends Component {
         const {allExtraData} = this.state.data
 
         let newAllExtraData = [],
-            orderExtraData = []
+            orderExtraData = [],
+            extraTime, extraDate
 
-        allExtraData.map((data) => {
+        allExtraData.map(data => {
             if (data.orderId === id) {
                 orderExtraData.push(data)
             } else {
@@ -504,23 +517,78 @@ export default class CompAccTransOrder extends Component {
             }
         })
 
+        orderExtraData.map(data => {
+            if (data.type === 'TIMESTAMP') {
+                if (data.data) {
+                    extraTime = format(new Date(data.data), "HH:mm")
+                    extraDate = format(new Date(data.data), "yyyy-MM-dd")
+                } else {
+                    extraTime = format(new Date(this.props.date), "HH:mm")
+                    extraDate = format(new Date(this.props.date), "yyyy-MM-dd")
+                }
+            }
+        })
+
         this.setState(({data}) => {
             return (
                 data.allExtraData = newAllExtraData,
                 data.order.extraData = orderExtraData,
+                data.order.extraTime = extraTime,
+                data.order.extraDate = extraDate,
                 data.order.extraDataView = true
             )
         })
     }
 
+    changeExtraDataOrder = (value) => {
+        const {order} = this.state.data
+        let extraDate, extraTime, newDate
+
+        extraTime = format(new Date(this.props.date), "HH:mm")
+        extraDate = format(new Date(this.props.date), "yyyy-MM-dd")
+
+        if (value.includes('-')) {
+            newDate = new Date(`${value}T${order.extraTime}`)
+
+            if (new Date(newDate) > new Date(this.props.date)) {
+                this.setState(({data}) => data.order.extraDate = extraDate)
+            } else {
+                this.setState(({data}) => data.order.extraDate = value)
+            }
+        } else if (value.includes(':')) {
+            newDate = new Date(`${order.extraDate}T${value}`)
+
+            if (new Date(newDate) > new Date(this.props.date)) {
+                this.setState(({data}) => data.order.extraTime = extraTime)
+            } else {
+                this.setState(({data}) => data.order.extraTime = value)
+            }
+        }
+    }
+
     // сохранение доп свойств в общий объект
-    saveAllExtraData = async (extraData) => {
+    saveAllExtraData = async () => {
         const {data} = this.state
-        let allExtraData = [...data.allExtraData], i = 0
+        const {order} = data
+        let allExtraData = [...data.allExtraData], i = 0, newDate, newExtraData = []
 
-        allExtraData = [...allExtraData, ...extraData]
+        newDate = new Date(`${order.extraDate}T${order.extraTime}`)
 
-        data.order.extraData.map(item => {
+        order.extraData.map(data => {
+            let newExtra
+
+            if (data.type === 'TIMESTAMP') {
+                newExtra = {...data, data: newDate}
+            } else {
+                newExtra = {...data}
+            }
+
+            newExtraData.push(newExtra)
+        })
+
+        allExtraData = [...allExtraData, ...newExtraData]
+
+        newExtraData.map(item => {
             if (item.data !== '0') i++
         })
 
@@ -981,42 +1049,60 @@ export default class CompAccTransOrder extends Component {
                             return (
                                 <div key={i}>
                                     <p>{item.name}</p>
-                                    <Form.Control
-                                        type={changeType(item.type)}
-                                        autoFocus
-                                        value={item.type === 'TIMESTAMP' ? format(new Date(item.data), "yyyy-MM-dd'T'HH:mm:ss") : item.data}
-                                        className='border rounded-0'
-                                        onChange={e => {
-                                            if (item.type === 'TIMESTAMP') {
-                                                if (new Date(e.target.value) > new Date(this.props.date)) {
-                                                    const newDate = new Date(this.props.date)
-                                                    this.setState(({data}) => data.order.extraData[i].data = newDate)
-                                                } else {
-                                                    const newDate = new Date(e.target.value)
-                                                    this.setState(({data}) => data.order.extraData[i].data = newDate)
-                                                }
-                                            } else {
-                                                this.setState(({data}) => data.order.extraData[i].data = e.target.value)
-                                            }
-                                        }}
-                                    />
+
+                                    {item.type === 'TIMESTAMP' ? (
+                                        <>
+                                            <Row>
+                                                <Col>
+                                                    <Form.Control
+                                                        type='time'
+                                                        className='border rounded-0'
+                                                        value={order.extraTime}
+                                                        onChange={async e => {
+                                                            await this.changeExtraDataOrder(e.target.value)
+                                                        }}
+                                                    />
+                                                </Col>
+                                                <Col>
+                                                    <Form.Control
+                                                        type='date'
+                                                        className='border rounded-0'
+                                                        value={order.extraDate}
+                                                        onChange={async e => {
+                                                            await this.changeExtraDataOrder(e.target.value)
+                                                        }}
+                                                    />
+                                                </Col>
+                                            </Row>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Form.Control
+                                                type={changeType(item.type)}
+                                                autoFocus
+                                                value={item.data}
+                                                className='border rounded-0'
+                                                onChange={e => this.setState(({data}) => data.order.extraData[i].data = e.target.value)}
+                                            />
+                                        </>
+                                    )}
                                 </div>
                             )
                         })}
-
-                        <Modal.Footer>
-                            <Button
-                                variant='success'
-                                className='w-100'
-                                onClick={async () => {
-                                    await this.saveAllExtraData(order.extraData)
-                                    if (data.allExtraData.length > 0) this.addOrderToTable()
-                                }}
-                            >
-                                Сохранить
-                            </Button>
-                        </Modal.Footer>
                     </Modal.Body>
+
+                    <Modal.Footer>
+                        <Button
+                            variant='success'
+                            className='w-100'
+                            onClick={async () => {
+                                await this.saveAllExtraData(order.extraData)
+                                if (data.allExtraData.length > 0) this.addOrderToTable()
+                            }}
+                        >
+                            Сохранить
+                        </Button>
+                    </Modal.Footer>
                 </Modal>
 
                 <Modal show={this.state.orderChange.view} centered>

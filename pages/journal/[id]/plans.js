@@ -382,20 +382,24 @@ class PlansJournal extends Component {
     }
 
     // поиск заказов
-    searchOrder = () => {
-        const {search, overdueOrders, todayOrders, futureOrders} = this.state
+    searchOrder = (value) => {
+        const {overdueOrders, todayOrders, futureOrders} = this.state
         let overdue = [], today = [], future = []
+
+        console.log(overdueOrders)
+        console.log(todayOrders)
+        console.log(futureOrders)
 
         const ordersMap = (obj, newObj) => {
             obj.map(order => {
                 const itmOrder = order.itmOrderNum.toUpperCase(),
-                    upperSearch = search.toUpperCase()
+                    upperSearch = value.toUpperCase()
 
                 if (itmOrder.includes(upperSearch)) newObj.push(order)
             })
         }
 
-        if (search) {
+        if (value) {
             ordersMap(overdueOrders, overdue)
             ordersMap(todayOrders, today)
             ordersMap(futureOrders, future)
@@ -410,7 +414,7 @@ class PlansJournal extends Component {
     }
 
     // выбор всех заказов по всем участкам
-    allOrderAllSectors = () => {
+    allOrderAllSectors = async () => {
         const {journal} = this.props
         let overdue = [], today = [], future = []
 
@@ -420,9 +424,12 @@ class PlansJournal extends Component {
             future = [...future, ...sector.forFuture]
         })
 
-        this.setState({overdueOrders: overdue})
-        this.setState({todayOrders: today})
-        this.setState({futureOrders: future})
+        await this.setState({overdueOrders: overdue})
+        await this.setState({todayOrders: today})
+        await this.setState({futureOrders: future})
+
+        this.countOrders()
+        this.countSquare()
     }
 
     // подсчет кол-ва заказов
@@ -523,8 +530,7 @@ class PlansJournal extends Component {
                                     value={this.state.search}
                                     onChange={async (e) => {
                                         await this.setState({search: e.target.value})
-                                        await this.filterOrder()
-                                        this.searchOrder()
+                                        this.searchOrder(e.target.value)
                                     }}
                                 />
                             </FloatingLabel>
