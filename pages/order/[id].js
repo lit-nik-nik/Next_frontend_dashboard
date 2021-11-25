@@ -21,7 +21,7 @@ class Order extends Component {
             },
             {
                 id: 2,
-                label: 'Массив',
+                label: 'Материал',
                 params: ['fasadMaterial']
             },
             {
@@ -29,16 +29,6 @@ class Order extends Component {
                 label: 'Цвет',
                 params: ['color', 'colorType']
             },
-            // {
-            //     id: 4,
-            //     label: 'Площадь сборки',
-            //     params: ['squareFasad']
-            // },
-            // {
-            //     id: 5,
-            //     label: 'Площадь покраски',
-            //     params: ['square']
-            // },
             {
                 id: 6,
                 label: 'Модель профиля',

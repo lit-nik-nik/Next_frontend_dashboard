@@ -77,7 +77,8 @@ class PlansJournal extends Component {
         noSearch: '',
         isOwner: false,
         updatePage: null,
-        search: ''
+        search: '',
+        test: 0
     }
 
     async componentDidMount() {
