@@ -336,11 +336,7 @@ export default class CompAccTransOrder extends Component {
         extraData.map(item => {
             let newExtra
 
-            if (item.type === 'TIMESTAMP') {
-                newExtra = {...item, orderId: id}
-            } else {
-                newExtra = {...item, orderId: id}
-            }
+            newExtra = {...item, orderId: id}
 
             orderExtraData.push(newExtra)
         })
@@ -518,7 +514,7 @@ export default class CompAccTransOrder extends Component {
         })
 
         orderExtraData.map(data => {
-            if (data.type === 'TIMESTAMP') {
+            if (data.type === 'date') {
                 if (data.data) {
                     extraTime = format(new Date(data.data), "HH:mm")
                     extraDate = format(new Date(data.data), "yyyy-MM-dd")
@@ -540,6 +536,7 @@ export default class CompAccTransOrder extends Component {
         })
     }
 
+    // изменение данные допполей
     changeExtraDataOrder = (value) => {
         const {order} = this.state.data
         let extraDate, extraTime, newDate
@@ -566,6 +563,76 @@ export default class CompAccTransOrder extends Component {
         }
     }
 
+    // формирование и отображение допполей
+    renderExtraOrderData = (obj, i) => {
+        const {order} = this.state.data
+
+        if (obj.type === 'date') {
+            return (
+                <Row>
+                    <Col>
+                        <Form.Control
+                            type='time'
+                            className='border rounded-0'
+                            value={order.extraTime}
+                            onChange={async e => {
+                                await this.changeExtraDataOrder(e.target.value)
+                            }}
+                        />
+                    </Col>
+                    <Col>
+                        <Form.Control
+                            type='date'
+                            className='border rounded-0'
+                            value={order.extraDate}
+                            onChange={async e => {
+                                await this.changeExtraDataOrder(e.target.value)
+                            }}
+                        />
+                    </Col>
+                </Row>
+            )
+        } else if (obj.type === 'number') {
+            return (
+                <Form.Control
+                    type={obj.type}
+                    autoFocus
+                    value={obj.data}
+                    className='border rounded-0'
+                    onChange={e => this.setState(({data}) => data.order.extraData[i].data = e.target.value)}
+                />
+            )
+        } else if (obj.type === 'select') {
+            let option = []
+
+            obj.list.map((item, iL) => {
+                option.push(<option key={iL} value={item}>{item}</option>)
+            })
+
+            return (
+                <Form.Select
+                    value={obj.data}
+                    onChange={e => {
+                        this.setState(({data}) => data.order.extraData[i].data = e.target.value)
+                    }}
+                >
+                    <option value=''/>
+                    {option}
+                </Form.Select>
+            )
+        } else {
+            return (
+                <Form.Control
+                    type='text'
+                    autoFocus
+                    value={obj.data}
+                    className='border rounded-0'
+                    onChange={e => this.setState(({data}) => data.order.extraData[i].data = e.target.value)}
+                />
+            )
+        }
+    }
+
     // сохранение доп свойств в общий объект
     saveAllExtraData = async () => {
         const {data} = this.state
@@ -577,7 +644,7 @@ export default class CompAccTransOrder extends Component {
         order.extraData.map(data => {
             let newExtra
 
-            if (data.type === 'TIMESTAMP') {
+            if (data.type === 'date') {
                 newExtra = {...data, data: newDate}
             } else {
                 newExtra = {...data}
@@ -814,14 +881,8 @@ export default class CompAccTransOrder extends Component {
 
     // Отображение страницы
     render() {
-        const {data, hint, error, orders, orderChange, submit, extraData} = this.state,
+        const {data, hint, error, orders, orderChange, submit} = this.state,
             {accepted, transfer, order, date, allExtraData} = data
-
-        const changeType = (type) => {
-            if (type === 'INTEGER') return 'number'
-            else if (type === 'TIMESTAMP') return 'datetime-local'
-            else return 'text'
-        }
 
         const inputGroup = (label, data, ref, onKeyPress) => {
             let typeInput
@@ -1046,44 +1107,14 @@ export default class CompAccTransOrder extends Component {
                         {order.extraData.map((item, i) => {
                             return (
                                 <div key={i}>
-                                    <p>{item.name}</p>
+                                    <Alert
+                                        variant='light'
+                                        className='text-center m-2 p-0'
+                                    >
+                                        {item.name}
+                                    </Alert>
 
-                                    {item.type === 'TIMESTAMP' ? (
-                                        <>
-                                            <Row>
-                                                <Col>
-                                                    <Form.Control
-                                                        type='time'
-                                                        className='border rounded-0'
-                                                        value={order.extraTime}
-                                                        onChange={async e => {
-                                                            await this.changeExtraDataOrder(e.target.value)
-                                                        }}
-                                                    />
-                                                </Col>
-                                                <Col>
-                                                    <Form.Control
-                                                        type='date'
-                                                        className='border rounded-0'
-                                                        value={order.extraDate}
-                                                        onChange={async e => {
-                                                            await this.changeExtraDataOrder(e.target.value)
-                                                        }}
-                                                    />
-                                                </Col>
-                                            </Row>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Form.Control
-                                                type={changeType(item.type)}
-                                                autoFocus
-                                                value={item.data}
-                                                className='border rounded-0'
-                                                onChange={e => this.setState(({data}) => data.order.extraData[i].data = e.target.value)}
-                                            />
-                                        </>
-                                    )}
+                                    {this.renderExtraOrderData(item, i)}
                                 </div>
                             )
                         })}

@@ -78,7 +78,7 @@ export default class Tbody extends Component {
                                     <Col lg={10}>
                                         {this.props.allExtraData.map((data, edi) => {
                                             if (data.orderId === order.idOrder) {
-                                                if (data.type === 'TIMESTAMP') {
+                                                if (data.type === 'date') {
                                                     return <p className='mb-1' key={`${data.orderId}-${edi}`}>{data.name}: {format(new Date(data.data), 'HH:mm dd.MM.yy')}</p>
                                                 } else {
                                                     return <p className='mb-1' key={`${data.orderId}-${edi}`}>{data.name}: {data.data}</p>
