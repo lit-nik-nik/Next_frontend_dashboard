@@ -140,11 +140,11 @@ export const globalState = {
         },
         {
             label: ['TRANSFER', 'transfer'],
-            name: 'Передающий участок'
+            name: 'Сдал'
         },
         {
             label: ['ACCEPTED', 'accepted'],
-            name: 'Принимающий участок'
+            name: 'Принял'
         },
         {
             label: ['TS'],

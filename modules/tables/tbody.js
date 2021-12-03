@@ -125,8 +125,7 @@ export default class Tbody extends Component {
                             <Row>
                                 <Col lg={12}>
                                     {order.data.extraData.map((data, edi) => {
-                                        console.log(data)
-                                        if (data.name === 'Время упаковки') {
+                                        if (data.type === 'date') {
                                             return <p className='mb-1' key={`${data.orderId}-${edi}`}>{data.name}: {format(new Date(data.data), 'HH:mm dd.MM.yy')}</p>
                                         } else {
                                             return <p className='mb-1' key={`${data.orderId}-${edi}`}>{data.name}: {data.data}</p>

@@ -112,21 +112,24 @@ class Auth extends Component {
 
         const loginPass =
             <>
-                <FloatingLabel
-                    controlId="login"
-                    label="Логин"
-                    className="mb-3"
-                >
-                    <Form.Control
-                        required
-                        isValid={login.user}
-                        type="text"
-                        placeholder="Логин"
-                        list='users'
-                        value={login.user}
-                        onChange={e => this.setState(({login}) => login.user = e.target.value)}
-                    />
-                </FloatingLabel>
+                <span className='my-arrow'>
+                    <FloatingLabel
+                        controlId="login"
+                        label="Логин"
+                        className="mb-3"
+                    >
+                            <Form.Control
+                                required
+                                className='my-login'
+                                isValid={login.user}
+                                type="text"
+                                placeholder="Логин"
+                                list='users'
+                                value={login.user}
+                                onChange={e => this.setState(({login}) => login.user = e.target.value)}
+                            />
+                    </FloatingLabel>
+                </span>
                 <datalist id='users'>
                     {this.renderListUser()}
                 </datalist>

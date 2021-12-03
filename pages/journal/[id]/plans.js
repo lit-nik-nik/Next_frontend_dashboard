@@ -11,8 +11,6 @@ import {getTokenCookies} from "../../../modules/cookie";
 import {MainLayout} from "../../../components/layout/main";
 import JournalLayout from "../../../components/layout/journals";
 import {postCommentJournal} from "../../../services/journals/post";
-import {changeKeyboard} from "../../../modules/change-keyboard";
-import orders from "../../orders";
 
 class PlansJournal extends Component {
 
@@ -30,9 +28,11 @@ class PlansJournal extends Component {
         ordersPlan: [],
         headerTable: [],
         paramsTable: [],
-        overdueOrders: [],
-        todayOrders: [],
-        futureOrders: [],
+        activeOrders: {
+            overdueOrders: [],
+            todayOrders: [],
+            futureOrders: [],
+        },
         filters: [
             {
                 type: 'all',
@@ -160,10 +160,6 @@ class PlansJournal extends Component {
             sectors.push(sector.name)
         })
 
-        if (sectors.length > 1) {
-            sectors.push('Все участки')
-        }
-
         this.setState({numbersSectors: journal.length})
         this.setState({sectors})
         this.setState({activeSector: sectors[0]})
@@ -173,15 +169,11 @@ class PlansJournal extends Component {
     addOrderPlan = (journal) => {
         const {activeSector} = this.state
 
-        if (activeSector === 'Все участки') {
-            this.allOrderAllSectors()
-        } else {
-            journal.map(sector => {
-                if (activeSector === sector.name) {
-                    this.setState({ordersPlan: sector})
-                }
-            })
-        }
+        journal.map(sector => {
+            if (activeSector === sector.name) {
+                this.setState({ordersPlan: sector})
+            }
+        })
     }
 
     // изменение комментария к заказу
@@ -258,7 +250,12 @@ class PlansJournal extends Component {
     filterOrder = async (filter = 'all') => {
         const {ordersPlan} = this.state
 
-        let overdue = [], today = [], future = []
+        let overdue = [], today = [], future = [],
+            newActiveOrders = {
+                overdueOrders: [],
+                todayOrders: [],
+                futureOrders: [],
+            }
 
         const addEditButton = (obj, arr) => {
             obj.map(item => {
@@ -277,9 +274,11 @@ class PlansJournal extends Component {
             addEditButton(ordersPlan.forFuture, future)
         }
 
-        await this.setState({overdueOrders: overdue})
-        await this.setState({todayOrders: today})
-        await this.setState({futureOrders: future})
+        newActiveOrders.overdueOrders = overdue
+        newActiveOrders.todayOrders = today
+        newActiveOrders.futureOrders = future
+
+        this.setState({activeOrders: newActiveOrders})
 
         this.countOrders()
         this.countSquare()
@@ -392,7 +391,12 @@ class PlansJournal extends Component {
     // поиск заказов
     searchOrder = () => {
         const {search, ordersPlan} = this.state
-        let overdue = [], today = [], future = []
+        let overdue = [], today = [], future = [],
+            newActiveOrders = {
+                overdueOrders: [],
+                todayOrders: [],
+                futureOrders: [],
+            }
 
         const ordersMap = (obj, newObj) => {
             obj.map(order => {
@@ -408,60 +412,42 @@ class PlansJournal extends Component {
             ordersMap(ordersPlan.forToday, today)
             ordersMap(ordersPlan.forFuture, future)
 
-            this.setState({overdueOrders: overdue})
-            this.setState({todayOrders: today})
-            this.setState({futureOrders: future})
+            newActiveOrders.overdueOrders = overdue
+            newActiveOrders.todayOrders = today
+            newActiveOrders.futureOrders = future
+
+            this.setState({activeOrders: newActiveOrders})
         } else {
-            this.setState({overdueOrders: ordersPlan.overdue})
-            this.setState({todayOrders: ordersPlan.forToday})
-            this.setState({futureOrders: ordersPlan.forFuture})
+            newActiveOrders.overdueOrders = ordersPlan.overdue
+            newActiveOrders.todayOrders = ordersPlan.forToday
+            newActiveOrders.futureOrders = ordersPlan.forFuture
+
+            this.setState({activeOrders: newActiveOrders})
         }
-    }
-
-    // выбор всех заказов по всем участкам
-    allOrderAllSectors = async () => {
-        const {journal} = this.props
-        let newOrdersPlan = {
-                id: 100,
-                name: 'Все заказы',
-                overdue: [],
-                forToday: [],
-                forFuture: [],
-            }
-
-        journal.map(sector => {
-            newOrdersPlan.overdue = [...newOrdersPlan.overdue, ...sector.overdue]
-            newOrdersPlan.forToday = [...newOrdersPlan.forToday, ...sector.forToday]
-            newOrdersPlan.forFuture = [...newOrdersPlan.forFuture, ...sector.forFuture]
-        })
-
-        await this.setState({ordersPlan: newOrdersPlan})
-
-        this.filterOrder()
-
-        this.countOrders()
-        this.countSquare()
     }
 
     // подсчет кол-ва заказов
     countOrders = () => {
-        const {filters, overdueOrders, futureOrders, todayOrders} = this.state
-        let overdueCounts = overdueOrders.length,
-            todayCounts = todayOrders.length,
-            futureCounts = futureOrders.length,
-            allCounts = overdueCounts + todayCounts + futureCounts
+        const {filters, activeOrders} = this.state
+        let overdueCounts = activeOrders.overdueOrders.length,
+            todayCounts = activeOrders.todayOrders.length,
+            futureCounts = activeOrders.futureOrders.length,
+            allCounts = overdueCounts + todayCounts + futureCounts,
+            newFilters = [...filters]
 
-        filters.map((filter, i) => {
-            if (filter.type === 'all') this.setState(({filters}) => filters[i].number = allCounts)
-            if (filter.type === 'overdue') this.setState(({filters}) => filters[i].number = overdueCounts)
-            if (filter.type === 'forToday') this.setState(({filters}) => filters[i].number = todayCounts)
-            if (filter.type === 'forFuture') this.setState(({filters}) => filters[i].number = futureCounts)
+        newFilters.map((filter, i) => {
+            if (filter.type === 'all') filter.number = allCounts
+            if (filter.type === 'overdue') filter.number = overdueCounts
+            if (filter.type === 'forToday') filter.number = todayCounts
+            if (filter.type === 'forFuture') filter.number = futureCounts
         })
+
+        this.setState({filters: newFilters})
     }
 
     // подсчет площади заказов
     countSquare = async () => {
-        const {activeFilter, overdueOrders, futureOrders, todayOrders} = this.state
+        const {activeFilter, activeOrders} = this.state
         let overdueSquare,
             todaySquare,
             futureSquare,
@@ -477,9 +463,9 @@ class PlansJournal extends Component {
             return count
         }
 
-        overdueSquare = count(overdueOrders)
-        futureSquare = count(futureOrders)
-        todaySquare = count(todayOrders)
+        overdueSquare = count(activeOrders.overdueOrders)
+        futureSquare = count(activeOrders.futureOrders)
+        todaySquare = count(activeOrders.todayOrders)
 
         allSquare = overdueSquare + todaySquare + futureSquare
 
@@ -492,7 +478,7 @@ class PlansJournal extends Component {
     }
 
     render() {
-        const {journalID, filters, activeFilter, headerTable, overdueOrders, todayOrders, futureOrders,
+        const {journalID, filters, activeFilter, headerTable, activeOrders,
             changeComment, paramsTable, error, link, sectors, activeSector, numbersSectors, title, squareOrders} = this.state
 
         return (
@@ -581,15 +567,15 @@ class PlansJournal extends Component {
                                     <Thead title={headerTable}/>
 
                                     {activeFilter === 'all' || activeFilter === 'overdue' ?
-                                        <Tbody orders={overdueOrders} params={paramsTable} color={'table-danger'}/>
+                                        <Tbody orders={activeOrders.overdueOrders} params={paramsTable} color={'table-danger'}/>
                                         : null}
 
                                     {activeFilter === 'all' || activeFilter === 'forToday' ?
-                                        <Tbody orders={todayOrders} params={paramsTable} color={'table-primary'}/>
+                                        <Tbody orders={activeOrders.todayOrders} params={paramsTable} color={'table-primary'}/>
                                         : null}
 
                                     {activeFilter === 'all' || activeFilter === 'forFuture' ?
-                                        <Tbody orders={futureOrders} params={paramsTable} color={'table-success'}/>
+                                        <Tbody orders={activeOrders.futureOrders} params={paramsTable} color={'table-success'}/>
                                         : null}
                                 </Table>
                             </Col>
@@ -660,10 +646,11 @@ export async function getServerSideProps({req,query}) {
 
     let journal, error
 
-    await getOrderJournal(id, token)
-        .then(res  => journal = res.data.journal)
-        .catch(err => error = err.response?.data)
+    // await getOrderJournal(id, token)
+    //     .then(res  => journal = res.data.journal)
+    //     .catch(err => error = err.response?.data)
 
+    journal = await getOrderJournal(id, token)
 
     if (journal) {
         return {

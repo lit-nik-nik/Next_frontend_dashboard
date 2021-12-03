@@ -87,9 +87,10 @@ export class MainLayout extends Component {
 
         await getJournals(token)
             .then(res => journals = res.data.journals)
-            .catch(err => {
+            .catch(({response}) => {
+                console.log(response)
                 this.setState({errorView: true})
-                this.setState({errorData: err.response?.data})
+                this.setState({errorData: response.data})
             })
 
         if (journals) journals.map(item => {

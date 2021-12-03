@@ -86,6 +86,7 @@ export default class CompAccTransOrder extends Component {
             view: false,
             message: ''
         },
+        errorExtra: null,
         submit: {
             data: {
                 view: false,
@@ -200,10 +201,12 @@ export default class CompAccTransOrder extends Component {
 
         if (accepted.name && transfer.name) {
             addExtraData(barcodes)
-                .then(res =>
-                    this.setState({extraData: res.data})
-                )
-                .catch(err => console.log(err.response))
+                .then(res => this.setState({extraData: res.data}))
+                .catch(({response}) => {
+                    this.setState({errorExtra: response.data})
+                    this.clearValue('transfer')
+                    this.clearValue('accepted')
+                })
         }
     }
 
@@ -212,7 +215,7 @@ export default class CompAccTransOrder extends Component {
         this.setState(({error}) => {
             return (
                 error.type = true,
-                    error.message = message
+                error.message = message
             )
         })
         setTimeout(this.clearError, time)
@@ -881,7 +884,7 @@ export default class CompAccTransOrder extends Component {
 
     // Отображение страницы
     render() {
-        const {data, hint, error, orders, orderChange, submit} = this.state,
+        const {data, hint, error, orders, orderChange, submit, errorExtra} = this.state,
             {accepted, transfer, order, date, allExtraData} = data
 
         const inputGroup = (label, data, ref, onKeyPress) => {
@@ -1160,7 +1163,7 @@ export default class CompAccTransOrder extends Component {
                     orders={submit.data.orders}
                 />
 
-                <CustomError error={submit.error.data} />
+                <CustomError error={submit.error.data || errorExtra} />
             </>
         )
     }

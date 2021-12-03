@@ -6,6 +6,8 @@ import {Component } from 'react'
 import Thead from "../../modules/tables/thead";
 import ModalImage from "../../modules/modals/modal-images";
 import {getTokenCookies} from "../../modules/cookie";
+import {log10} from "chart.js/helpers";
+import Loading from "../../modules/loading";
 
 class Order extends Component {
 
@@ -212,7 +214,7 @@ class Order extends Component {
             if (
                 key === 'priceCost' ||
                 key === 'cost'
-            ) cells.push(<td>{Math.round(+obj[key] * 100) / 100}</td>)
+            ) cells.push(<td className='text-end'>{Math.round(+obj[key] * 100) / 100} ₽</td>)
 
             if (key === 'comment') cells.push(<td className='text-start ps-3'>{obj[key]}</td>)
         }
@@ -280,90 +282,119 @@ class Order extends Component {
     }
 
     render () {
-        const {order, image} = this.state
+        const {order, image} = this.props
 
         let header, body, plans
 
         if (order) {
-            header = order.header
+            header = order.header[0]
             body = order.body
             plans = order.plans
         }
 
+        console.log(header.status)
+
         return (
-            <MainLayout title={`Заказ № ${order ? header[0].id : '_'}`} token={this.props.token} error={this.props.error}>
-                <Row className='my-2'>
-                    <Col lg={9}>
-                        <Row>
-                            <Col lg={2}>
-                                <Button variant='outline-dark' onClick={() => this.props.router.back()}>
-                                    Вернуться назад
-                                </Button>
+            <MainLayout title={`Заказ № ${order ? header.id : '_'}`} token={this.props.token} error={this.props.error}>
+                {order ? (
+                    <>
+                        <Row className='my-2'>
+                            <Col lg={9}>
+                                <Row>
+                                    <Col lg={2}>
+                                        <Button variant='outline-dark' onClick={() => this.props.router.back()}>
+                                            Вернуться назад
+                                        </Button>
+                                    </Col>
+                                    <Col lg={8} className='mt-2'>
+                                        <h4 className='text-center fw-bold text-uppercase fst-italic m-0'>
+                                            Заказ № {header.id}
+                                        </h4>
+                                    </Col>
+                                    <Col lg={2}>
+                                        <Alert variant='light' className='p-2 text-end m-0'>
+                                            <b>Менеджер: </b>{header.manager}
+                                        </Alert>
+                                    </Col>
+                                </Row>
+
+                                <hr/>
+
+                                <Row>
+                                    <Col lg={12}>
+                                        {this.headerRender(header)}
+                                    </Col>
+
+                                    <hr/>
+
+                                    <Col>
+                                        {header.totalCost ? (
+                                            <Alert variant='success' className='p-0 py-2 text-center'>
+                                                Общая стоимость: <b>{header.totalCost} ₽</b>
+                                            </Alert>
+                                        ) : null}
+                                    </Col>
+
+                                    <Col>
+                                        <Alert variant='success' className='p-0 py-2 text-center'>
+                                            Статуса заказа: <b>{header.status}</b>
+                                        </Alert>
+                                    </Col>
+
+                                    <hr/>
+
+                                    <Col lg={12}>
+                                        {this.bodyRender(body)}
+                                    </Col>
+                                </Row>
                             </Col>
-                            <Col lg={8} className='mt-2'>
-                                <h4 className='text-center fw-bold text-uppercase fst-italic m-0'>
-                                    Заказ № {order ? header[0].id : '_'}
-                                </h4>
-                            </Col>
-                            <Col lg={2}>
-                                <Alert variant='light' className='p-2 text-end m-0'>
-                                    <b>Менеджер: </b>{order ? header[0].manager : '_'}
-                                </Alert>
+
+                            <Col lg={3}>
+                                {order ? (
+                                    <Row className='text-center'>
+                                        <Col lg={6}>
+                                            <Alert variant='secondary' className='p-0 py-2'>
+                                                <p className='mb-1' style={{fontSize: '14px'}}>Площадь сборки</p>
+                                                <b>{Math.round(header.squareFasad * 1000) / 1000} м2</b>
+                                            </Alert>
+                                        </Col>
+                                        <Col lg={6}>
+                                            <Alert variant='secondary' className='p-0 py-2'>
+                                                <p className='mb-1' style={{fontSize: '14px'}}>Площадь покраски</p>
+                                                <b>{Math.round(header.square * 1000) / 1000} м2</b>
+                                            </Alert>
+                                        </Col>
+                                    </Row>
+                                ) : null}
+                                <h4 className='text-center fw-bold'>План изготовления заказа:</h4>
+                                {order ? this.planRender(plans) : null}
+                                {image ? (
+                                    <div className='text-center'>
+                                        <h4 className='fw-bold my-3'>Приложение к заказу:</h4>
+                                        <img
+                                            src={`data:image/jpeg;base64,${image}`}
+                                            alt="test"
+                                            width={300}
+                                            className='rounded-3 shadow'
+                                            onClick={() => this.setState({modalView: true})}
+                                        />
+                                    </div>
+                                ) : null}
                             </Col>
                         </Row>
 
-                        <hr/>
-
-                        <Row>
-                            <Col>
-                                {order ? this.headerRender(header[0]) : null}
-                                {order ? this.bodyRender(body) : null}
-                            </Col>
-                        </Row>
-                    </Col>
-
-                    <Col lg={3}>
-                        {order ? (
-                            <Row className='text-center'>
-                                <Col lg={6}>
-                                    <Alert variant='secondary' className='p-0 py-2'>
-                                        <p className='mb-1' style={{fontSize: '14px'}}>Площадь сборки</p>
-                                        <b>{Math.round(header[0].squareFasad * 1000) / 1000} м2</b>
-                                    </Alert>
-                                </Col>
-                                <Col lg={6}>
-                                    <Alert variant='secondary' className='p-0 py-2'>
-                                        <p className='mb-1' style={{fontSize: '14px'}}>Площадь покраски</p>
-                                        <b>{Math.round(header[0].square * 1000) / 1000} м2</b>
-                                    </Alert>
-                                </Col>
-                            </Row>
-                        ) : null}
-                        <h4 className='text-center fw-bold'>План изготовления заказа:</h4>
-                        {order ? this.planRender(plans) : null}
-                        {image ? (
-                            <div className='text-center'>
-                                <h4 className='fw-bold my-3'>Приложение к заказу:</h4>
-                                <img
-                                    src={`data:image/jpeg;base64,${image}`}
-                                    alt="test"
-                                    width={300}
-                                    className='rounded-3 shadow'
-                                    onClick={() => this.setState({modalView: true})}
-                                />
-                            </div>
-                        ) : null}
-                    </Col>
-                </Row>
 
 
 
-
-                <ModalImage
-                    show={this.state.modalView}
-                    onHide={()=> this.setState({modalView: false})}
-                    data={this.state.image}
-                />
+                        <ModalImage
+                            show={this.state.modalView}
+                            onHide={()=> this.setState({modalView: false})}
+                            data={this.state.image}
+                        />
+                    </>
+                ) : (
+                    <Loading/>
+                )}
             </MainLayout>
         )
     }

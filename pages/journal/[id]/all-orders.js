@@ -415,8 +415,7 @@ export async function getServerSideProps({req,query}) {
 
     await getAdoptedOrderJournal(id, token)
         .then(res  => data = res.data)
-        .catch(err => error = err.response?.data)
-
+        .catch(({response}) => error = response.data)
 
     if (data) {
         return {
