@@ -7,5 +7,5 @@ export default function exitApp () {
     Cookies.set('token', '')
     Cookies.set('userId', '')
 
-    setTimeout(redirect, 2000)
+    setTimeout(redirect, 1000)
 }

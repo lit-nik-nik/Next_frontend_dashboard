@@ -492,29 +492,6 @@ class PlansJournal extends Component {
                 >
 
                     <Row className='mt-3'>
-                        {numbersSectors <= 1 ? <Col lg={2} /> : (
-                            <Col lg={2}>
-                                <FloatingLabel
-                                    controlId="floatingInput"
-                                    label="Выберите участок"
-                                    className="mb-3"
-                                >
-                                    <Form.Select
-                                        value={activeSector}
-                                        onChange={(e) => {
-                                            this.setState({activeSector: e.target.value})
-                                        }}>
-                                        {sectors.map((sector, i) => {
-                                            return (
-                                                <option value={sector} key={i}>{sector}</option>
-                                            )
-                                        })}
-                                    </Form.Select>
-                                </FloatingLabel>
-                            </Col>
-                        )}
-                        <Col lg={2} />
-
                         <Col lg={4} className=''>
                             <FloatingLabel
                                 style={{width: '90%', display: 'inline-block'}}
@@ -539,7 +516,32 @@ class PlansJournal extends Component {
                                 </Button>
                             ) : null}
                         </Col>
+
                         <Col lg={1} />
+
+                        {numbersSectors <= 1 ? <Col lg={2} /> : (
+                            <Col lg={2}>
+                                <FloatingLabel
+                                    controlId="floatingInput"
+                                    label="Выберите участок"
+                                    className="mb-3"
+                                >
+                                    <Form.Select
+                                        value={activeSector}
+                                        onChange={(e) => {
+                                            this.setState({activeSector: e.target.value})
+                                        }}>
+                                        {sectors.map((sector, i) => {
+                                            return (
+                                                <option value={sector} key={i}>{sector}</option>
+                                            )
+                                        })}
+                                    </Form.Select>
+                                </FloatingLabel>
+                            </Col>
+                        )}
+                        <Col lg={2} />
+
                         <Col lg={3} className='text-end'>
                             <Alert
                                 className='m-0 p-0'

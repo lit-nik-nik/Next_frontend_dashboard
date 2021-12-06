@@ -9,6 +9,7 @@ import ModalWindow from "../../modules/modals/modal";
 import {decriptedStr, encritptedStr} from "../../modules/encription";
 import { format } from 'date-fns'
 import CustomError from "../../modules/error";
+import {MyInput, MySelect} from "../elements/input";
 
 export default class CompAccTransOrder extends Component {
 
@@ -63,7 +64,8 @@ export default class CompAccTransOrder extends Component {
                 hide: true,
                 update: null
             },
-            allExtraData: []
+            allExtraData: [],
+            prevSelectExtra: null,
         },
         ordersID: [],
         orders: [],
@@ -103,6 +105,7 @@ export default class CompAccTransOrder extends Component {
         if (this.props.barcodes) await this.setState(({users: this.props.barcodes}))
 
         this.addHint(1)
+        this.addDate()
 
         if (localStorage.getItem('transfer')) {
             const transfer = decriptedStr(localStorage.getItem('transfer'))
@@ -114,10 +117,6 @@ export default class CompAccTransOrder extends Component {
             this.onChangeData('accepted', accepted)
             this.addAccept(accepted)
         }
-        if (localStorage.getItem('date')) {
-            this.addDate(localStorage.getItem('date'))
-        }
-        else this.addDate()
 
         if (localStorage.getItem('extraData')) {
             this.setState(({data}) => data.allExtraData = JSON.parse(localStorage.getItem('extraData')))
@@ -142,7 +141,6 @@ export default class CompAccTransOrder extends Component {
         if(this.state !== prevState) {
             if (data.transfer.value) localStorage.setItem('transfer', encritptedStr(data.transfer.value))
             if (data.accepted.value) localStorage.setItem('accepted', encritptedStr(data.accepted.value))
-            if (data.date.value) localStorage.setItem('date', data.date.value)
             if (ordersID.length > 0) localStorage.setItem('orders', JSON.stringify(ordersID))
             if (data.allExtraData.length > 0) localStorage.setItem('extraData', JSON.stringify(data.allExtraData))
         }
@@ -153,7 +151,6 @@ export default class CompAccTransOrder extends Component {
     }
 
     componentWillUnmount() {
-        localStorage.removeItem('date')
         localStorage.removeItem('transfer')
         localStorage.removeItem('accepted')
         localStorage.removeItem('extraData')
@@ -377,7 +374,7 @@ export default class CompAccTransOrder extends Component {
             await this.setState(({data}) => data.date.value = nowDate)
         } else {
             if (date.value) {
-                isoDate = new Date(date.value).toISOString()
+                isoDate = new Date(date.value)
 
                 await this.setState(({data}) => {
                     return (
@@ -548,35 +545,23 @@ export default class CompAccTransOrder extends Component {
         extraDate = format(new Date(this.props.date), "yyyy-MM-dd")
 
         if (value.includes('-')) {
-            newDate = new Date(`${value}T${order.extraTime}`)
-
-            if (new Date(newDate) > new Date(this.props.date)) {
-                this.setState(({data}) => data.order.extraDate = extraDate)
-            } else {
-                this.setState(({data}) => data.order.extraDate = value)
-            }
+            this.setState(({data}) => data.order.extraDate = value)
         } else if (value.includes(':')) {
-            newDate = new Date(`${order.extraDate}T${value}`)
-
-            if (new Date(newDate) > new Date(this.props.date)) {
-                this.setState(({data}) => data.order.extraTime = extraTime)
-            } else {
-                this.setState(({data}) => data.order.extraTime = value)
-            }
+            this.setState(({data}) => data.order.extraTime = value)
         }
     }
 
     // формирование и отображение допполей
     renderExtraOrderData = (obj, i) => {
-        const {order} = this.state.data
+        const {order, prevSelectExtra} = this.state.data
 
         if (obj.type === 'date') {
             return (
                 <Row>
                     <Col>
-                        <Form.Control
+                        <MyInput
+                            name='Время'
                             type='time'
-                            className='border rounded-0'
                             value={order.extraTime}
                             onChange={async e => {
                                 await this.changeExtraDataOrder(e.target.value)
@@ -584,9 +569,9 @@ export default class CompAccTransOrder extends Component {
                         />
                     </Col>
                     <Col>
-                        <Form.Control
+                        <MyInput
+                            name='Дата'
                             type='date'
-                            className='border rounded-0'
                             value={order.extraDate}
                             onChange={async e => {
                                 await this.changeExtraDataOrder(e.target.value)
@@ -595,41 +580,66 @@ export default class CompAccTransOrder extends Component {
                     </Col>
                 </Row>
             )
-        } else if (obj.type === 'number') {
+        }
+        else if (obj.type === 'number') {
             return (
-                <Form.Control
+                <MyInput
+                    name={obj.name}
                     type={obj.type}
-                    autoFocus
                     value={obj.data}
-                    className='border rounded-0'
-                    onChange={e => this.setState(({data}) => data.order.extraData[i].data = e.target.value)}
+                    onChange={e => {
+                        let num = e.target.value.toString()
+                        if (num[0] === '0') num = num.slice(1)
+                        this.setState(({data}) => data.order.extraData[i].data = num)
+                    }}
                 />
             )
-        } else if (obj.type === 'select') {
+        }
+        else if (obj.type === 'select') {
             let option = []
 
             obj.list.map((item, iL) => {
-                option.push(<option key={iL} value={item}>{item}</option>)
+                let upperItem = item.toUpperCase()
+
+                option.push(<option key={iL} value={item}>{upperItem}</option>)
             })
 
             return (
-                <Form.Select
-                    value={obj.data}
-                    onChange={e => {
-                        this.setState(({data}) => data.order.extraData[i].data = e.target.value)
-                    }}
-                >
-                    <option value=''/>
-                    {option}
-                </Form.Select>
+                <Row className='align-items-end'>
+                    <Col lg={prevSelectExtra ? 7 : 12}>
+                        <MySelect
+                            name={obj.name}
+                            value={obj.data}
+                            onChange={({target}) => {
+                                if (target.value !== '') {
+                                    this.setState(({data}) => data.order.extraData[i].data = target.value)
+                                    this.setState(({data}) => data.prevSelectExtra = target.value)
+                                }
+                            }}
+                            option={option}
+                        />
+                    </Col>
+                    {prevSelectExtra ? (
+                        <Col lg={5}>
+                            <Button
+                                variant='outline-dark'
+                                className='w-100 text-center'
+                                onClick={() => this.setState(({data}) => data.order.extraData[i].data = prevSelectExtra)}
+                            >
+                                {prevSelectExtra}
+                            </Button>
+                        </Col>
+                    ) : null}
+                </Row>
+
             )
-        } else {
+        }
+        else {
             return (
-                <Form.Control
+                <MyInput
+                    name={obj.name}
                     type='text'
-                    autoFocus
                     value={obj.data}
-                    className='border rounded-0'
                     onChange={e => this.setState(({data}) => data.order.extraData[i].data = e.target.value)}
                 />
             )
@@ -640,15 +650,19 @@ export default class CompAccTransOrder extends Component {
     saveAllExtraData = async () => {
         const {data} = this.state
         const {order} = data
-        let allExtraData = [...data.allExtraData], i = 0, newDate, newExtraData = []
+        let allExtraData = [...data.allExtraData], i = 0, newDate, propsDate, extraDate, newExtraData = []
 
         newDate = new Date(`${order.extraDate}T${order.extraTime}`)
+        propsDate = new Date(this.props.date)
+
+        if (newDate > propsDate) extraDate = propsDate
+        else extraDate = newDate
 
         order.extraData.map(data => {
             let newExtra
 
             if (data.type === 'date') {
-                newExtra = {...data, data: newDate}
+                newExtra = {...data, data: extraDate}
             } else {
                 newExtra = {...data}
             }
@@ -659,7 +673,8 @@ export default class CompAccTransOrder extends Component {
         allExtraData = [...allExtraData, ...newExtraData]
 
         newExtraData.map(item => {
-            if (item.data !== '0') i++
+            if (item.data === '0' || item.data === '') {}
+            else i++
         })
 
         if (i === data.order.extraData.length) {
@@ -1110,13 +1125,6 @@ export default class CompAccTransOrder extends Component {
                         {order.extraData.map((item, i) => {
                             return (
                                 <div key={i}>
-                                    <Alert
-                                        variant='light'
-                                        className='text-center m-2 p-0'
-                                    >
-                                        {item.name}
-                                    </Alert>
-
                                     {this.renderExtraOrderData(item, i)}
                                 </div>
                             )
@@ -1125,7 +1133,7 @@ export default class CompAccTransOrder extends Component {
 
                     <Modal.Footer>
                         <Button
-                            variant='success'
+                            variant='outline-success'
                             className='w-100'
                             onClick={async () => {
                                 await this.saveAllExtraData(order.extraData)

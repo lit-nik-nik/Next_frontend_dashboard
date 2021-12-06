@@ -3,7 +3,7 @@ import {getAdoptedOrderJournal} from "../../../services/journals/get";
 import {globalState} from "../../../data/globalState";
 import Thead from "../../../modules/tables/thead";
 import Tbody from "../../../modules/tables/tbody";
-import {Table, Row, Col, Alert, FormControl, Button, InputGroup, Form} from "react-bootstrap";
+import {Table, Row, Col, Alert, FormControl, Button, InputGroup, Form, FloatingLabel} from "react-bootstrap";
 import PaginationTable from "../../../modules/pagination";
 import Loading from "../../../modules/loading";
 import CustomError from "../../../modules/error";
@@ -244,8 +244,34 @@ class AllOrdersJournal extends Component {
                     <Row>
                         <Col lg={activeFilter ? 10 : 12}>
                             <Row>
-                                <Col className='mt-3 text-center text-uppercase fw-bold'>
+                                <Col lg={12} className='text-center'>
                                     <h3>{title}</h3>
+                                </Col>
+
+                                <Col>
+                                    <FloatingLabel
+                                        style={{width: '90%', display: 'inline-block'}}
+                                        controlId="searchName"
+                                        label="Произвольный поиск"
+                                        className="mb-3"
+                                    >
+                                        <FormControl
+                                            placeholder="Произвольный поиск"
+                                            value={filter.search}
+                                            onChange={(e) => this.setState(({filter}) => {
+                                                return filter.search = e.target.value
+                                            })}
+                                            onKeyPress={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    this.setState({activePage: 1})
+                                                    this.changeData()
+                                                }
+                                            }}
+                                        />
+                                    </FloatingLabel>
+                                </Col>
+
+                                <Col className='mt-2 text-center' lg={5}>
                                     <Button
                                         variant='outline-secondary'
                                         className='me-3'
@@ -274,6 +300,10 @@ class AllOrdersJournal extends Component {
                                     >
                                         Все
                                     </Button>
+                                </Col>
+
+                                <Col className='mt-2 text-center'>
+
                                 </Col>
                             </Row>
 
@@ -317,26 +347,6 @@ class AllOrdersJournal extends Component {
                         <Col lg={2} className={`${activeFilter ? null : 'd-none'} border border-top-0 border-end-0 border-bottom-0 pt-3`}>
                             <Row>
                                 <Col lg={12} className='mb-3 text-center'>Фильтры</Col>
-
-                                <Col lg={12} className='mb-3'>
-                                    <Alert variant='secondary' className='p-1 text-center mb-1'>
-                                        Произвольный поиск
-                                    </Alert>
-
-                                    <FormControl
-                                        placeholder="Введите данные"
-                                        value={filter.search}
-                                        onChange={(e) => this.setState(({filter}) => {
-                                            return filter.search = e.target.value
-                                        })}
-                                        onKeyPress={(e) => {
-                                            if (e.key === 'Enter') {
-                                                this.setState({activePage: 1})
-                                                this.changeData()
-                                            }
-                                        }}
-                                    />
-                                </Col>
 
                                 <Col lg={12} className='mb-3'>
                                     <Alert variant='secondary' className='p-1 text-center mb-1'>
@@ -415,7 +425,7 @@ export async function getServerSideProps({req,query}) {
 
     await getAdoptedOrderJournal(id, token)
         .then(res  => data = res.data)
-        .catch(({response}) => error = response.data)
+        .catch(({response}) => error = response?.data)
 
     if (data) {
         return {

@@ -1,11 +1,10 @@
-import {Button, Modal, Form} from "react-bootstrap";
+import {Button, Modal} from "react-bootstrap";
 import React, {Component} from "react";
-import exitApp from "./exit";
 
 export default class CustomError extends Component
     <
-        {error: {message: string, errors}, cleanError},
-        {errorView: boolean, errorMessage: string, verification: boolean}
+        {error: {message: string, errors: []}, cleanError?},
+        {errorView: boolean, errorMessage: string, verification: number, interval: any}
     >
 {
 
@@ -16,7 +15,8 @@ export default class CustomError extends Component
     state = {
         errorView: false,
         errorMessage: null,
-        verification: false
+        verification: 1,
+        interval: null
     }
 
     async componentDidMount() {
@@ -31,11 +31,23 @@ export default class CustomError extends Component
             this.setState({errorMessage: this.props.error.message})
             this.setState({errorView: true})
         }
+
+        if (this.state.errorView) {
+            if (!this.state.interval) {
+                this.setState({
+                    interval: setInterval(() => this.setState({verification: this.state.verification - 1}), 1000)
+                })
+            }
+        }
+
+        if (this.state.verification === 0) {
+            clearInterval(this.state.interval)
+        }
     }
 
     closeModal = () => {
         this.setState({errorView: false})
-        this.setState({verification: false})
+        this.setState({verification: 1})
         if (this.props.cleanError) this.props.cleanError()
     }
 
@@ -69,22 +81,13 @@ export default class CustomError extends Component
                     </Modal.Body>
 
                     <Modal.Footer style={{justifyContent: 'start'}} >
-                        <Form.Check
-                            type="switch"
-                            isValid={verification === true}
-                            isInvalid={verification === false}
-                            checked={verification}
-                            label="Я подтверждаю, что ознакомился(ась) с ошибкой"
-                            onChange={() => this.setState({verification: !this.state.verification})}
-                        />
-
                         <Button
                             variant='warning'
                             className='w-100 text-center text-uppercase'
-                            disabled={!verification}
+                            disabled={verification !== 0}
                             onClick={() => this.closeModal()}
                         >
-                            Закрыть окно
+                            Я подтверждаю, что ознакомился(ась) с ошибкой
                         </Button>
                     </Modal.Footer>
                 </Modal>
