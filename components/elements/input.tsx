@@ -13,8 +13,7 @@ export const MyInput = ({name, type, value, onChange}) => {
                 {name}
             </Alert>
             <Form.Control
-                type={type}
-                autoFocus
+                type={type ? type : 'text'}
                 value={value}
                 className='border-0 border-bottom rounded-0 bg-light'
                 onChange={e => onChange(e)}
@@ -39,7 +38,6 @@ export const MySelect = ({name, value, onChange, option}) => {
                 className='border-0 border-bottom rounded-0 bg-light'
                 onChange={e => onChange(e)}
             >
-                <option value='' />
                 {option}
             </Form.Select>
         </>

@@ -1,4 +1,4 @@
-import {Button, Col, Alert, Form, InputGroup, Row, Table, Modal} from "react-bootstrap"
+import {Button, Col, Alert, Form, InputGroup, Row, Table, Modal, Spinner} from "react-bootstrap"
 import React, {Component} from "react";
 import Thead from "../../modules/tables/thead";
 import Tbody from "../../modules/tables/tbody";
@@ -10,6 +10,7 @@ import {decriptedStr, encritptedStr} from "../../modules/encription";
 import { format } from 'date-fns'
 import CustomError from "../../modules/error";
 import {MyInput, MySelect} from "../elements/input";
+import Loading from "../../modules/loading";
 
 export default class CompAccTransOrder extends Component {
 
@@ -90,6 +91,7 @@ export default class CompAccTransOrder extends Component {
         },
         errorExtra: null,
         submit: {
+            disable: false,
             data: {
                 view: false,
                 message: null,
@@ -598,8 +600,10 @@ export default class CompAccTransOrder extends Component {
         else if (obj.type === 'select') {
             let option = []
 
+            option.push(<option key='0' value='' />)
+
             obj.list.map((item, iL) => {
-                let upperItem = item.toUpperCase()
+                let upperItem = item
 
                 option.push(<option key={iL} value={item}>{upperItem}</option>)
             })
@@ -887,6 +891,7 @@ export default class CompAccTransOrder extends Component {
                         submit.data.orders = res.data.orders
                     )
                 })
+                this.setState(({submit}) => submit.disable = false)
             })
             .catch(err => {
                 this.setState(({submit}) => {
@@ -894,6 +899,7 @@ export default class CompAccTransOrder extends Component {
                         submit.error.data = err.response?.data
                     )
                 })
+                this.setState(({submit}) => submit.disable = false)
             })
     }
 
@@ -1098,22 +1104,39 @@ export default class CompAccTransOrder extends Component {
                     </Col>
                 </Row>
 
-                <Row className='sticky-bottom bg-white my-0 pb-3'>
+                <Row className='sticky-bottom bg-white my-0 pb-3 align-items-end'>
                     <hr />
-                    <Col lg={6} className='text-start'>
+                    <Col lg={2} className='text-start'>
                         <Button
                             variant='outline-danger'
+                            className='w-100 text-dark'
                             type='button'
-                            onClick={e => this.clearValue('all')}
+                            onClick={() => this.clearValue('all')}
                         >Очистить форму</Button>
                     </Col>
-                    <Col lg={6} className='text-end'>
+                    <Col />
+                    <Col lg={2} className='text-end'>
                         <Button
                             variant='outline-success'
+                            className='w-100 text-dark'
                             type='button'
-                            disabled={!orders[0]}
-                            onClick={e => this.sendForm(e)}
-                        >Сохранить данные</Button>
+                            disabled={!orders[0] || submit.disable}
+                            onClick={e => {
+                                this.setState(({submit}) => submit.disable = true)
+                                this.sendForm(e)
+                            }}
+                        >
+                            <Row className='align-items-center'>
+                                <Col>
+                                    Сохранить данные
+                                </Col>
+                                {submit.disable ? (
+                                    <Col lg={2}>
+                                        <Spinner animation="border" variant="warning" size='sm'/>
+                                    </Col>
+                                ) : null}
+                            </Row>
+                        </Button>
                     </Col>
                 </Row>
 

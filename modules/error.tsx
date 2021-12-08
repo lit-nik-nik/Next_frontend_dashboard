@@ -48,6 +48,7 @@ export default class CustomError extends Component
     closeModal = () => {
         this.setState({errorView: false})
         this.setState({verification: 1})
+        this.setState({interval: null})
         if (this.props.cleanError) this.props.cleanError()
     }
 

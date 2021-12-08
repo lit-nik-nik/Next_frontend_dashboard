@@ -292,8 +292,6 @@ class Order extends Component {
             plans = order.plans
         }
 
-        console.log(header.status)
-
         return (
             <MainLayout title={`Заказ № ${order ? header.id : '_'}`} token={this.props.token} error={this.props.error}>
                 {order ? (

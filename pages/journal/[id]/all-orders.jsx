@@ -3,7 +3,7 @@ import {getAdoptedOrderJournal} from "../../../services/journals/get";
 import {globalState} from "../../../data/globalState";
 import Thead from "../../../modules/tables/thead";
 import Tbody from "../../../modules/tables/tbody";
-import {Table, Row, Col, Alert, FormControl, Button, InputGroup, Form, FloatingLabel} from "react-bootstrap";
+import {Table, Row, Col, Alert, FormControl, Button, InputGroup, Form, FloatingLabel, Spinner} from "react-bootstrap";
 import PaginationTable from "../../../modules/pagination";
 import Loading from "../../../modules/loading";
 import CustomError from "../../../modules/error";
@@ -12,6 +12,7 @@ import {getTokenCookies} from "../../../modules/cookie";
 import {MainLayout} from "../../../components/layout/main";
 import JournalLayout from "../../../components/layout/journals";
 import {format, previousMonday, previousSunday, startOfWeek, endOfWeek} from 'date-fns'
+import {MyInput} from "../../../components/elements";
 
 class AllOrdersJournal extends Component {
 
@@ -40,7 +41,8 @@ class AllOrdersJournal extends Component {
         error: null,
         link: null,
         noSearch: '',
-        loading: true
+        loading: true,
+        timer: null
     }
 
     async componentDidMount() {
@@ -85,6 +87,8 @@ class AllOrdersJournal extends Component {
 
         if (startDate) sDate = format(new Date(startDate), 'dd.MM.yyyy')
         if (endDate) eDate = format(new Date(endDate), 'dd.MM.yyyy')
+
+        this.setState({loading: true})
 
         await getAdoptedOrderJournal(id, token, activePage, limit, sDate, eDate, search)
             .then(res => data = res.data)
@@ -154,7 +158,6 @@ class AllOrdersJournal extends Component {
         })
 
         this.setState({activePage: 1})
-        this.setState({loading: true})
 
         this.changeData()
     }
@@ -174,7 +177,6 @@ class AllOrdersJournal extends Component {
         })
 
         this.setState({activePage: 1})
-        this.setState({loading: true})
 
         this.changeData()
     }
@@ -193,7 +195,6 @@ class AllOrdersJournal extends Component {
         })
 
         this.setState({activePage: 1})
-        this.setState({loading: true})
 
         this.changeData()
     }
@@ -208,7 +209,6 @@ class AllOrdersJournal extends Component {
         })
 
         this.setState({activePage: 1})
-        this.setState({loading: true})
 
         this.changeData()
     }
@@ -230,6 +230,18 @@ class AllOrdersJournal extends Component {
         await this.setState({squareOrders: allSquare})
     }
 
+    // фильтр с задержкой
+    filterTimeout = (param, value) => {
+        const {timer} = this.state
+
+        clearTimeout(timer)
+
+        this.setState(({filter}) => filter[param] = value)
+        this.setState({activePage: 1})
+
+        this.setState({timer: setTimeout(this.changeData, 1000)})
+    }
+
     render() {
         const {headerTable, paramsTable, allOrders, activePage, pages, error, link, title, filter, activeFilter, squareOrders} = this.state
 
@@ -243,32 +255,19 @@ class AllOrdersJournal extends Component {
                 >
                     <Row>
                         <Col lg={activeFilter ? 10 : 12}>
-                            <Row>
+                            <Row className='align-items-end'>
                                 <Col lg={12} className='text-center'>
-                                    <h3>{title}</h3>
+                                    <h3>
+                                        {title}
+                                    </h3>
                                 </Col>
 
                                 <Col>
-                                    <FloatingLabel
-                                        style={{width: '90%', display: 'inline-block'}}
-                                        controlId="searchName"
-                                        label="Произвольный поиск"
-                                        className="mb-3"
-                                    >
-                                        <FormControl
-                                            placeholder="Произвольный поиск"
-                                            value={filter.search}
-                                            onChange={(e) => this.setState(({filter}) => {
-                                                return filter.search = e.target.value
-                                            })}
-                                            onKeyPress={(e) => {
-                                                if (e.key === 'Enter') {
-                                                    this.setState({activePage: 1})
-                                                    this.changeData()
-                                                }
-                                            }}
-                                        />
-                                    </FloatingLabel>
+                                    <MyInput
+                                        name='Произвольный поиск'
+                                        value={filter.search}
+                                        onChange={(e) => this.filterTimeout('search', e.target.value)}
+                                    />
                                 </Col>
 
                                 <Col className='mt-2 text-center' lg={5}>
@@ -349,55 +348,28 @@ class AllOrdersJournal extends Component {
                                 <Col lg={12} className='mb-3 text-center'>Фильтры</Col>
 
                                 <Col lg={12} className='mb-3'>
-                                    <Alert variant='secondary' className='p-1 text-center mb-1'>
-                                        Кол-во заказов на странице
-                                    </Alert>
-
-                                    <FormControl
-                                        placeholder="Заказы"
+                                    <MyInput
+                                        name='Кол-во заказов на странице'
                                         value={filter.limit}
-                                        onChange={(e) => this.setState(({filter}) => {
-                                            return filter.limit = e.target.value
-                                        })}
-                                        onKeyPress={(e) => {
-                                            if (e.key === 'Enter') this.changeData()
-                                        }}
+                                        onChange={async (e) => this.filterTimeout('limit', e.target.value)}
                                     />
                                 </Col>
 
                                 <Col lg={12} className='mb-3'>
-                                    <Alert variant='secondary' className='p-1 text-center mb-1'>
-                                        Дата начала
-                                    </Alert>
-
-                                    <FormControl
-                                        placeholder="Дата начала"
+                                    <MyInput
+                                        name='Дата начала'
                                         type='date'
                                         value={filter.startDate}
-                                        onChange={(e) => this.setState(({filter}) => {
-                                            return filter.startDate = e.target.value
-                                        })}
-                                        onKeyPress={(e) => {
-                                            if (e.key === 'Enter') this.changeData()
-                                        }}
+                                        onChange={(e) => this.filterTimeout('startDate', e.target.value)}
                                     />
                                 </Col>
 
                                 <Col lg={12} className='mb-3'>
-                                    <Alert variant='secondary' className='p-1 text-center mb-1'>
-                                        Дата окончания
-                                    </Alert>
-
-                                    <FormControl
-                                        placeholder="Дата окончания"
+                                    <MyInput
+                                        name='Дата окончания'
                                         type='date'
                                         value={filter.endDate}
-                                        onChange={(e) => this.setState(({filter}) => {
-                                            return filter.endDate = e.target.value
-                                        })}
-                                        onKeyPress={(e) => {
-                                            if (e.key === 'Enter') this.changeData()
-                                        }}
+                                        onChange={(e) => this.filterTimeout('endDate', e.target.value)}
                                     />
                                 </Col>
                             </Row>

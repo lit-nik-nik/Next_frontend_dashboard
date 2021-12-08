@@ -11,6 +11,7 @@ import {getTokenCookies} from "../../../modules/cookie";
 import {MainLayout} from "../../../components/layout/main";
 import JournalLayout from "../../../components/layout/journals";
 import {postCommentJournal} from "../../../services/journals/post";
+import {MyInput, MySelect} from "../../../components/elements";
 
 class PlansJournal extends Component {
 
@@ -73,7 +74,7 @@ class PlansJournal extends Component {
         link: null,
         journalID: null,
         error: null,
-        loading: true,
+        loading: false,
         noSearch: '',
         isOwner: false,
         updatePage: null,
@@ -85,10 +86,7 @@ class PlansJournal extends Component {
         this.setState({isOwner: JSON.parse(localStorage.getItem('user')).isOwner})
 
         if (!this.props.journal[0]) {
-            this.setState({loading: false})
             this.setState({noSearch: 'Данные находятся за гранью доступного'})
-        } else {
-            this.setState({loading: false})
         }
 
         this.setState({link: this.props.router.asPath})
@@ -96,6 +94,7 @@ class PlansJournal extends Component {
 
         await this.addSectors(this.props.journal)
         await this.addOrderPlan(this.props.journal)
+        this.renderHeader()
         this.countOrders()
         this.countSquare()
 
@@ -105,10 +104,8 @@ class PlansJournal extends Component {
     async componentDidUpdate(prevProps, prevState, snapshot) {
         if (this.props.journal !== prevProps.journal) {
             if (!this.props.journal[0]) {
-                this.setState({loading: false})
                 this.setState({noSearch: 'Данные находятся за гранью доступного'})
             } else {
-                this.setState({loading: false})
                 this.setState({noSearch: ''})
             }
             this.setState({ordersPlan: null})
@@ -124,8 +121,6 @@ class PlansJournal extends Component {
 
         if (this.state.activeSector !== prevState.activeSector) {
             await this.addOrderPlan(this.props.journal)
-            this.countOrders()
-            this.countSquare()
         }
 
         if (this.state.activeFilter !== prevState.activeFilter) {
@@ -133,7 +128,6 @@ class PlansJournal extends Component {
         }
 
         if (this.state.ordersPlan !== prevState.ordersPlan) {
-            this.renderHeader()
             await this.filterOrder()
             this.countOrders()
             this.countSquare()
@@ -280,8 +274,7 @@ class PlansJournal extends Component {
 
         this.setState({activeOrders: newActiveOrders})
 
-        this.countOrders()
-        this.countSquare()
+        this.setState({loading: false})
     }
 
     // создание заголовка таблицы
@@ -479,7 +472,18 @@ class PlansJournal extends Component {
 
     render() {
         const {journalID, filters, activeFilter, headerTable, activeOrders,
-            changeComment, paramsTable, error, link, sectors, activeSector, numbersSectors, title, squareOrders} = this.state
+            changeComment, paramsTable, error, link, sectors, activeSector,
+            numbersSectors, title, squareOrders, loading} = this.state
+
+        let optionSector = []
+
+        console.log(loading)
+
+        sectors.map((sector, i) => {
+            return (
+                optionSector.push(<option value={sector} key={i}>{sector}</option>)
+            )
+        })
 
         return (
             <MainLayout title={title} link={link} token={this.props.token} error={this.props.error}>
@@ -491,20 +495,14 @@ class PlansJournal extends Component {
                     onChangeFilter={this.changeFilter}
                 >
 
-                    <Row className='mt-3'>
+                    <Row className='mb-3 align-items-end'>
                         <Col lg={4} className=''>
-                            <FloatingLabel
-                                style={{width: '90%', display: 'inline-block'}}
-                                controlId="searchName"
-                                label="Поиск по наименованию"
-                                className="mb-3"
-                            >
-                                <FormControl
-                                    placeholder="Поиск по наименованию"
-                                    value={this.state.search}
-                                    onChange={e => this.setState({search: e.target.value})}
-                                />
-                            </FloatingLabel>
+                            <MyInput
+                                name='Поиск по наименованию'
+                                type='text'
+                                value={this.state.search}
+                                onChange={e => this.setState({search: e.target.value})}
+                            />
 
                             {this.state.search ? (
                                 <Button
@@ -521,23 +519,15 @@ class PlansJournal extends Component {
 
                         {numbersSectors <= 1 ? <Col lg={2} /> : (
                             <Col lg={2}>
-                                <FloatingLabel
-                                    controlId="floatingInput"
-                                    label="Выберите участок"
-                                    className="mb-3"
-                                >
-                                    <Form.Select
-                                        value={activeSector}
-                                        onChange={(e) => {
-                                            this.setState({activeSector: e.target.value})
-                                        }}>
-                                        {sectors.map((sector, i) => {
-                                            return (
-                                                <option value={sector} key={i}>{sector}</option>
-                                            )
-                                        })}
-                                    </Form.Select>
-                                </FloatingLabel>
+                                <MySelect
+                                    name='Выберите участок'
+                                    value={activeSector}
+                                    onChange={(e) => {
+                                        this.setState({loading: true})
+                                        this.setState({activeSector: e.target.value})
+                                    }}
+                                    option={optionSector}
+                                />
                             </Col>
                         )}
                         <Col lg={2} />
@@ -558,8 +548,8 @@ class PlansJournal extends Component {
                         </Col>
                     </Row>
 
-                    {this.state.loading ? (
-                        <Loading/>
+                    {loading ? (
+                        <Loading />
                     ) : this.state.noSearch ? (
                         <Col className='text-muted text-center'>{this.state.noSearch}</Col>
                     ) : (

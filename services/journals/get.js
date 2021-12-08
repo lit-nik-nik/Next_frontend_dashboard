@@ -14,9 +14,7 @@ export const getOrderJournal = async (id, token) => {
             forFuture: []
         }
 
-    if (token) await myAxios.get(`/api/journals/${id}`, myOptions(token))
-        .then(res => journal = res.data.journal)
-    else await myAxios.get(`/api/journals/${id}`)
+    await myAxios.get(`/api/journals/${id}`, myOptions(token))
         .then(res => journal = res.data.journal)
 
     if (journal.length > 1) {
