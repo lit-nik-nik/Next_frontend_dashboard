@@ -7,6 +7,7 @@ import {withRouter} from "next/router";
 import {getTokenCookies} from "../../../../modules/cookie";
 import {getWeekSalary} from "../../../../services/journals/get";
 import JournalLayout from "../../../../components/layout/journals";
+import {MySelect} from "../../../../components/elements/";
 
 class PeriodSalary extends Component {
 
@@ -393,22 +394,16 @@ class PeriodSalary extends Component {
                     activePage={'salary'}
                     activeSalary={activeSalary}
                 >
-                    <Row className='mt-3'>
-                        <Col lg={4}>
-                            <InputGroup className="mb-3">
-                                <InputGroup.Text>Выберите участок</InputGroup.Text>
-                                <Form.Select
-                                    value={sector}
-                                    onChange={(e) => {
-                                        this.setState({sector: e.target.value})
-                                    }}>
-                                    {allSectors.map((sector, i) => {
-                                        return (
-                                            <option value={sector} key={i}>{sector}</option>
-                                        )
-                                    })}
-                                </Form.Select>
-                            </InputGroup>
+                    <Row>
+                        <Col lg={3}>
+                            <MySelect
+                                name={'Выберите участок'}
+                                value={sector}
+                                onChange={(e) => {
+                                    this.setState({sector: e.target.value})
+                                }}
+                                option={allSectors}
+                            />
                         </Col>
                     </Row>
 

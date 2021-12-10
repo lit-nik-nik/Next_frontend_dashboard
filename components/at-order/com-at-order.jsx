@@ -1,16 +1,15 @@
-import {Button, Col, Alert, Form, InputGroup, Row, Table, Modal, Spinner} from "react-bootstrap"
+import {Alert, Button, Col, Form, InputGroup, Modal, Row, Spinner, Table} from "react-bootstrap"
 import React, {Component} from "react";
 import Thead from "../../modules/tables/thead";
 import Tbody from "../../modules/tables/tbody";
 import {changeKeyboard} from "../../modules/change-keyboard";
-import {getOrderAt} from "../../services/at-order/get";
+import {getOrderAt, getServerTime} from "../../services/at-order/get";
 import {addExtraData, postAtOrders} from "../../services/at-order/post";
 import ModalWindow from "../../modules/modals/modal";
 import {decriptedStr, encritptedStr} from "../../modules/encription";
-import { format } from 'date-fns'
+import {format} from 'date-fns'
 import CustomError from "../../modules/error";
 import {MyInput, MySelect} from "../elements/input";
-import Loading from "../../modules/loading";
 
 export default class CompAccTransOrder extends Component {
 
@@ -56,7 +55,6 @@ export default class CompAccTransOrder extends Component {
                 extraDataDisabled: true
             },
             date: {
-                tzoffset: new Date().getTimezoneOffset() * 60000,
                 label: 'Дата',
                 id: 'data',
                 value: '',
@@ -107,7 +105,6 @@ export default class CompAccTransOrder extends Component {
         if (this.props.barcodes) await this.setState(({users: this.props.barcodes}))
 
         this.addHint(1)
-        this.addDate()
 
         if (localStorage.getItem('transfer')) {
             const transfer = decriptedStr(localStorage.getItem('transfer'))
@@ -206,7 +203,16 @@ export default class CompAccTransOrder extends Component {
                     this.clearValue('transfer')
                     this.clearValue('accepted')
                 })
+
+            this.receiveServerTime()
         }
+    }
+
+    // получение серверного времени
+    receiveServerTime = async () => {
+        let time = await getServerTime()
+
+        this.addDate(time)
     }
 
     // добавление ошибки
@@ -331,7 +337,7 @@ export default class CompAccTransOrder extends Component {
 
     // добавление доп свойств к заказу
     addExtraData = (id) => {
-        const {extraData} = this.state
+        const {extraData, data} = this.state
         let orderExtraData = [],
             extraTime, extraDate
 
@@ -343,8 +349,8 @@ export default class CompAccTransOrder extends Component {
             orderExtraData.push(newExtra)
         })
 
-        extraTime = format(new Date(this.props.date), "HH:mm")
-        extraDate = format(new Date(this.props.date), "yyyy-MM-dd")
+        extraTime = format(new Date(data.date.isoValue), "HH:mm")
+        extraDate = format(new Date(data.date.isoValue), "yyyy-MM-dd")
 
         this.setState(({data}) => {
             return (
@@ -358,31 +364,27 @@ export default class CompAccTransOrder extends Component {
     }
 
     // добавление даты передачи заказа
-    addDate = async (localDate) => {
+    addDate = async (time) => {
         const {date} = this.state.data,
-            nowDate = format(new Date(this.props.date), "yyyy-MM-dd'T'HH:mm:ss")
-        let isoDate
+            serverDate = format(new Date(time), "yyyy-MM-dd'T'HH:mm:ss")
 
-        if (localDate) {
-            await this.setState(({data}) => data.date.value = localDate)
-        } else {
-            if (!date.value) {
-                await this.setState(({data}) => data.date.value = nowDate)
-            }
+        if (time) {
+            await this.setState(({data}) => data.date.value = serverDate)
         }
 
-        if (date.value > nowDate) {
+        if (date.value > serverDate) {
             this.addError('Будущее еще не наступило')
-            await this.setState(({data}) => data.date.value = nowDate)
+            await this.setState(({data}) => data.date.value = serverDate)
         } else {
             if (date.value) {
-                isoDate = new Date(date.value)
+                const isoDate = new Date(data.value)
 
                 await this.setState(({data}) => {
                     return (
                         data.date.isoValue = isoDate,
-                            data.date.disabled = true
+                        data.date.disabled = true
                     )
+
                 })
             }
         }
@@ -521,8 +523,8 @@ export default class CompAccTransOrder extends Component {
                     extraTime = format(new Date(data.data), "HH:mm")
                     extraDate = format(new Date(data.data), "yyyy-MM-dd")
                 } else {
-                    extraTime = format(new Date(this.props.date), "HH:mm")
-                    extraDate = format(new Date(this.props.date), "yyyy-MM-dd")
+                    extraTime = format(new Date(data.date.isoValue), "HH:mm")
+                    extraDate = format(new Date(data.date.isoValue), "yyyy-MM-dd")
                 }
             }
         })
@@ -543,8 +545,8 @@ export default class CompAccTransOrder extends Component {
         const {order} = this.state.data
         let extraDate, extraTime, newDate
 
-        extraTime = format(new Date(this.props.date), "HH:mm")
-        extraDate = format(new Date(this.props.date), "yyyy-MM-dd")
+        extraTime = format(new Date(data.date.isoValue), "HH:mm")
+        extraDate = format(new Date(data.date.isoValue), "yyyy-MM-dd")
 
         if (value.includes('-')) {
             this.setState(({data}) => data.order.extraDate = value)
@@ -603,9 +605,7 @@ export default class CompAccTransOrder extends Component {
             option.push(<option key='0' value='' />)
 
             obj.list.map((item, iL) => {
-                let upperItem = item
-
-                option.push(<option key={iL} value={item}>{upperItem}</option>)
+                option.push(<option key={iL} value={item}>{item}</option>)
             })
 
             return (
@@ -654,12 +654,12 @@ export default class CompAccTransOrder extends Component {
     saveAllExtraData = async () => {
         const {data} = this.state
         const {order} = data
-        let allExtraData = [...data.allExtraData], i = 0, newDate, propsDate, extraDate, newExtraData = []
+        let allExtraData = [...data.allExtraData], i = 0, newDate, serverDate, extraDate, newExtraData = []
 
         newDate = new Date(`${order.extraDate}T${order.extraTime}`)
-        propsDate = new Date(this.props.date)
+        serverDate = new Date(data.date.isoValue)
 
-        if (newDate > propsDate) extraDate = propsDate
+        if (newDate > serverDate) extraDate = serverDate
         else extraDate = newDate
 
         order.extraData.map(data => {
@@ -808,7 +808,6 @@ export default class CompAccTransOrder extends Component {
             localStorage.removeItem('date')
             localStorage.removeItem('orders')
             localStorage.removeItem('extraData')
-            this.addDate()
             this.addHint(1)
         }
     }

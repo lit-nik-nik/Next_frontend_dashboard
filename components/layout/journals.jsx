@@ -51,7 +51,7 @@ export default class JournalLayout extends Component {
                         {pages.map((page, i) => {
                             return (
                                 <Link href={`/journal/${journalID}/${page.type}`} key={i}>
-                                    <a className={`btn btn btn-outline-${page.button} me-3 ${page.type.includes(activePage) ? 'active' : null}`}>
+                                    <a className={`btn btn btn-outline-${page.button} me-3 shadow ${page.type.includes(activePage) ? 'active' : null}`}>
                                         {page.name}
                                     </a>
                                 </Link>
@@ -64,12 +64,21 @@ export default class JournalLayout extends Component {
                                     <Button
                                         type='button'
                                         variant={`outline-${filter.button}`}
-                                        className='me-3'
+                                        className='me-3 shadow position-relative'
                                         active={activeFilter === filter.type}
                                         key={i}
                                         onClick={() => onChangeFilter(filter.type)}
                                     >
-                                        {filter.name} ({filter.number})
+                                        {filter.name}
+
+                                        {filter.number !== 0 ? (
+                                            <span
+                                                className={`position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark`}
+                                            >
+                                                {filter.number}
+                                            </span>
+                                        ) : null}
+
                                     </Button>
                                 )
                             })
@@ -77,23 +86,13 @@ export default class JournalLayout extends Component {
                                 return (
                                     <Link href={`/journal/${journalID}/salary/${salary.type}`} key={i}>
                                         <a
-                                            className={`btn btn-outline-${salary.button} me-3 ${activeSalary === salary.type ? 'active' : null}`}
+                                            className={`btn btn-outline-${salary.button} me-3 shadow ${activeSalary === salary.type ? 'active' : null}`}
                                         >
                                             {salary.name}
                                         </a>
                                     </Link>
                                 )
-                            })
-                                : changeOpenFilter ? <Button
-                                    type='button'
-                                    variant='outline-dark'
-                                    className='me-3'
-                                    active={openFilter}
-                                    onClick={() => changeOpenFilter()}
-                                >
-                                    {openFilter ? 'Скрыть фильтры' : 'Открыть фильтры'}
-                                </Button>
-                                    : null
+                            }) : null
                         }
                     </Col>
                 </Row>

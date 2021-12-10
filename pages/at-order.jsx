@@ -20,7 +20,7 @@ class AccTransOrder extends Component {
 
     // Отображение страницы
     render() {
-        const {barcodes, date} = this.props
+        const {barcodes} = this.props
 
         return (
             <MainLayout
@@ -29,7 +29,7 @@ class AccTransOrder extends Component {
                 token={this.props.token}
                 error={this.props.error}>
 
-                <CompAccTransOrder barcodes={barcodes} date={date}/>
+                <CompAccTransOrder barcodes={barcodes} />
 
             </MainLayout>
         )
@@ -40,9 +40,7 @@ export default withRouter(AccTransOrder)
 
 export async function getServerSideProps() {
 
-    let barcodes, error, date
-
-    date = new Date().getTime()
+    let barcodes, error
 
     await getBarcodes()
         .then(res  => barcodes = res.data.barcodes)
@@ -51,8 +49,7 @@ export async function getServerSideProps() {
     if (barcodes) {
         return {
             props: {
-                barcodes,
-                date
+                barcodes
             }
         }
     }

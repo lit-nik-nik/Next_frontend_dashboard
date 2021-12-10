@@ -477,8 +477,6 @@ class PlansJournal extends Component {
 
         let optionSector = []
 
-        console.log(loading)
-
         sectors.map((sector, i) => {
             return (
                 optionSector.push(<option value={sector} key={i}>{sector}</option>)
@@ -534,13 +532,15 @@ class PlansJournal extends Component {
 
                         <Col lg={3} className='text-end'>
                             <Alert
-                                className='m-0 p-0'
+                                className='text-end m-0 p-0 text-black-50 fst-italic'
+                                style={{fontSize: '12px'}}
                                 variant='light'
                             >
                                 Участок - {activeSector}
                             </Alert>
                             <Alert
-                                className='m-0 p-0'
+                                className='text-end m-0 p-0 text-black-50 fst-italic'
+                                style={{fontSize: '12px'}}
                                 variant='light'
                             >
                                 Общая площадь - {squareOrders} м2
@@ -637,10 +637,6 @@ export async function getServerSideProps({req,query}) {
     const id = query.id
 
     let journal, error
-
-    // await getOrderJournal(id, token)
-    //     .then(res  => journal = res.data.journal)
-    //     .catch(err => error = err.response?.data)
 
     journal = await getOrderJournal(id, token)
 

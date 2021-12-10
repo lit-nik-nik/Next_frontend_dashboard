@@ -1,4 +1,5 @@
 import {myAxios, myOptions} from "../settings";
+import {IPlanOrder} from "../../types/plans-order-types";
 
 export const getJournals = async (token) => {
     return await myAxios.get(`/api/journals/get-journals`, myOptions(token))
@@ -45,6 +46,7 @@ export const getWeekSalary = async (id, token) => {
 export const getTransaction = async (id, token) => {
     return await myAxios.get(`/api/at-order/salary-report/${id}`, myOptions(token))
 }
+
 
 
 

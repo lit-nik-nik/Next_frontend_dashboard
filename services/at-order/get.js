@@ -7,3 +7,12 @@ export const getBarcodes = async () => {
 export const getOrderAt = async (id) => {
     return await myAxios.get(`/orders/exists/${id}`)
 }
+
+export const getServerTime = async () => {
+    let time
+
+    await myAxios.get(`/api/time`)
+        .then(res => time = res.data.ts)
+
+    return time
+}

@@ -3,7 +3,7 @@ import {getAdoptedOrderJournal} from "../../../services/journals/get";
 import {globalState} from "../../../data/globalState";
 import Thead from "../../../modules/tables/thead";
 import Tbody from "../../../modules/tables/tbody";
-import {Table, Row, Col, Alert, FormControl, Button, InputGroup, Form, FloatingLabel, Spinner} from "react-bootstrap";
+import {Table, Row, Col, Alert, Button, Toast} from "react-bootstrap";
 import PaginationTable from "../../../modules/pagination";
 import Loading from "../../../modules/loading";
 import CustomError from "../../../modules/error";
@@ -13,6 +13,7 @@ import {MainLayout} from "../../../components/layout/main";
 import JournalLayout from "../../../components/layout/journals";
 import {format, previousMonday, previousSunday, startOfWeek, endOfWeek} from 'date-fns'
 import {MyInput} from "../../../components/elements";
+import {getServerTime} from "../../../services/at-order/get";
 
 class AllOrdersJournal extends Component {
 
@@ -22,7 +23,34 @@ class AllOrdersJournal extends Component {
 
     state = {
         title: 'Выполненные заказы',
-        filters: [],
+        date: null,
+        filterButtons: [
+            {
+                type: 'today',
+                name: 'Сегодня',
+                button: 'secondary',
+                number: 0
+            },
+            {
+                type: 'current-week',
+                name: 'Текущая неделя',
+                button: 'secondary',
+                number: 0
+            },
+            {
+                type: 'last-week',
+                name: 'Прошлая неделя',
+                button: 'secondary',
+                number: 0
+            },
+            {
+                type: 'all',
+                name: 'Все заказы',
+                button: 'secondary',
+                number: 0
+            },
+        ],
+        activeFiltersButtons: 'all',
         allOrders: [],
         squareOrders: 0,
         counts: null,
@@ -46,6 +74,8 @@ class AllOrdersJournal extends Component {
     }
 
     async componentDidMount() {
+        await this.receiveServerDate()
+
         if (this.props.data.count === 0) {
             this.setState({noSearch: 'Данные находятся за гранью доступного'})
             this.setState({loading: false})
@@ -56,7 +86,7 @@ class AllOrdersJournal extends Component {
         this.setState({link: this.props.router.asPath})
         await this.addData(this.props.data)
         this.renderHeader()
-        this.countSquare()
+        await this.countSquare()
     }
 
     async componentDidUpdate(prevProps, prevState, snapshot) {
@@ -66,8 +96,15 @@ class AllOrdersJournal extends Component {
         }
 
         if (this.state.allOrders !== prevState.allOrders) {
-            this.countSquare()
+            await this.countSquare()
         }
+    }
+
+    // получение даты
+    receiveServerDate = async () => {
+        let date = new Date(await getServerTime())
+
+        this.setState({date})
     }
 
     // внесенние полученных данных в state
@@ -145,70 +182,51 @@ class AllOrdersJournal extends Component {
         this.setState({allOrders: []})
     }
 
-    // отображение заказов за сегодня
-    filterTodayOrder = async () => {
-        let d = new Date(JSON.parse(this.props.date)),
-            date = format(d, 'yyyy-MM-dd')
-
-        await this.setState(({filter}) => {
-            return (
-                filter.startDate = date,
-                filter.endDate = date
-            )
-        })
-
-        this.setState({activePage: 1})
-
-        this.changeData()
-    }
-
-    // отображение заказов за прошедшую неделю
-    filterLastWeekOrder = async () => {
-        let d = new Date(JSON.parse(this.props.date)),
-            prevSunday = previousSunday(d),
+    // фильтрация заказов
+    filterOrders = async (id) => {
+        const {date} = this.state,
+            currentDay = format(date, 'yyyy-MM-dd'),
+            prevSunday = previousSunday(date),
             lastSunday = format(prevSunday, 'yyyy-MM-dd'),
-            lastMonday = format(previousMonday(prevSunday), 'yyyy-MM-dd')
-
-        await this.setState(({filter}) => {
-            return (
-                filter.startDate = lastMonday,
-                filter.endDate = lastSunday
-            )
-        })
+            lastMonday = format(previousMonday(prevSunday), 'yyyy-MM-dd'),
+            currentMonday = format(startOfWeek(date, { weekStartsOn: 1 }), 'yyyy-MM-dd'),
+            currentSunday = format(endOfWeek(date, { weekStartsOn: 1 }), 'yyyy-MM-dd')
 
         this.setState({activePage: 1})
+        this.setState({activeFiltersButtons: id})
 
-        this.changeData()
-    }
-
-    // отображение заказов за текущую неделю
-    filterCurrentWeekOrder = async () => {
-        let d = new Date(JSON.parse(this.props.date)),
-            currentMonday = format(startOfWeek(d, { weekStartsOn: 1 }), 'yyyy-MM-dd'),
-            currentSunday = format(endOfWeek(d, { weekStartsOn: 1 }), 'yyyy-MM-dd')
-
-        await this.setState(({filter}) => {
-            return (
-                filter.startDate = currentMonday,
-                filter.endDate = currentSunday
-            )
-        })
-
-        this.setState({activePage: 1})
-
-        this.changeData()
-    }
-
-    // отображение всех заказов
-    filterAllOrder = async () => {
-        await this.setState(({filter}) => {
-            return (
-                filter.startDate = '',
-                filter.endDate = ''
-            )
-        })
-
-        this.setState({activePage: 1})
+        if (id === 'today') {
+            await this.setState(({filter}) => {
+                return (
+                    filter.startDate = currentDay,
+                    filter.endDate = currentDay
+                )
+            })
+        }
+        else if (id === 'current-week') {
+            await this.setState(({filter}) => {
+                return (
+                    filter.startDate = currentMonday,
+                    filter.endDate = currentSunday
+                )
+            })
+        }
+        else if (id === 'last-week') {
+            await this.setState(({filter}) => {
+                return (
+                    filter.startDate = lastMonday,
+                    filter.endDate = lastSunday
+                )
+            })
+        }
+        else {
+            await this.setState(({filter}) => {
+                return (
+                    filter.startDate = '',
+                    filter.endDate = ''
+                )
+            })
+        }
 
         this.changeData()
     }
@@ -243,25 +261,21 @@ class AllOrdersJournal extends Component {
     }
 
     render() {
-        const {headerTable, paramsTable, allOrders, activePage, pages, error, link, title, filter, activeFilter, squareOrders} = this.state
+        const {headerTable, paramsTable, allOrders, activePage, pages, error, link, title,
+            filter, filterButtons, activeFiltersButtons, activeFilter, squareOrders} = this.state
 
         return (
             <MainLayout title={title} link={link} token={this.props.token} error={this.props.error}>
                 <JournalLayout
                     journalID={this.props.id}
                     activePage={'all-orders'}
-                    changeOpenFilter={() => this.setState({activeFilter: !this.state.activeFilter})}
-                    openFilter={activeFilter}
+                    filters={filterButtons}
+                    onChangeFilter={this.filterOrders}
+                    activeFilter={activeFiltersButtons}
                 >
                     <Row>
-                        <Col lg={activeFilter ? 10 : 12}>
+                        <Col>
                             <Row className='align-items-end'>
-                                <Col lg={12} className='text-center'>
-                                    <h3>
-                                        {title}
-                                    </h3>
-                                </Col>
-
                                 <Col>
                                     <MyInput
                                         name='Произвольный поиск'
@@ -271,38 +285,21 @@ class AllOrdersJournal extends Component {
                                 </Col>
 
                                 <Col className='mt-2 text-center' lg={5}>
-                                    <Button
-                                        variant='outline-secondary'
-                                        className='me-3'
-                                        onClick={() => this.filterTodayOrder()}
-                                    >
-                                        Сегодня
-                                    </Button>
-                                    <Button
-                                        variant='outline-secondary'
-                                        className='me-3'
-                                        onClick={() => this.filterCurrentWeekOrder()}
-                                    >
-                                        Текущая неделя
-                                    </Button>
-                                    <Button
-                                        variant='outline-secondary'
-                                        className='me-3'
-                                        onClick={() => this.filterLastWeekOrder()}
-                                    >
-                                        Прошедшая неделя
-                                    </Button>
-                                    <Button
-                                        variant='outline-secondary'
-                                        className='me-3'
-                                        onClick={() => this.filterAllOrder()}
-                                    >
-                                        Все
-                                    </Button>
+                                    <h3 className='text-uppercase'>
+                                        {title}
+                                    </h3>
                                 </Col>
 
-                                <Col className='mt-2 text-center'>
-
+                                <Col className='mt-2 text-end'>
+                                    <Button
+                                        type='button'
+                                        variant='outline-dark'
+                                        className='me-3 shadow'
+                                        active={activeFilter}
+                                        onClick={() => this.setState({activeFilter: !this.state.activeFilter})}
+                                    >
+                                        {activeFilter ? 'Скрыть фильтры' : 'Открыть фильтры'}
+                                    </Button>
                                 </Col>
                             </Row>
 
@@ -320,20 +317,22 @@ class AllOrdersJournal extends Component {
                                         </Col>
                                         <Col lg={6} className='text-end mb-2'>
                                             <Alert
-                                                className='m-0 p-0'
+                                                className='text-end m-0 p-0 text-black-50 fst-italic'
+                                                style={{fontSize: '12px'}}
                                                 variant='light'
                                             >
                                                 Всего заказов - {this.state.counts} на {this.state.pages} страниц
                                             </Alert>
                                             <Alert
-                                                className='m-0 p-0'
+                                                className='text-end m-0 p-0 text-black-50 fst-italic'
+                                                style={{fontSize: '12px'}}
                                                 variant='light'
                                             >
                                                 Общая площадь - {squareOrders} м2
                                             </Alert>
                                         </Col>
 
-                                        <Col lg={12} style={{height: '65vh', overflow: "auto"}}>
+                                        <Col lg={12} style={{height: '70vh', overflow: "auto"}}>
                                             <Table hover bordered variant={'dark'} size='sm'>
                                                 <Thead title={headerTable}/>
                                                 <Tbody orders={allOrders} params={paramsTable} color={'table-light'}/>
@@ -343,40 +342,47 @@ class AllOrdersJournal extends Component {
                                 </>
                             )}
                         </Col>
-                        <Col lg={2} className={`${activeFilter ? null : 'd-none'} border border-top-0 border-end-0 border-bottom-0 pt-3`}>
-                            <Row>
-                                <Col lg={12} className='mb-3 text-center'>Фильтры</Col>
 
-                                <Col lg={12} className='mb-3'>
-                                    <MyInput
-                                        name='Кол-во заказов на странице'
-                                        value={filter.limit}
-                                        onChange={async (e) => this.filterTimeout('limit', e.target.value)}
-                                    />
-                                </Col>
+                        <Toast
+                            show={activeFilter}
+                            onClose={() => this.setState({activeFilter: !this.state.activeFilter})}
+                            className='position-absolute top-20 bg-white'
+                            style={{right: '10px'}}
+                        >
+                            <Toast.Header>
+                                <strong className="me-auto">Фильтры</strong>
+                            </Toast.Header>
+                            <Toast.Body>
+                                <Row>
+                                    <Col lg={12} className='mb-3'>
+                                        <MyInput
+                                            name='Кол-во заказов на странице'
+                                            value={filter.limit}
+                                            onChange={async (e) => this.filterTimeout('limit', e.target.value)}
+                                        />
+                                    </Col>
 
-                                <Col lg={12} className='mb-3'>
-                                    <MyInput
-                                        name='Дата начала'
-                                        type='date'
-                                        value={filter.startDate}
-                                        onChange={(e) => this.filterTimeout('startDate', e.target.value)}
-                                    />
-                                </Col>
+                                    <Col lg={12} className='mb-3'>
+                                        <MyInput
+                                            name='Дата начала'
+                                            type='date'
+                                            value={filter.startDate}
+                                            onChange={(e) => this.filterTimeout('startDate', e.target.value)}
+                                        />
+                                    </Col>
 
-                                <Col lg={12} className='mb-3'>
-                                    <MyInput
-                                        name='Дата окончания'
-                                        type='date'
-                                        value={filter.endDate}
-                                        onChange={(e) => this.filterTimeout('endDate', e.target.value)}
-                                    />
-                                </Col>
-                            </Row>
-                        </Col>
+                                    <Col lg={12} className='mb-3'>
+                                        <MyInput
+                                            name='Дата окончания'
+                                            type='date'
+                                            value={filter.endDate}
+                                            onChange={(e) => this.filterTimeout('endDate', e.target.value)}
+                                        />
+                                    </Col>
+                                </Row>
+                            </Toast.Body>
+                        </Toast>
                     </Row>
-
-
 
                     <CustomError error={error} />
                 </JournalLayout>
@@ -393,7 +399,7 @@ export async function getServerSideProps({req,query}) {
     const token = getTokenCookies(req.headers.cookie)
     const id = query.id
 
-    let data, error, date = new Date()
+    let data, error
 
     await getAdoptedOrderJournal(id, token)
         .then(res  => data = res.data)
@@ -403,8 +409,7 @@ export async function getServerSideProps({req,query}) {
         return {
             props: {
                 data,
-                id,
-                date: JSON.stringify(date)
+                id
             }
         }
     } else if (error) {

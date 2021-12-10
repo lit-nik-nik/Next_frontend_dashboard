@@ -15,7 +15,7 @@ export const MyInput = ({name, type, value, onChange}) => {
             <Form.Control
                 type={type ? type : 'text'}
                 value={value}
-                className='border-0 border-bottom rounded-0 bg-light'
+                className='border-0 border-bottom rounded-0 bg-light shadow-sm'
                 onChange={e => onChange(e)}
             />
         </>
@@ -35,7 +35,7 @@ export const MySelect = ({name, value, onChange, option}) => {
 
             <Form.Select
                 value={value}
-                className='border-0 border-bottom rounded-0 bg-light'
+                className='border-0 border-bottom rounded-0 bg-light shadow-sm'
                 onChange={e => onChange(e)}
             >
                 {option}

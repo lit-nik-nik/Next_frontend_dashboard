@@ -31,7 +31,7 @@ class AccTransOrder extends Component {
                 error={this.props.error}
             >
                 <div className='m-3'>
-                    <CompAccTransOrder barcodes={barcodes} date={date} />
+                    <CompAccTransOrder barcodes={barcodes} />
                 </div>
 
             </NologinLayout>
@@ -43,9 +43,7 @@ export default withRouter(AccTransOrder)
 
 export async function getServerSideProps() {
 
-    let barcodes, error, date
-
-    date = new Date().getTime()
+    let barcodes, error
 
     await getBarcodes()
         .then(res  => barcodes = res.data.barcodes)
@@ -54,8 +52,7 @@ export async function getServerSideProps() {
     if (barcodes) {
         return {
             props: {
-                barcodes,
-                date
+                barcodes
             }
         }
     }

@@ -30,8 +30,8 @@ export default class PaginationTable extends Component {
         const {pagesCount} = this.state
 
         const pageCount = pagesCount.map((page, i) => {
-            if (page < activePage + 10) {
-                if (page > activePage - 10) {
+            if (page < activePage + 5) {
+                if (page > activePage - 5) {
                     let active = '';
 
                     if (page === activePage) active = 'active'
@@ -40,7 +40,7 @@ export default class PaginationTable extends Component {
                         <li key={i} className={"page-item " + active}>
                             <Button
                                 type='link'
-                                className="page-link"
+                                className="page-link me-2 shadow-sm border"
                                 disabled={active}
                                 onClick={() => onClick(page)}
                             >
@@ -52,15 +52,24 @@ export default class PaginationTable extends Component {
             }
         })
 
-        const pageEllipsis = <Pagination.Ellipsis disabled/>
+        const pageEllipsis = <li className="page-item align-items-end">
+            <Button
+                type='link'
+                variant='outline-light'
+                className="page-link border-0 text-dark"
+                disabled
+            >
+                ...
+            </Button>
+        </li>
 
         return (
             <Pagination className='text-right'>
-                <li className={"page-item"}>
+                <li className="page-item">
                     <Button
                         type='link'
                         variant='dark'
-                        className="page-link"
+                        className="page-link me-2 shadow-sm"
                         disabled={activePage === 1}
                         onClick={() => onClick(1)}
                     >
@@ -68,15 +77,15 @@ export default class PaginationTable extends Component {
                     </Button>
                 </li>
                 
-                {pageEllipsis}
+                {lastPage > 5 && activePage > 5 ? pageEllipsis : null}
                 {pageCount}
-                {pageEllipsis}
+                {lastPage > 5 && activePage < lastPage - 4 ? pageEllipsis : null}
 
-                <li className={"page-item"}>
+                <li className="page-item">
                     <Button
                         type='link'
                         variant='dark'
-                        className="page-link"
+                        className="page-link me-2 shadow-sm border"
                         disabled={activePage === lastPage}
                         onClick={() => onClick(lastPage)}
                     >
