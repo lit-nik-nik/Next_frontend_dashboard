@@ -1,7 +1,14 @@
 import {Row, Col} from "react-bootstrap";
 import Link from "next/link";
+import Router from "next/router";
 
 export default function Custom404() {
+    const redirect = () => {
+        typeof window !== 'undefined' && Router.push('/')
+    }
+
+    setTimeout(redirect, 3000)
+
     return (
         <>
             <Row style={{height: '100vh', width: '100%'}} className='bg-image-404'>

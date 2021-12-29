@@ -1,7 +1,23 @@
 import {Alert, Form} from "react-bootstrap";
 import React from "react";
 
-export const MyInput = ({name, type, value, onChange}) => {
+type Input = {
+    name: string,
+    type?: string,
+    value: string,
+    onChange: any,
+    onKeyPress?: any,
+    disabled?: boolean
+}
+
+type Select = {
+    name: string,
+    value: string,
+    onChange: any,
+    option: []
+}
+
+export const MyInput = ({name, type, value, onChange, onKeyPress, disabled}: Input) => {
 
     return (
         <>
@@ -15,14 +31,20 @@ export const MyInput = ({name, type, value, onChange}) => {
             <Form.Control
                 type={type ? type : 'text'}
                 value={value}
+                disabled={disabled ? disabled : false}
                 className='border-0 border-bottom rounded-0 bg-light shadow-sm'
                 onChange={e => onChange(e)}
+                onKeyPress={e => {
+                    if (e.key === 'Enter') {
+                        if (onKeyPress) onKeyPress()
+                    }
+                }}
             />
         </>
     )
 }
 
-export const MySelect = ({name, value, onChange, option}) => {
+export const MySelect = ({name, value, onChange, option}: Select) => {
     return (
         <>
             <Alert

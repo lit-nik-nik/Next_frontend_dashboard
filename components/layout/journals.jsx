@@ -1,5 +1,5 @@
 import React, {Component} from "react";
-import {Col, Button, Row} from "react-bootstrap";
+import {Col, Button, Row, Alert} from "react-bootstrap";
 import Link from "next/link";
 
 export default class JournalLayout extends Component {
@@ -17,7 +17,7 @@ export default class JournalLayout extends Component {
             },
             {
                 type: 'all-orders',
-                name: 'Переданные заказы',
+                name: 'Выполненные заказы',
                 button: 'dark'
             },
             {
@@ -42,12 +42,12 @@ export default class JournalLayout extends Component {
 
     render() {
         const {pages, filterSalary} = this.state
-        const {activePage, journalID, filters, activeFilter, onChangeFilter, activeSalary, children, changeOpenFilter, openFilter} = this.props
+        const {activePage, journalID, filters, activeFilter, onChangeFilter, activeSalary, children, title, square, changeOpenFilter, openFilter} = this.props
 
         return (
             <>
-                <Row className='sticky-top bg-white py-2 border border-end-0 border-start-0 border-top-0' style={{top: '60px', zIndex: 5}}>
-                    <Col>
+                <Row className='sticky-top bg-white py-2 border border-end-0 border-start-0 border-top-0 align-items-center' style={{top: '60px', zIndex: 5}}>
+                    <Col lg={4}>
                         {pages.map((page, i) => {
                             return (
                                 <Link href={`/journal/${journalID}/${page.type}`} key={i}>
@@ -58,7 +58,20 @@ export default class JournalLayout extends Component {
                             )
                         })}
                     </Col>
-                    <Col className='text-end'>
+                    <Col lg={3}>
+                        <div className='text-uppercase fst-italic fw-bold text-center' style={{fontSize: '16px'}}>
+                            {title}
+                        </div>
+                        {square ? (
+                            <div
+                                className='text-center m-0 p-0 fst-italic'
+                                style={{fontSize: '12px'}}
+                            >
+                                (Общая площадь - <b>{square} м2</b>)
+                            </div>
+                        ) : null}
+                    </Col>
+                    <Col lg={5} className='text-end'>
                         {filters ? filters.map((filter, i) => {
                                 return (
                                     <Button

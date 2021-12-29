@@ -1,8 +1,7 @@
 import React, {Component} from "react";
 import {Button, Col, Form, InputGroup, ListGroup, Modal, Row, Table} from "react-bootstrap";
-import Thead from "../../modules/tables/thead";
 import Link from "next/link";
-import {MainLayout} from "../../components/layout/main";
+import MainLayout from "../../components/layout/main";
 import Router, {withRouter} from "next/router";
 import {getTokenCookies} from "../../modules/cookie";
 import {getWeekSalary} from "../../services/journals/get";
@@ -774,7 +773,7 @@ class BookkeepingCalc extends Component {
                                     </ListGroup>
                                 </Col>
 
-                                {total.premium
+                                {total.allPrem
                                     ? <Col>
                                         <h3 className='text-start mb-3'>Доплаты:</h3>
                                         <hr/>
@@ -793,7 +792,7 @@ class BookkeepingCalc extends Component {
                                     : null
                                 }
 
-                                {sectorData
+                                {total.allPenalty
                                     ? <Col>
                                         <h3 className='text-start mb-3'>Удержания:</h3>
                                         <hr/>

@@ -1,4 +1,4 @@
-import {MainLayout} from "../../components/layout/main";
+import MainLayout from "../../components/layout/main";
 import {Form, Row, Col, Button, InputGroup} from 'react-bootstrap'
 import {Component} from "react";
 import {getListsOrder} from "../../services/order/create/get";

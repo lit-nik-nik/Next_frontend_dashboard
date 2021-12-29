@@ -1,11 +1,10 @@
 import {myAxios, myOptions} from "../settings";
-import {IPlanOrder} from "../../types/plans-order-types";
 
 export const getJournals = async (token) => {
     return await myAxios.get(`/api/journals/get-journals`, myOptions(token))
 }
 
-export const getOrderJournal = async (id, token) => {
+export const getOrderJournal = async (id, filter, token) => {
     let journal,
         allJournal = {
             id: 100,
@@ -13,9 +12,10 @@ export const getOrderJournal = async (id, token) => {
             overdue: [],
             forToday: [],
             forFuture: []
-        }
+        },
+        page = '', limit = '', sDate = '', eDate = ''
 
-    await myAxios.get(`/api/journals/${id}`, myOptions(token))
+    await myAxios.get(`/api/journals/${id}?_page=${page}&_limit=${limit}&_d1=${sDate}&_d2=${eDate}&_filter=${filter}`, myOptions(token))
         .then(res => journal = res.data.journal)
 
     if (journal.length > 1) {
@@ -46,6 +46,21 @@ export const getWeekSalary = async (id, token) => {
 export const getTransaction = async (id, token) => {
     return await myAxios.get(`/api/at-order/salary-report/${id}`, myOptions(token))
 }
+
+export const getSectors = async (token, id) => {
+    return await myAxios.get(`/api/journals/get-sectors?_id=${id}`, myOptions(token))
+}
+
+export const getOrdersSector = async (token: string, id: number, idSector: number, filter: string = '', search?:string) => {
+    let page = '', limit = '', sDate = '', eDate = ''
+
+    return await myAxios.get(`api/journals/plan-orders?_id=${id}&_idsector=${idSector}&_page=${page}&_limit=${limit}&_d1=${sDate}&_d2=${eDate}&_filter=${filter}`, myOptions(token))
+}
+
+export const getCommentsOrder = async (token: string, id: number) => {
+    return await myAxios(`/api/extra-data/comments/${id}`, myOptions(token))
+}
+
 
 
 

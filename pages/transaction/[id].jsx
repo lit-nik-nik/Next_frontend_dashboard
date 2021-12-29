@@ -4,8 +4,9 @@ import Thead from "../../modules/tables/thead";
 import Link from "next/link";
 import {withRouter} from "next/router";
 import {getTransaction} from "../../services/journals/get";
-import {MainLayout} from "../../components/layout/main";
+import MainLayout from "../../components/layout/main";
 import {getTokenCookies} from "../../modules/cookie";
+import {IconPrint, printPage} from "../../modules/print";
 
 class SalaryTransaction extends Component {
 
@@ -393,42 +394,21 @@ class SalaryTransaction extends Component {
         this.setState({test: cost})
     }
 
-    printPage = (id) => {
-        const printAndClose = () => {
-            WinPrint.print();
-            WinPrint.close();
-        }
-
-        const print = document.querySelector(`#${id}`),
-            table = print.querySelector('.table'),
-            bootstrapCss = '<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">';
-        table.style.fontSize = '12px'
-        let WinPrint = window.open('','','')
-        WinPrint.document.write(bootstrapCss);
-        WinPrint.document.write('<div id="print" class="mx-1">');
-        WinPrint.document.write(print.innerHTML);
-        WinPrint.document.write('</div>');
-        WinPrint.focus();
-        table.style.fontSize = '16px'
-        setTimeout(printAndClose, 400)
-    }
-
     render() {
         const {headerTable, total, link} = this.state
         const {sectors, router} = this.props
 
         return (
             <MainLayout title={`Транзакция № ${router.query.id}`} link={link} token={this.props.token} error={this.props.error}>
-                <Row className='sticky-top bg-white py-2 shadow' style={{top: '60px', zIndex: 1}}>
+                <Row className='sticky-top bg-white py-2 shadow align-items-center' style={{top: '60px', zIndex: 1}}>
                     <Col lg={2}>
                         <Button variant='outline-dark' onClick={() => this.props.router.back()}>
                             Вернуться назад
                         </Button>
                     </Col>
-                    <Col className='text-end me-3'>
-                        <Button variant='outline-info' onClick={() => this.printPage('doc-print')}>
-                            Напечатать
-                        </Button>
+                    <Col />
+                    <Col lg={1} className='text-end me-4 '>
+                        <IconPrint onClickPrint={() => printPage('doc-print')} />
                     </Col>
                 </Row>
 

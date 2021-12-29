@@ -1,9 +1,10 @@
-import {Component} from "react";
+import React, {Component} from "react";
+import {connect} from "react-redux";
 import Link from "next/link";
 import {Nav, Dropdown} from 'react-bootstrap'
 import Version from "../modules/version";
 
-export default class Navbar extends Component {
+class Navbar extends Component {
 
     state = {
         links: null
@@ -14,13 +15,14 @@ export default class Navbar extends Component {
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
+        if (this.props.user !== prevProps.user) this.addLinks()
     }
 
     addLinks = () => {
         let links = []
 
-        if (localStorage.getItem('user')) {
-            links = JSON.parse(localStorage.getItem('user')).links
+        if (this.props.user) {
+            links = this.props.user.links
         }
 
         this.setState({links})
@@ -42,7 +44,7 @@ export default class Navbar extends Component {
                         if (item.id === 'journals') {
                             subItem.push(
                                 <Link href={`${sub.link}`} key={iS}>
-                                    <a className={`nav-link ${link === sub.link ? 'active bg-dark link-light' : 'link-dark'}`} style={{fontSize: 18}}>
+                                    <a className={`nav-link py-1 ${link === sub.link ? 'active bg-dark link-light' : 'link-dark'}`} style={{fontSize: 18}}>
                                         <i className={`me-2 bi ${sub.icon}`} />
                                         {sub.label}
                                     </a>
@@ -53,7 +55,7 @@ export default class Navbar extends Component {
                                 if (perm.link === sub.link) {
                                     subItem.push(
                                         <Link href={`${sub.link}`} key={iS}>
-                                            <a className={`nav-link ${link === sub.link ? 'active bg-dark link-light' : 'link-dark'}`} style={{fontSize: 18}}>
+                                            <a className={`nav-link py-1 ${link === sub.link ? 'active bg-dark link-light' : 'link-dark'}`} style={{fontSize: 18}}>
                                                 <i className={`me-2 bi ${sub.icon}`} />
                                                 {sub.label}
                                             </a>
@@ -66,7 +68,7 @@ export default class Navbar extends Component {
 
                     if (subItem[0]) {
                         menuItem =
-                            <Dropdown drop='end' key={i}>
+                            <Dropdown drop='end' autoClose key={i}>
                                 <Dropdown.Toggle variant='light' className='text-start px-3 w-100' style={{fontSize: 18}}>
                                     <i className={`me-2 bi ${item.icon}`} />
                                     {item.label}
@@ -105,7 +107,7 @@ export default class Navbar extends Component {
     render() {
 
         return (
-            <div className={`d-flex flex-column flex-shrink-0 p-3 bg-light position-fixed col-lg-2 border-end`} style={{height: '95vh', zIndex: 10}}>
+            <div className={`d-flex flex-column flex-shrink-0 p-3 bg-light position-fixed col-lg-2 border-end`} style={{height: '95vh', zIndex: 15}}>
                 <Nav className="flex-column">
                     {this.createMenu()}
                 </Nav>
@@ -116,3 +118,8 @@ export default class Navbar extends Component {
     }
 }
 
+const mapSTP = state => ({
+    user: state.app.user
+})
+
+export default connect(mapSTP)(Navbar)

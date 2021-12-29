@@ -1,7 +1,7 @@
 import React, {Component} from "react";
-import {Card, Col, Row, Toast} from "react-bootstrap";
+import {Col, Row, Toast} from "react-bootstrap";
 import Link from "next/link";
-import {MainLayout} from "../../../../components/layout/main";
+import MainLayout from "../../../../components/layout/main";
 import {withRouter} from "next/router";
 import {getTokenCookies} from "../../../../modules/cookie";
 import {getTransactionSalary} from "../../../../services/journals/get";
@@ -32,30 +32,12 @@ class AllTransactionSalary extends Component {
                     journalID={journalID}
                     activePage={'salary'}
                     activeSalary={activeSalary}
+                    title={`Выплаченные транзакции`}
                 >
                     <Row>
                         {transactions ? transactions.map((item, i) => {
                             return (
                                 <Col lg={3} className='my-3 text-center' key={i}>
-                                    {/*<Card className='shadow'>*/}
-                                    {/*    <Card.Header*/}
-                                    {/*        className='shadow-sm'*/}
-                                    {/*    >*/}
-                                    {/*        Транзакция № {item.ID} от {new Date(item.DATE_ADDED).toLocaleString().slice(0, 10)}*/}
-                                    {/*    </Card.Header>*/}
-                                    {/*    <Card.Body>*/}
-                                    {/*        <Card.Title>{item.NAME}</Card.Title>*/}
-                                    {/*        <Card.Text>*/}
-                                    {/*            Выплачено - {item.MONEY} руб.*/}
-                                    {/*        </Card.Text>*/}
-                                    {/*        <Link href={`/transaction/${item.ID}`}>*/}
-                                    {/*            <a className='btn btn-outline-light text-dark border shadow-sm w-100'>*/}
-                                    {/*                Просмотреть*/}
-                                    {/*            </a>*/}
-                                    {/*        </Link>*/}
-                                    {/*    </Card.Body>*/}
-                                    {/*</Card>*/}
-
                                     <Toast>
                                         <Toast.Header closeButton={false}>
                                             <strong className="me-auto">Транзакция № {item.ID}</strong>

@@ -1,4 +1,5 @@
 import React, {Component} from "react";
+import {connect} from 'react-redux';
 import {getAdoptedOrderJournal} from "../../../services/journals/get";
 import {globalState} from "../../../data/globalState";
 import Thead from "../../../modules/tables/thead";
@@ -9,11 +10,14 @@ import Loading from "../../../modules/loading";
 import CustomError from "../../../modules/error";
 import {withRouter} from "next/router";
 import {getTokenCookies} from "../../../modules/cookie";
-import {MainLayout} from "../../../components/layout/main";
+import MainLayout from "../../../components/layout/main";
 import JournalLayout from "../../../components/layout/journals";
 import {format, previousMonday, previousSunday, startOfWeek, endOfWeek} from 'date-fns'
 import {MyInput} from "../../../components/elements";
 import {getServerTime} from "../../../services/at-order/get";
+import {setLoading, removeLoading} from "../../../redux/actions/actionsApp";
+import {IconPrint, printPage} from "../../../modules/print";
+
 
 class AllOrdersJournal extends Component {
 
@@ -91,7 +95,6 @@ class AllOrdersJournal extends Component {
 
     async componentDidUpdate(prevProps, prevState, snapshot) {
         if (this.state.activePage !== prevState.activePage) {
-            this.setState({loading: true})
             await this.changeData()
         }
 
@@ -125,13 +128,13 @@ class AllOrdersJournal extends Component {
         if (startDate) sDate = format(new Date(startDate), 'dd.MM.yyyy')
         if (endDate) eDate = format(new Date(endDate), 'dd.MM.yyyy')
 
-        this.setState({loading: true})
+        this.props.loading()
 
         await getAdoptedOrderJournal(id, token, activePage, limit, sDate, eDate, search)
             .then(res => data = res.data)
             .catch(err => error = err.response?.data)
 
-        this.setState({loading: false})
+        this.props.unloading()
 
         if (data) {
             this.addData(data)
@@ -272,6 +275,7 @@ class AllOrdersJournal extends Component {
                     filters={filterButtons}
                     onChangeFilter={this.filterOrders}
                     activeFilter={activeFiltersButtons}
+                    title={title}
                 >
                     <Row>
                         <Col>
@@ -284,11 +288,7 @@ class AllOrdersJournal extends Component {
                                     />
                                 </Col>
 
-                                <Col className='mt-2 text-center' lg={5}>
-                                    <h3 className='text-uppercase'>
-                                        {title}
-                                    </h3>
-                                </Col>
+                                <Col />
 
                                 <Col className='mt-2 text-end'>
                                     <Button
@@ -300,14 +300,14 @@ class AllOrdersJournal extends Component {
                                     >
                                         {activeFilter ? 'Скрыть фильтры' : 'Открыть фильтры'}
                                     </Button>
+
+                                    <IconPrint onClickPrint={() => printPage('doc-print')} />
                                 </Col>
                             </Row>
 
                             <hr className='mt-3 mb-2'/>
 
-                            {this.state.loading ? (
-                                <Loading/>
-                            ) : this.state.noSearch ? (
+                            {this.state.noSearch ? (
                                 <Col className='text-muted text-center'>{this.state.noSearch}</Col>
                             ) : (
                                 <>
@@ -332,7 +332,7 @@ class AllOrdersJournal extends Component {
                                             </Alert>
                                         </Col>
 
-                                        <Col lg={12} style={{height: '70vh', overflow: "auto"}}>
+                                        <Col id='doc-print' lg={12} style={{height: '70vh', overflow: "auto"}}>
                                             <Table hover bordered variant={'dark'} size='sm'>
                                                 <Thead title={headerTable}/>
                                                 <Tbody orders={allOrders} params={paramsTable} color={'table-light'}/>
@@ -355,6 +355,26 @@ class AllOrdersJournal extends Component {
                             <Toast.Body>
                                 <Row>
                                     <Col lg={12} className='mb-3'>
+                                        <Button
+                                            variant={"outline-dark"}
+                                            className={'mb-2 w-100'}
+                                        >
+                                            Принятые
+                                        </Button>
+                                        <Button
+                                            variant={"outline-dark"}
+                                            className={'mb-2 w-100'}
+
+                                        >
+                                            Упакован
+                                        </Button>
+                                        <Button
+                                            variant={"outline-dark"}
+                                            className={'mb-2 w-100'}
+                                        >
+                                            Отгружен
+                                        </Button>
+
                                         <MyInput
                                             name='Кол-во заказов на странице'
                                             value={filter.limit}
@@ -392,7 +412,7 @@ class AllOrdersJournal extends Component {
 
 }
 
-export default withRouter(AllOrdersJournal)
+export default connect(null, {loading: setLoading, unloading: removeLoading})(withRouter(AllOrdersJournal))
 
 export async function getServerSideProps({req,query}) {
 

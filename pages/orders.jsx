@@ -1,15 +1,16 @@
 import React, {Component} from "react";
-import {getAdoptedOrderJournal} from "../services/journals/get";
 import {globalState} from "../data/globalState";
 import Thead from "../modules/tables/thead";
 import Tbody from "../modules/tables/tbody";
 import {Table, Row, Col, Alert, InputGroup, FormControl, Button} from "react-bootstrap";
 import PaginationTable from "../modules/pagination";
-import Loading from "../modules/loading";
 import CustomError from "../modules/error";
 import Router, {withRouter} from "next/router";
-import {MainLayout} from "../components/layout/main";
+import MainLayout from "../components/layout/main";
 import {getOrders} from "../services/orders/get";
+import {connect} from "react-redux";
+import {setLoading, removeLoading} from "../redux/actions/actionsApp";
+import {IconPrint, printPage} from "../modules/print";
 
 class AllOrders extends Component {
 
@@ -71,16 +72,17 @@ class AllOrders extends Component {
     }
 
     getData = async () => {
-        const {token, filter} = this.props
+        const {token, filter, loading, unLoading} = this.props
         const {activePage} = this.state
 
         let error, data
+
+        loading()
 
         await getOrders(token, activePage, filter)
             .then(res => {
                 if (res.data.count === 0) {
                     this.setState({noSearch: 'Данные находятся за гранью доступного'})
-                    this.setState({loading: false})
                 } else if (res.data.count === 1) {
                     let id
 
@@ -94,6 +96,8 @@ class AllOrders extends Component {
                 }
             })
             .catch(err => error = err.response?.data)
+
+        unLoading()
 
         if (data) {
             await this.addData(data)
@@ -136,64 +140,53 @@ class AllOrders extends Component {
 
         return (
             <MainLayout title={title} link={link} token={this.props.token} error={this.props.error} search={this.props.filter}>
-                <Row>
-                    <Col className='my-3 text-center text-uppercase fw-bold'>
+                <Row className='align-items-center'>
+                    <Col lg={1} />
+                    <Col lg={10} className='mt-3 text-center text-uppercase fw-bold'>
                         <h3>{title}</h3>
                     </Col>
+                    <Col lg={1}>
+                        <IconPrint onClickPrint={() => printPage('doc-print')} />
+                    </Col>
+
+                    <hr/>
+
+                    <Col lg={6}>
+                        <PaginationTable activePage={+activePage} lastPage={pages} onClick={this.changeActivePage}/>
+                    </Col>
+                    <Col lg={6} className='text-end'>
+                        <Alert variant='light p-2'>
+                            Всего заказов - {this.state.counts} на {this.state.pages} страниц
+                        </Alert>
+                    </Col>
+
+                    {noSearch ? (
+                        <Col lg={12} className='text-center text-muted'>{noSearch}</Col>
+                    ) : (
+                        <Col id='doc-print' lg={12} className='me-3' style={{height: '75vh', overflow: "scroll"}}>
+                            <Table hover bordered variant={'dark'} size='sm'>
+                                <Thead title={headerTable}/>
+                                <Tbody orders={allOrders} params={paramsTable} color={'table-light'}/>
+                            </Table>
+                        </Col>
+                    )}
                 </Row>
 
-                <hr/>
 
-                {loading ? (
-                    <>
-                        <Row>
-                            <Col>
-                                <PaginationTable activePage={+activePage} lastPage={pages} onClick={this.changeActivePage}/>
-                            </Col>
-                            <Col className='text-end'>
-                                <Alert variant='light p-2'>
-                                    Всего заказов - {this.state.counts} на {this.state.pages} страниц
-                                </Alert>
-                            </Col>
-                        </Row>
 
-                        <Loading/>
-                    </>
-                    ) :
-                    noSearch ? (
-                        <Col className='text-center text-muted'>{noSearch}</Col>
-                    ) : (
-                        <>
-                            <Row>
-                                <Col>
-                                    <PaginationTable activePage={+activePage} lastPage={pages} onClick={this.changeActivePage}/>
-                                </Col>
-                                <Col className='text-end'>
-                                    <Alert variant='light p-2'>
-                                        Всего заказов - {this.state.counts} на {this.state.pages} страниц
-                                    </Alert>
-                                </Col>
-                            </Row>
+                <Row>
 
-                            <Row>
-                                <Col className='me-3' style={{height: '75vh', overflow: "scroll"}}>
-                                    <Table hover bordered variant={'dark'} size='sm'>
-                                        <Thead title={headerTable}/>
-                                        <Tbody orders={allOrders} params={paramsTable} color={'table-light'}/>
-                                    </Table>
-                                </Col>
-                            </Row>
-                        </>
-                )}
+                </Row>
 
-                <CustomError error={error} />
+
+
             </MainLayout>
         )
     }
 
 }
 
-export default withRouter(AllOrders)
+export default connect(null, {loading: setLoading, unLoading: removeLoading})(withRouter(AllOrders))
 
 export async function getServerSideProps({query}) {
 

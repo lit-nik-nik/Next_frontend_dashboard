@@ -4,7 +4,7 @@ export default function Version() {
     return (
         <Row>
             <Col className='text-start text-muted mb-1' style={{fontSize: '10px', position: "absolute", bottom: '15px', right: 0, zIndex: 3333}}>
-                version: 1.0.14
+                version: 1.1.0
             </Col>
         </Row>
     )

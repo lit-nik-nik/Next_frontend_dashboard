@@ -1,18 +1,18 @@
 import style from '../styles/auth.module.css'
 import React, {Component} from "react";
+import {connect} from 'react-redux';
 import {Row, Col, FloatingLabel, Form, Button} from "react-bootstrap";
 import {getUsers} from "../services/auth/get";
 import {authUser} from "../services/auth/post";
 import bcrypt from 'bcryptjs';
 import Router, {withRouter} from "next/router";
 import Link from "next/link";
-import Head from "next/head";
 import logo from "../public/logo.png"
 import Image from "next/image";
 import {changeKeyboard} from "../modules/change-keyboard";
 import Cookies from 'js-cookie'
-import CustomError from "../modules/error";
 import {NologinLayout} from "../components/layout/nologin";
+import {setError, setUser} from "../redux/actions/actionsApp";
 
 class Auth extends Component {
 
@@ -75,7 +75,7 @@ class Auth extends Component {
         })
     }
 
-    autorization = async (e) => {
+    auth = async (e) => {
         e.preventDefault()
 
         const {user, pass, barcode} = this.state.login,
@@ -199,7 +199,7 @@ class Auth extends Component {
                                             <Image src={logo} alt="Массив-Юг" />
                                         </Col>
                                     </Row>
-                                    <Form onSubmit={e => this.autorization(e)} autoComplete="off">
+                                    <Form onSubmit={e => this.auth(e)} autoComplete="off">
                                         <h1 className="h3 mb-3 fw-normal text-white text-center">Авторизация</h1>
 
                                         {variant ? barcodes : loginPass}
@@ -222,7 +222,6 @@ class Auth extends Component {
 
                                         <Button type='submit' disabled={disabled} className="w-100 btn btn-lg btn-primary">Войти</Button>
 
-                                        <CustomError error={errorData ? errorData : this.props.error} />
                                     </Form>
                                 </main>
                             </div>
@@ -235,7 +234,9 @@ class Auth extends Component {
 
 }
 
-export default withRouter(Auth)
+
+
+export default connect(null, {setError})(withRouter(Auth))
 
 export async function getServerSideProps() {
 

@@ -1,9 +1,10 @@
-import {Component} from "react";
+import React, {Component} from "react";
+import {connect} from "react-redux";
 import Link from "next/link";
 import {Dropdown, Nav, OverlayTrigger, Tooltip} from "react-bootstrap";
 import Version from "../modules/version";
 
-export default class NavbarMini extends Component {
+class NavbarMini extends Component {
 
     state = {
         links: null
@@ -14,13 +15,14 @@ export default class NavbarMini extends Component {
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
+        if (this.props.user !== prevProps.user) this.addLinks()
     }
 
     addLinks = () => {
         let links = []
 
-        if (localStorage.getItem('user')) {
-            links = JSON.parse(localStorage.getItem('user')).links
+        if (this.props.user) {
+            links = this.props.user.links
         }
 
         this.setState({links})
@@ -71,7 +73,7 @@ export default class NavbarMini extends Component {
                     })
                     if (subItem[0]) {
                         menuItem =
-                            <Dropdown drop='end' key={i}>
+                            <Dropdown drop='end' autoClose key={i}>
                                 <OverlayTrigger
                                     placement='right'
                                     delay={{ show: 250, hide: 250 }}
@@ -125,7 +127,7 @@ export default class NavbarMini extends Component {
     render() {
 
         return (
-            <div className={`d-flex flex-column flex-shrink-0 bg-light position-fixed border-end`} style={{height: '95vh', zIndex: 10}}>
+            <div className={`d-flex flex-column flex-shrink-0 bg-light position-fixed border-end`} style={{height: '95vh', zIndex: 15}}>
                 <Nav className="flex-column">
                     {this.createMenu()}
                 </Nav>
@@ -136,3 +138,8 @@ export default class NavbarMini extends Component {
     }
 }
 
+const mapSTP = state => ({
+    user: state.app.user
+})
+
+export default connect(mapSTP)(NavbarMini)

@@ -2,7 +2,7 @@ import React, {Component} from "react";
 import {Col, Form, InputGroup, ListGroup, Row, Table} from "react-bootstrap";
 import Thead from "../../../../modules/tables/thead";
 import Link from "next/link";
-import {MainLayout} from "../../../../components/layout/main";
+import MainLayout from "../../../../components/layout/main";
 import {withRouter} from "next/router";
 import {getTokenCookies} from "../../../../modules/cookie";
 import {getWeekSalary} from "../../../../services/journals/get";
@@ -388,11 +388,12 @@ class PeriodSalary extends Component {
         const {sectors} = this.props
 
         return (
-            <MainLayout title={`Предварительный недельный расчет`} link={link} token={this.props.token} error={this.props.error}>
+            <MainLayout title={`Предварительный расчет`} link={link} token={this.props.token} error={this.props.error}>
                 <JournalLayout
                     journalID={journalID}
                     activePage={'salary'}
                     activeSalary={activeSalary}
+                    title={`Предварительный расчет`}
                 >
                     <Row>
                         <Col lg={3}>
@@ -458,7 +459,7 @@ class PeriodSalary extends Component {
                                     </ListGroup>
                                 </Col>
 
-                                {total.premium
+                                {total.allPrem
                                     ? <Col>
                                         <h3 className='text-start mb-3'>Доплаты:</h3>
                                         <hr/>
@@ -467,7 +468,7 @@ class PeriodSalary extends Component {
                                     : null
                                 }
 
-                                {sectors[0].otherTransactoins.data[0]
+                                {total.allPenalty
                                     ? <Col>
                                         <h3 className='text-start mb-3'>Удержания:</h3>
                                         <hr/>

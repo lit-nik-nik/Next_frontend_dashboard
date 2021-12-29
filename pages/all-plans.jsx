@@ -1,5 +1,5 @@
 import { Col, Row } from "react-bootstrap"
-import { MainLayout } from '../components/layout/main'
+import MainLayout from '../components/layout/main'
 import {withRouter} from "next/router";
 import {Component} from "react";
 

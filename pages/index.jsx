@@ -1,10 +1,10 @@
-import { Col, Container, Row, Button } from "react-bootstrap"
-import { MainLayout } from '../components/layout/main'
+import {Button, Col, Row,} from "react-bootstrap"
+import MainLayout from '../components/layout/main'
 import {withRouter} from "next/router";
 import {Bar} from 'react-chartjs-2';
 import {Component} from "react";
-import {getTokenCookies} from "../modules/cookie";
-import {getOrderJournal} from "../services/journals/get";
+import {connect} from 'react-redux';
+import {setLoading, removeLoading} from "../redux/actions/actionsApp";
 
 class Home extends Component {
 
@@ -70,44 +70,31 @@ class Home extends Component {
         open('http://192.168.42.11:3000/', 'test', this.state.params);
     }
 
+
     render() {
         const {link, data} = this.state
         const {token} = this.props
 
         return (
             <MainLayout title='Панель управления' link={link} token={token}>
-                <Container fluid>
-                    <Row className='my-3 text-center'>
-                        <Col lg={12}>
-                            <h2>Панель управления</h2>
-                            <hr/>
-                        </Col>
+                <Row className='my-3 text-center'>
+                    <Col lg={12}>
+                        <h2>Панель управления</h2>
+                        <hr/>
+                    </Col>
 
-                        <Col lg={4}>
-                        </Col>
-                        <Col lg={4}>
-                            <Bar data={data} width={300} height={300} className='p-4 shadow rounded m-2'/>
-                        </Col>
-                        <Col lg={4}>
-                        </Col>
-                    </Row>
-                </Container>
+                    <Col lg={4}>
+
+                    </Col>
+                    <Col lg={4}>
+                        <Bar data={data} width={300} height={300} className='p-4 shadow rounded m-2'/>
+                    </Col>
+                    <Col lg={4}>
+                    </Col>
+                </Row>
             </MainLayout>
         )
     }
 }
 
-export default withRouter(Home)
-
-// export async function getServerSideProps({req, query}) {
-//
-//     const token = getTokenCookies(req.headers.cookie)
-//     const id = query.id
-//
-//     return {
-//         props: {
-//             tokenProps: token
-//         }
-//     }
-//
-// }
+export default connect(null, {loading: setLoading, unloading: removeLoading})(withRouter(Home))

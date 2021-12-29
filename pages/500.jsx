@@ -1,10 +1,14 @@
 import {Row, Col} from "react-bootstrap";
 import Link from "next/link";
-import exitApp from "../modules/exit";
+import Router from "next/router";
 
 export default function Custom500() {
 
-    exitApp()
+    const redirect = () => {
+        typeof window !== 'undefined' && Router.push('/')
+    }
+
+    setTimeout(redirect, 3000)
 
     return (
         <>

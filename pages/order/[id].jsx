@@ -1,13 +1,13 @@
 import {Button, Col, Row, Alert, Table, ListGroup} from "react-bootstrap"
 import {getImageOrder, getOrder} from "../../services/order/get"
-import { MainLayout } from "../../components/layout/main"
+import MainLayout from "../../components/layout/main"
 import { withRouter } from 'next/router'
 import {Component } from 'react'
 import Thead from "../../modules/tables/thead";
 import ModalImage from "../../modules/modals/modal-images";
 import {getTokenCookies} from "../../modules/cookie";
-import {log10} from "chart.js/helpers";
 import Loading from "../../modules/loading";
+import {IconPrint, printPage} from "../../modules/print";
 
 class Order extends Component {
 
@@ -214,7 +214,7 @@ class Order extends Component {
             if (
                 key === 'priceCost' ||
                 key === 'cost'
-            ) cells.push(<td className='text-end'>{Math.round(+obj[key] * 100) / 100} ₽</td>)
+            ) cells.push(<td className='text-end' style={{width: '80px'}}>{Math.round(+obj[key] * 100) / 100} ₽</td>)
 
             if (key === 'comment') cells.push(<td className='text-start ps-3'>{obj[key]}</td>)
         }
@@ -296,23 +296,25 @@ class Order extends Component {
             <MainLayout title={`Заказ № ${order ? header.id : '_'}`} token={this.props.token} error={this.props.error}>
                 {order ? (
                     <>
-                        <Row className='my-2'>
+                        <Row id='doc-print' className='my-2'>
                             <Col lg={9}>
                                 <Row>
-                                    <Col lg={2}>
+                                    <Col lg={3}>
                                         <Button variant='outline-dark' onClick={() => this.props.router.back()}>
                                             Вернуться назад
                                         </Button>
                                     </Col>
-                                    <Col lg={8} className='mt-2'>
+                                    <Col lg={6} className='mt-2'>
                                         <h4 className='text-center fw-bold text-uppercase fst-italic m-0'>
                                             Заказ № {header.id}
                                         </h4>
                                     </Col>
-                                    <Col lg={2}>
-                                        <Alert variant='light' className='p-2 text-end m-0'>
+                                    <Col lg={3}>
+                                        <Alert variant='light' className='p-2 text-end m-0 float-start'>
                                             <b>Менеджер: </b>{header.manager}
                                         </Alert>
+
+                                        <IconPrint onClickPrint={() => printPage('doc-print')} />
                                     </Col>
                                 </Row>
 

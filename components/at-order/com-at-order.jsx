@@ -1,17 +1,18 @@
 import {Alert, Button, Col, Form, InputGroup, Modal, Row, Spinner, Table} from "react-bootstrap"
 import React, {Component} from "react";
+import {format} from 'date-fns';
+import {connect} from "react-redux";
 import Thead from "../../modules/tables/thead";
 import Tbody from "../../modules/tables/tbody";
 import {changeKeyboard} from "../../modules/change-keyboard";
-import {getOrderAt, getServerTime} from "../../services/at-order/get";
+import {getBarcodes, getOrderAt, getServerTime} from "../../services/at-order/get";
 import {addExtraData, postAtOrders} from "../../services/at-order/post";
 import ModalWindow from "../../modules/modals/modal";
 import {decriptedStr, encritptedStr} from "../../modules/encription";
-import {format} from 'date-fns'
-import CustomError from "../../modules/error";
 import {MyInput, MySelect} from "../elements/input";
+import {setLoading, setError, removeLoading} from "../../redux/actions/actionsApp";
 
-export default class CompAccTransOrder extends Component {
+class ComAccTransOrder extends Component {
 
     constructor(props) {
         super(props);
@@ -23,7 +24,9 @@ export default class CompAccTransOrder extends Component {
     }
 
     state = {
-        users: null,
+        barcodes: null,
+        serverDate: null,
+        dateInterval: null,
         data: {
             transfer: {
                 label: 'Передающий участок',
@@ -102,19 +105,20 @@ export default class CompAccTransOrder extends Component {
     }
 
     async componentDidMount() {
-        if (this.props.barcodes) await this.setState(({users: this.props.barcodes}))
+        await this.getBarcodes()
 
         this.addHint(1)
+        setInterval(this.receiveServerDate, 1800000)
 
         if (localStorage.getItem('transfer')) {
             const transfer = decriptedStr(localStorage.getItem('transfer'))
             this.onChangeData('transfer', transfer)
-            this.addTransfer(transfer)
+            await this.addTransfer(transfer)
         }
         if (localStorage.getItem('accepted')) {
             const accepted = decriptedStr(localStorage.getItem('accepted'))
             this.onChangeData('accepted', accepted)
-            this.addAccept(accepted)
+            await this.addAccept(accepted)
         }
 
         if (localStorage.getItem('extraData')) {
@@ -154,11 +158,30 @@ export default class CompAccTransOrder extends Component {
         localStorage.removeItem('accepted')
         localStorage.removeItem('extraData')
         localStorage.removeItem('orders')
+        clearInterval(this.state.dateInterval)
+    }
+
+    getBarcodes = async () => {
+        let barcodes
+
+        this.props.loading()
+
+        await getBarcodes()
+            .then(res => barcodes = res.data.barcodes)
+            .catch(() => {
+                this.props.setError({errors: [], message: 'Не удалось получить данные'})
+            })
+
+        this.props.unLoading()
+
+        this.setState(() => ({barcodes}))
     }
 
     // получение и проверка заказа
     receiveOrder = async (value) => {
         let order
+
+        this.props.loading()
 
         await getOrderAt(value)
             .then(res => {
@@ -168,25 +191,25 @@ export default class CompAccTransOrder extends Component {
                 this.addError(err.response?.data.message)
             })
 
+        this.props.unLoading()
+
         if (order) {
-            this.setState(({data}) => {
-                return (
-                    data.order.nameOrder = order.itmOrderNum,
-                        data.order.idOrder = order.id,
-                        data.order.statusOrder = order.status
-                )
-            })
+            this.setState((state) => (
+                state.data.order.nameOrder = order.itmOrderNum,
+                state.data.order.idOrder = order.id,
+                state.data.order.statusOrder = order.status
+            ))
 
             if (this.state.extraData[0]) this.addExtraData(order.id)
             else this.addOrderToTable()
 
         } else {
-            this.clearValue('order')
         }
+        this.clearValue('order')
     }
 
     // получение дополнительных свойств заказа
-    receiveExtraData = () => {
+    receiveExtraData = async () => {
         const {data} = this.state,
             {accepted, transfer} = data
 
@@ -196,23 +219,31 @@ export default class CompAccTransOrder extends Component {
         }
 
         if (accepted.name && transfer.name) {
-            addExtraData(barcodes)
+            this.props.loading()
+
+            await addExtraData(barcodes)
                 .then(res => this.setState({extraData: res.data}))
-                .catch(({response}) => {
-                    this.setState({errorExtra: response.data})
+                .catch(e => {
+                    this.props.setError(e.response.data)
                     this.clearValue('transfer')
                     this.clearValue('accepted')
                 })
 
-            this.receiveServerTime()
+            await this.receiveServerDate()
+
+            this.props.unLoading()
         }
     }
 
     // получение серверного времени
-    receiveServerTime = async () => {
-        let time = await getServerTime()
+    receiveServerDate = async () => {
+        const date = new Date(await getServerTime()),
+            formatDate = format(new Date(date), "yyyy-MM-dd'T'HH:mm:ss")
 
-        this.addDate(time)
+        await this.setState({serverDate: date})
+        await this.setState(({data}) => data.date.value = formatDate)
+
+        await this.addDate()
     }
 
     // добавление ошибки
@@ -241,7 +272,7 @@ export default class CompAccTransOrder extends Component {
 
     //поиск и проверка передающей стороны
     addTransfer = async (value) => {
-        const {users, data} = this.state
+        const {barcodes, data} = this.state
         let i = 0
 
         if (value) {
@@ -249,7 +280,7 @@ export default class CompAccTransOrder extends Component {
                 this.setState(({data}) => data.transfer.value='')
                 this.addError('Участок был выбран ранее')
             } else  {
-                await users.map(user => {
+                await barcodes.map(user => {
                     if (value === user.BARCODE) {
                         if (user.BLOCKED) {
                             this.setState(({data}) => data.transfer.value = '')
@@ -295,7 +326,7 @@ export default class CompAccTransOrder extends Component {
 
     //поиск и проверка принимающей стороны
     addAccept = async (value) => {
-        const {users, data} = this.state
+        const {barcodes, data} = this.state
         let i = 0
 
         if (value) {
@@ -303,7 +334,7 @@ export default class CompAccTransOrder extends Component {
                 this.setState(({data}) => data.accepted.value = '')
                 this.addError('Участок был выбран ранее')
             } else {
-                await users.map(user => {
+                await barcodes.map(user => {
                     if(value === user.BARCODE) {
                         if (user.BLOCKED) {
                             this.setState(({data}) => data.accepted.value = '')
@@ -364,19 +395,19 @@ export default class CompAccTransOrder extends Component {
     }
 
     // добавление даты передачи заказа
-    addDate = async (time) => {
+    addDate = async () => {
         const {date} = this.state.data,
-            serverDate = format(new Date(time), "yyyy-MM-dd'T'HH:mm:ss")
+            {serverDate} = this.state
 
-        if (time) {
-            await this.setState(({data}) => data.date.value = serverDate)
-        }
+        if (serverDate) {
+            const formatServDate = format(new Date(serverDate), "yyyy-MM-dd'T'HH:mm:ss")
 
-        if (date.value > serverDate) {
-            this.addError('Будущее еще не наступило')
-            await this.setState(({data}) => data.date.value = serverDate)
-        } else {
-            if (date.value) {
+            if (new Date(date.value) > serverDate) {
+                this.addError('Будущее еще не наступило')
+
+                await this.setState(({data}) => data.date.value = formatServDate)
+            }
+            else {
                 const isoDate = new Date(data.value)
 
                 await this.setState(({data}) => {
@@ -387,6 +418,9 @@ export default class CompAccTransOrder extends Component {
 
                 })
             }
+        }
+        else {
+            this.setState(({data}) => data.date.disabled = true)
         }
     }
 
@@ -503,7 +537,8 @@ export default class CompAccTransOrder extends Component {
 
     // вызов окна изменения дополнительных свойств заказа
     viewExtraDataOrder = (id) => {
-        const {allExtraData} = this.state.data
+        const {data, serverDate} = this.state
+        const {allExtraData} = data
 
         let newAllExtraData = [],
             orderExtraData = [],
@@ -523,8 +558,8 @@ export default class CompAccTransOrder extends Component {
                     extraTime = format(new Date(data.data), "HH:mm")
                     extraDate = format(new Date(data.data), "yyyy-MM-dd")
                 } else {
-                    extraTime = format(new Date(data.date.isoValue), "HH:mm")
-                    extraDate = format(new Date(data.date.isoValue), "yyyy-MM-dd")
+                    extraTime = format(new Date(serverDate), "HH:mm")
+                    extraDate = format(new Date(serverDate), "yyyy-MM-dd")
                 }
             }
         })
@@ -542,12 +577,6 @@ export default class CompAccTransOrder extends Component {
 
     // изменение данные допполей
     changeExtraDataOrder = (value) => {
-        const {order} = this.state.data
-        let extraDate, extraTime, newDate
-
-        extraTime = format(new Date(data.date.isoValue), "HH:mm")
-        extraDate = format(new Date(data.date.isoValue), "yyyy-MM-dd")
-
         if (value.includes('-')) {
             this.setState(({data}) => data.order.extraDate = value)
         } else if (value.includes(':')) {
@@ -708,7 +737,7 @@ export default class CompAccTransOrder extends Component {
     }
 
     // очистка данных сохраненных в вводе
-    clearValue = async (area) => {
+    clearValue = (area) => {
         if (area === 'transfer') {
             this.setState(({data}) => {
                 return (
@@ -762,10 +791,10 @@ export default class CompAccTransOrder extends Component {
         }
 
         if (area === 'allOrders') {
-            await this.setState({ordersID: []})
-            await this.setState({orders: []})
-            await this.setState({extraData: []})
-            await this.setState(({data}) => {
+            this.setState({ordersID: []})
+            this.setState({orders: []})
+            this.setState({extraData: []})
+            this.setState(({data}) => {
                 return (
                     data.order.nameOrder = '',
                     data.order.idOrder = '',
@@ -781,10 +810,11 @@ export default class CompAccTransOrder extends Component {
         }
 
         if (area === 'all') {
-            await this.setState({ordersID: []})
-            await this.setState({orders: []})
-            await this.setState({extraData: []})
-            await this.setState(({data}) => {
+            this.setState({ordersID: []})
+            this.setState({orders: []})
+            this.setState({extraData: []})
+            this.setState({serverDate: null})
+            this.setState(({data}) => {
                 return (
                     data.transfer.value = '',
                         data.transfer.name= '',
@@ -858,6 +888,8 @@ export default class CompAccTransOrder extends Component {
         const {form, orders, data} = this.state
         let newOrders = []
 
+        this.props.loading()
+
         orders.map(order => {
             let obj = {}
 
@@ -883,6 +915,7 @@ export default class CompAccTransOrder extends Component {
 
         await postAtOrders(form)
             .then(res => {
+                console.log(res)
                 this.setState(({submit}) => {
                     return (
                         submit.data.view = true,
@@ -892,19 +925,18 @@ export default class CompAccTransOrder extends Component {
                 })
                 this.setState(({submit}) => submit.disable = false)
             })
-            .catch(err => {
-                this.setState(({submit}) => {
-                    return (
-                        submit.error.data = err.response?.data
-                    )
-                })
+            .catch(e => {
+                this.props.setError(e.response.data)
                 this.setState(({submit}) => submit.disable = false)
             })
+
+        this.props.unLoading()
+
     }
 
     // Отображение страницы
     render() {
-        const {data, hint, error, orders, orderChange, submit, errorExtra} = this.state,
+        const {data, hint, error, orders, orderChange, submit, errorExtra, serverDate} = this.state,
             {accepted, transfer, order, date, allExtraData} = data
 
         const inputGroup = (label, data, ref, onKeyPress) => {
@@ -963,7 +995,7 @@ export default class CompAccTransOrder extends Component {
                     <Col/>
                 </Row>
 
-                <Row>
+                <Row className='align-items-center'>
                     <Col lg={4} className='mb-3'>
                         {inputGroup('transfer', transfer, this.transferInput, this.addTransfer)}
                     </Col>
@@ -1000,23 +1032,25 @@ export default class CompAccTransOrder extends Component {
                         </InputGroup>
                     </Col>
                     <Col lg={1} className='text-center mb-3'>
-                        {date.disabled ? (
-                            <i
-                                className="bi bi-calendar2-plus-fill text-primary btn p-0"
-                                style={{fontSize: 24}}
-                                onClick={() => this.setState(({data}) => data.date.disabled = false)}
-                            />
-                        ) : (
-                            <i
-                                className="bi bi-calendar2-check-fill text-success btn p-0"
-                                style={{fontSize: 24}}
-                                onClick={() => this.addDate()}
-                            />
-                        )}
+                        {serverDate ?
+                            date.disabled ? (
+                                    <i
+                                        className="bi bi-calendar2-plus-fill text-primary btn p-0"
+                                        style={{fontSize: 24}}
+                                        onClick={() => this.setState(({data}) => data.date.disabled = false)}
+                                    />
+                                ) : (
+                                    <i
+                                        className="bi bi-calendar2-check-fill text-success btn p-0"
+                                        style={{fontSize: 24}}
+                                        onClick={() => this.addDate()}
+                                    />
+                                )
+                         : null}
                     </Col>
                 </Row>
 
-                <Row>
+                <Row className='align-items-center'>
                     <hr/>
                     <Col lg={4}>
                         {inputGroup('accepted', accepted, this.acceptedInput, this.addAccept)}
@@ -1067,7 +1101,7 @@ export default class CompAccTransOrder extends Component {
                                 variant='outline-primary'
                                 type='button'
                                 style={{fontSize: 12}}
-                                className='p-1'
+                                className='p-1 shadow-sm'
                                 onClick={() => this.setState(({data}) => data.order.hide = false)}
                             >Ручной ввод заказа</Button>
                         ) : (
@@ -1075,7 +1109,7 @@ export default class CompAccTransOrder extends Component {
                                 variant='outline-primary'
                                 type='button'
                                 style={{fontSize: 12}}
-                                className='p-1'
+                                className='p-1 shadow-sm'
                                 onClick={() => this.setState(({data}) => data.order.hide = true)}
                             >Скрыть поле</Button>
                         )}
@@ -1083,7 +1117,7 @@ export default class CompAccTransOrder extends Component {
                 </Row>
 
                 <Row>
-                    <Col className='text-muted text-end mb-3'>
+                    <Col className='text-end m-0 p-0 pe-3 text-black-50 fst-italic' style={{fontSize: '12px'}}>
                         Выбрано заказов - {orders.length}
                     </Col>
                 </Row>
@@ -1108,7 +1142,7 @@ export default class CompAccTransOrder extends Component {
                     <Col lg={2} className='text-start'>
                         <Button
                             variant='outline-danger'
-                            className='w-100 text-dark'
+                            className='w-100 text-dark shadow'
                             type='button'
                             onClick={() => this.clearValue('all')}
                         >Очистить форму</Button>
@@ -1117,7 +1151,7 @@ export default class CompAccTransOrder extends Component {
                     <Col lg={2} className='text-end'>
                         <Button
                             variant='outline-success'
-                            className='w-100 text-dark'
+                            className='w-100 text-dark shadow'
                             type='button'
                             disabled={!orders[0] || submit.disable}
                             onClick={e => {
@@ -1192,10 +1226,9 @@ export default class CompAccTransOrder extends Component {
                     message={submit.data.message}
                     orders={submit.data.orders}
                 />
-
-                <CustomError error={submit.error.data || errorExtra} />
             </>
         )
     }
 }
 
+export default connect(null, {setError, loading: setLoading, unLoading: removeLoading})(ComAccTransOrder)

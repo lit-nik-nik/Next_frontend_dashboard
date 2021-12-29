@@ -48,10 +48,28 @@
 
 .inline-input {
     position: relative;
-    top: 0%;
+    top: 0;
     right: 7%;
 }
 
 .top-20 {
     top: 20%;
+}
+
+.end-40 {
+    right: 40%;
+}
+
+.my-table:hover {
+    background-color: rgba(204, 204, 204, 0.5);
+}
+
+.print {
+    padding: 3px 10px;
+    border-radius: 10px;
+}
+
+.print:hover {
+    background-color: black;
+    color: white;
 }

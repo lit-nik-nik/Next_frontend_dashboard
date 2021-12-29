@@ -1,4 +1,5 @@
 import {Button, Row, Col, Form, Dropdown, DropdownButton} from "react-bootstrap"
+import {connect} from "react-redux";
 import Link from "next/link"
 import style from '../styles/header.module.css'
 import Router from 'next/router'
@@ -7,6 +8,8 @@ import logo from '../public/logo.png'
 import Image from "next/image";
 import exitApp from "../modules/exit";
 import ava from '../public/avatar.png'
+import {getReboot} from "../services/app/get";
+import {success, unSuccess} from "../redux/actions/actionsApp";
 
 const Header = (props) => {
 
@@ -15,6 +18,15 @@ const Header = (props) => {
     const searchOrder = (e) => {
         e.preventDefault();
         Router.push(`/orders?filter=${value}`)
+    }
+
+    const reboot = async () => {
+        await getReboot()
+            .then(res => {
+                props.success(res.data)
+                setTimeout(props.unSuccess, 5000)
+            })
+            .catch(e => console.log(e.response))
     }
 
     const title = <Row>
@@ -72,8 +84,18 @@ const Header = (props) => {
                         >
                             <Dropdown.Item eventKey="1">Настройки</Dropdown.Item>
                             <Dropdown.Item eventKey="2">Полномочия</Dropdown.Item>
+                            {props.user.isOwner ? (
+                                <Dropdown.Item
+                                    eventKey="3"
+                                    onClick={() => reboot()}
+                                >
+                                    Перезагрузка
+                                </Dropdown.Item>
+                            ) : null}
                             <Dropdown.Divider />
-                            <Dropdown.Item onClick={() => exitApp()}>
+                            <Dropdown.Item
+                                onClick={() => exitApp()}
+                            >
                                 Выход
                             </Dropdown.Item>
                         </DropdownButton>
@@ -84,6 +106,4 @@ const Header = (props) => {
     )
 }
 
-export default Header;
-
-
+export default connect(null, {success, unSuccess})(Header)

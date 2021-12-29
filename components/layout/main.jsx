@@ -1,72 +1,64 @@
-import { Container, Col, Row } from "react-bootstrap";
+import { Col, Row } from "react-bootstrap";
+import {connect} from "react-redux";
 import Header from "../header";
 import Navbar from "../navbar";
-import {Component} from "react";
+import React, {Component} from "react";
 import Head from "next/head";
 import NavbarMini from "../navbar-mini";
 import {globalState} from "../../data/globalState";
 import {getJournals} from "../../services/journals/get";
 import exitApp from "../../modules/exit";
 import CustomError from "../../modules/error";
-import Cookies from 'js-cookie';
+import {setError, setTokenTimer, setUser} from "../../redux/actions/actionsApp";
+import Loading from "../../modules/loading";
+import MyToast from "../../modules/toast/toast";
 
-export class MainLayout extends Component {
+class MainLayout extends Component {
 
     state = {
         collapse: false,
         screenMode: null,
-        menu: globalState.menu,
-        render: 0,
-        errorView: false,
-        errorData: null,
-        user: {},
-        checkToken: null
+        menu: globalState.menu
     }
 
     async componentDidMount() {
         if (!this.props.token) exitApp()
         if (localStorage.getItem('user')) {
-            const {userName, sectorName} = JSON.parse(localStorage.getItem('user'))
-            this.setState(({user}) => {
-                return (
-                    user.userName = userName,
-                    user.sectorName = sectorName
-                )
-            })
+            this.props.setUser(JSON.parse(localStorage.getItem('user')))
         }
-
-        this.addMenu()
 
         if (localStorage.getItem('collapse')) {
             this.setState({collapse: localStorage.getItem('collapse')})
         }
 
-        this.onResize()
+        await this.onResize()
 
         window.addEventListener('resize', this.onResize)
 
-        this.setState({checkToken: setInterval(this.checkToken, 1800000)})
+        this.props.setTokenTimer(setInterval(this.clearCookies, 900000))
     }
 
-    componentDidUpdate(prevProps, prevState, snapshot) {
-
+    async componentDidUpdate(prevProps, prevState, snapshot) {
+        if (this.props.user !== prevProps.user) {
+            await this.addMenu()
+        }
     }
 
     componentWillUnmount() {
         window.removeEventListener('resize', this.onResize)
-        clearInterval(this.state.checkToken)
+        clearInterval(this.props.timerID)
     }
 
-    checkToken = () => {
-        const token = Cookies.get('token')
-
-        if (!token) exitApp()
+    clearCookies = () => {
+        exitApp()
     }
 
     onResize = async () => {
         if (window.innerWidth < 992) this.setState({screenMode: "mobile"})
         else this.setState({screenMode: "desktop"})
     }
+
+    //переписать
 
     onCollapseNav = () => {
         const {collapse} = this.state
@@ -86,11 +78,11 @@ export class MainLayout extends Component {
         let submenu = []
 
         await getJournals(token)
-            .then(res => journals = res.data.journals)
+            .then(res => {
+                journals = res.data.journals
+            })
             .catch(({response}) => {
-                console.log(response)
-                this.setState({errorView: true})
-                this.setState({errorData: response.data})
+                this.props.setError(response.data)
             })
 
         if (journals) journals.map(item => {
@@ -108,14 +100,13 @@ export class MainLayout extends Component {
             }
         })
 
-
         await this.setState({menu})
     }
 
     render() {
-        const {collapse, screenMode, menu, errorData, errorView, user} = this.state
+        const {collapse, screenMode, menu} = this.state
 
-        const {children, title, link, token, error, search} = this.props
+        const {children, title, link, token, search, success, user} = this.props
 
         return (
             <>
@@ -129,23 +120,21 @@ export class MainLayout extends Component {
                             <Header onCollapseNav={this.onCollapseNav} user={user} search={search ? search : ''}/>
                         ) : null}
 
-                        <Container fluid className='p-0'>
-                            <Row>
-                                <Col lg={collapse ? 1 : 2} className='nav-menu'>
-                                    {collapse ? <NavbarMini link={link} menu={menu} /> : <Navbar link={link} menu={menu} />}
-                                </Col>
+                        <Row>
+                            <Col lg={collapse ? 1 : 2} className='nav-menu'>
+                                {collapse ? <NavbarMini link={link} menu={menu} /> : <Navbar link={link} menu={menu} />}
+                            </Col>
 
-                                <Col lg={!collapse ? 10 : 11} className='py-1 px-4'>
-                                    {children}
-                                    {errorView ?
-                                        <CustomError error={errorData} cleanError={() => this.setState({errorData: null})} /> :
-                                        error ?
-                                            <CustomError error={error} /> :
-                                            null
-                                    }
-                                </Col>
-                            </Row>
-                        </Container>
+                            <Col lg={!collapse ? 10 : 11} className='py-1 px-4'>
+                                {children}
+
+                                <Loading />
+
+                                <CustomError />
+
+                                {success ? <MyToast data={success} /> : null}
+                            </Col>
+                        </Row>
                     </>
                 ) : (
                     <></>
@@ -154,3 +143,12 @@ export class MainLayout extends Component {
         )
     }
 }
+
+const mapSTP = state => ({
+        timerID: state.app.activeTimer,
+        errorRedux: state.app.app_error,
+        success: state.app.app_success,
+        user: state.app.user
+})
+
+export default connect(mapSTP, {setTokenTimer, setUser, setError})(MainLayout)
