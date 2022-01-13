@@ -6,8 +6,12 @@ import {MyInput} from "../../components/elements/input";
 import send from '../../public/send.png'
 import success from '../../public/success.png'
 import error from '../../public/error.png'
-import {Comment, Chat} from '../../type-scrypt/types/journalsTypes'
+import {Chat, ExtraData} from '../../type-scrypt/types/journalsTypes'
 import {postCommentOrder} from '../../services/journals/post'
+import {patchCommentOrder} from '../../services/journals/patch'
+import {deleteCommentOrder} from '../../services/journals/delete'
+import {setError} from "../../redux/actions/actionsApp";
+import { format } from "date-fns";
 
 const MyChat = (props:Chat) => {
     const {viewComments, comments, closeChat, user} = props
@@ -16,36 +20,33 @@ const MyChat = (props:Chat) => {
     const [dataId, setDataId] = useState(0)
     const [loading, setLoading] = useState(0)
 
-    // формирования объекта комментария
+    // добавление или изменение комментария
     const sendComment = async () => {
         let data = {
-            orderId: viewComments.orderId,
-            dataId: dataId,
-            text: comment
+            comment: {
+                orderId: viewComments.orderId,
+                id: dataId,
+                data: comment
+            }
         }
 
-        await sendForm(data)
+        if (dataId) await sendForm(data, patchCommentOrder)
+        else await sendForm(data, postCommentOrder)
     }
 
     // удаление комментария
-    const removeComment = async (dataID: number) => {
-        const data = {
-            orderId: viewComments.orderId,
-            dataId: dataID,
-            text: ''
-        }
-
-        await sendForm(data)
+    const deleteComment = async (id: number) => {
+        await sendForm(id, deleteCommentOrder)
     }
 
     // отправка формы на сервер
-    const sendForm = async (data) => {
+    const sendForm = async (data, request) => {
         setLoading(1)
 
         setComment('')
         setDataId(0)
 
-        await postCommentOrder(data, props.token)
+        await request(data, props.token)
             .then(res => {
                 if (res.status === 201 || res.status === 200) {
                     setLoading(2)
@@ -55,7 +56,7 @@ const MyChat = (props:Chat) => {
                     setTimeout(() => props.getComments(viewComments.orderId), 1000)
                 }
             })
-            .catch(err => {
+            .catch(e => {
                 setLoading(-1)
                 setTimeout(() => setLoading(0), 1000)
             })
@@ -68,7 +69,7 @@ const MyChat = (props:Chat) => {
                     <strong className="me-auto text-dark" style={{fontSize: '12px'}}>Мини-чат ({viewComments.orderName})</strong>
                 </Toast.Header>
                 <Toast.Body style={{overflowY: 'auto', maxHeight: '450px'}}>
-                    {comments.map((commentOrder:Comment, i) => (
+                    {comments.map((commentOrder:ExtraData, i) => (
                         <Toast
                             key={i}
                             bg={commentOrder.userName === user.userName ? 'success' : 'info'}
@@ -77,6 +78,7 @@ const MyChat = (props:Chat) => {
                         >
                             <Toast.Header className='py-1' closeButton={false}>
                                 <strong className="me-auto" style={{fontSize: '12px'}}>{commentOrder.userName}: {commentOrder.sector}</strong>
+                                <small className='me-2'><i>{commentOrder.ts ? format(new Date(commentOrder.ts), 'd.L.yy H:m') : null}</i></small>
                                 {commentOrder.userName === user.userName || user.isOwner ? (
                                     <>
                                         <i
@@ -88,7 +90,7 @@ const MyChat = (props:Chat) => {
                                         />
                                         <i
                                             className="bi bi-trash2-fill text-danger"
-                                            onClick={() => removeComment(commentOrder.id)}
+                                            onClick={() => deleteComment(commentOrder.id)}
                                         />
                                     </>
                                 ) : null}
@@ -122,7 +124,7 @@ const MyChat = (props:Chat) => {
                                         />
                                             : <Image
                                                 src={send}
-                                                onClick={() => sendComment(comment)}
+                                                onClick={() => sendComment()}
                                             />
                         }
 
@@ -139,4 +141,4 @@ const mapSTP = state => ({
     user: state.app.user
 })
 
-export default connect(mapSTP, {})(MyChat)
+export default connect(mapSTP, {setError})(MyChat)

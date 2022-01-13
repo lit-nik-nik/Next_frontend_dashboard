@@ -12,7 +12,7 @@ import Image from "next/image";
 import {changeKeyboard} from "../modules/change-keyboard";
 import Cookies from 'js-cookie'
 import {NologinLayout} from "../components/layout/nologin";
-import {setError, setUser} from "../redux/actions/actionsApp";
+import {setError} from "../redux/actions/actionsApp";
 
 class Auth extends Component {
 
@@ -32,9 +32,31 @@ class Auth extends Component {
         disabled: false,
         errorData: null,
         link: null,
+        css: {
+            body: {
+                display: 'flex',
+                alignItems: 'center',
+                height: '85vh',
+                paddingTop: '40px',
+                paddingBottom: '40px'
+            },
+            formSign: {
+                width: '100%',
+                maxWidth: '450px',
+                padding: '15px',
+                margin: 'auto',
+                backgroundColor: '#f5f5f5',
+                boxShadow: '0 0 10px 10px #ccc',
+                borderRadius: '15px'
+            }
+        }
     }
 
-    componentDidMount() {
+    async componentDidMount() {
+        const {variant} = this.state
+
+        if (localStorage.getItem('variant')) await this.setState({variant: localStorage.getItem('variant')})
+
         this.setState({link: this.props.router.pathname})
         if (this.props.error) this.setState({disabled: true})
 
@@ -42,7 +64,7 @@ class Auth extends Component {
             this.setState({users: this.props.users})
         }
 
-        this.barcodesInput.current.focus()
+        if (variant === 'barcode') this.barcodesInput.current.focus()
 
         if (!Cookies.get('token')) localStorage.setItem('user', '')
     }
@@ -50,7 +72,7 @@ class Auth extends Component {
     componentDidUpdate(prevProps, prevState, snapshot) {
         const {variant} = this.state
 
-        if (variant) this.barcodesInput.current.focus()
+        if (variant === 'barcode') this.barcodesInput.current.focus()
 
         if (!Cookies.get('token')) localStorage.setItem('user', '')
     }
@@ -77,7 +99,6 @@ class Auth extends Component {
 
     auth = async (e) => {
         e.preventDefault()
-
         const {user, pass, barcode} = this.state.login,
             redirect = () => Router.push('/')
 
@@ -103,12 +124,12 @@ class Auth extends Component {
                     this.setState({login: {user, pass: '', barcode: newBarcode}})
                 }
             })
-            .catch(err => this.setState({errorData: err.response?.data}))
+            .catch(err => this.props.setError(err.response?.data))
     }
 
 
     render() {
-        const {login, disabled, errorData, variant, link} = this.state
+        const {login, disabled, variant, link, css} = this.state
 
         const loginPass =
             <>
@@ -172,15 +193,16 @@ class Auth extends Component {
                 <p className='text-white text-center mb-5'>отсканируйте ваш персональный штрих-код</p>
             </>
 
-        const variantButton = (label, text) => {
+        const variantButton = (label, text, value) => {
             return (
                 <Button
                     variant='link'
                     type='button'
                     className='p-0 text-white text-decoration-none'
-                    onClick={() => {
+                    onClick={async () => {
                         this.clearInput(text)
-                        this.setState({variant: !this.state.variant})
+                        await this.setState({variant: value})
+                        localStorage.setItem('variant', value)
                     }}
                 >{label}</Button>
             )
@@ -192,8 +214,8 @@ class Auth extends Component {
                 <NologinLayout title='Авторизация пользователя' link={link}>
                     <Row>
                         <Col lg={12}>
-                            <div className={`${style.authBody}`}>
-                                <main className={`form-signin bg-dark ${style.formSign}`}>
+                            <div style={css.body}>
+                                <main style={css.formSign} className={`form-signin bg-dark ${style.formSign}`}>
                                     <Row>
                                         <Col className='text-center'>
                                             <Image src={logo} alt="Массив-Юг" />
@@ -202,13 +224,13 @@ class Auth extends Component {
                                     <Form onSubmit={e => this.auth(e)} autoComplete="off">
                                         <h1 className="h3 mb-3 fw-normal text-white text-center">Авторизация</h1>
 
-                                        {variant ? barcodes : loginPass}
+                                        {variant === 'barcode' ? barcodes : loginPass}
 
                                         <Row>
                                             <Col className='mb-3 text-start'>
-                                                {variant ?
-                                                    variantButton('Вход по логину/паролю', 'barcode') :
-                                                    variantButton('Вход по штрих-коду', 'login')
+                                                {variant === 'barcode' ?
+                                                    variantButton('Вход по логину/паролю', 'barcode', 'login') :
+                                                    variantButton('Вход по штрих-коду', 'login', 'barcode')
                                                 }
                                             </Col>
                                             <Col className='mb-3 text-end'>
@@ -233,8 +255,6 @@ class Auth extends Component {
     }
 
 }
-
-
 
 export default connect(null, {setError})(withRouter(Auth))
 

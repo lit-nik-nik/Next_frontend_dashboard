@@ -35,7 +35,7 @@ class MainLayout extends Component {
 
         window.addEventListener('resize', this.onResize)
 
-        this.props.setTokenTimer(setInterval(this.clearCookies, 900000))
+        // this.props.setTokenTimer(setTimeout(() => exitApp(), 900000))
     }
 
     async componentDidUpdate(prevProps, prevState, snapshot) {
@@ -46,11 +46,7 @@ class MainLayout extends Component {
 
     componentWillUnmount() {
         window.removeEventListener('resize', this.onResize)
-        clearInterval(this.props.timerID)
-    }
-
-    clearCookies = () => {
-        exitApp()
+        // clearTimeout(this.props.timerID)
     }
 
     onResize = async () => {
@@ -106,7 +102,7 @@ class MainLayout extends Component {
     render() {
         const {collapse, screenMode, menu} = this.state
 
-        const {children, title, link, token, search, success, user} = this.props
+        const {children, title, link, token, search, success, user, fullscreen} = this.props
 
         return (
             <>
@@ -116,16 +112,22 @@ class MainLayout extends Component {
                             <title>{title} - Массив-Юг</title>
                         </Head>
 
-                        {screenMode === 'desktop' ? (
-                            <Header onCollapseNav={this.onCollapseNav} user={user} search={search ? search : ''}/>
-                        ) : null}
+                        {fullscreen ?
+                            null :
+                            screenMode === 'desktop' ? (
+                                <Header onCollapseNav={this.onCollapseNav} user={user} search={search ? search : ''}/>
+                            ) : null
+                        }
 
                         <Row>
-                            <Col lg={collapse ? 1 : 2} className='nav-menu'>
-                                {collapse ? <NavbarMini link={link} menu={menu} /> : <Navbar link={link} menu={menu} />}
-                            </Col>
+                            {fullscreen ?
+                                null :
+                                <Col lg={collapse ? 1 : 2} className='nav-menu' style={collapse ? {width: '4%'} : {}}>
+                                    {collapse ? <NavbarMini link={link} menu={menu} /> : <Navbar link={link} menu={menu} />}
+                                </Col>
+                            }
 
-                            <Col lg={!collapse ? 10 : 11} className='py-1 px-4'>
+                            <Col lg={fullscreen ? 12 : collapse ? 11 : 10} className='py-1 px-4' style={collapse ? {width: '96%'} : {}}>
                                 {children}
 
                                 <Loading />
@@ -145,10 +147,11 @@ class MainLayout extends Component {
 }
 
 const mapSTP = state => ({
-        timerID: state.app.activeTimer,
-        errorRedux: state.app.app_error,
-        success: state.app.app_success,
-        user: state.app.user
+    fullscreen: state.app.fullscreen,
+    timerID: state.app.activeTimer,
+    errorRedux: state.app.app_error,
+    success: state.app.app_success,
+    user: state.app.user
 })
 
 export default connect(mapSTP, {setTokenTimer, setUser, setError})(MainLayout)

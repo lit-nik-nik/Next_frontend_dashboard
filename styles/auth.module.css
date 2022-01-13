@@ -1,21 +1,4 @@
-.authBody {
-    display: flex;
-    align-items: center;
-    height: 85vh;
-    padding-top: 40px;
-    padding-bottom: 40px;
-
-}
-
-.formSign {
-    width: 100%;
-    max-width: 450px;
-    padding: 15px;
-    margin: auto;
-    background-color: #f5f5f5;
-    box-shadow: 0 0 10px 10px #ccc;
-    border-radius: 15px;
-}
+.formSign {}
 
 .formSign .checkbox {
     font-weight: 400;

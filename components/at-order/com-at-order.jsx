@@ -164,7 +164,7 @@ class ComAccTransOrder extends Component {
     getBarcodes = async () => {
         let barcodes
 
-        this.props.loading()
+        this.props.setLoading()
 
         await getBarcodes()
             .then(res => barcodes = res.data.barcodes)
@@ -172,7 +172,7 @@ class ComAccTransOrder extends Component {
                 this.props.setError({errors: [], message: 'Не удалось получить данные'})
             })
 
-        this.props.unLoading()
+        this.props.removeLoading()
 
         this.setState(() => ({barcodes}))
     }
@@ -181,7 +181,7 @@ class ComAccTransOrder extends Component {
     receiveOrder = async (value) => {
         let order
 
-        this.props.loading()
+        this.props.setLoading()
 
         await getOrderAt(value)
             .then(res => {
@@ -191,7 +191,7 @@ class ComAccTransOrder extends Component {
                 this.addError(err.response?.data.message)
             })
 
-        this.props.unLoading()
+        this.props.removeLoading()
 
         if (order) {
             this.setState((state) => (
@@ -202,10 +202,9 @@ class ComAccTransOrder extends Component {
 
             if (this.state.extraData[0]) this.addExtraData(order.id)
             else this.addOrderToTable()
-
         } else {
+            this.clearValue('order')
         }
-        this.clearValue('order')
     }
 
     // получение дополнительных свойств заказа
@@ -219,7 +218,7 @@ class ComAccTransOrder extends Component {
         }
 
         if (accepted.name && transfer.name) {
-            this.props.loading()
+            this.props.setLoading()
 
             await addExtraData(barcodes)
                 .then(res => this.setState({extraData: res.data}))
@@ -231,7 +230,7 @@ class ComAccTransOrder extends Component {
 
             await this.receiveServerDate()
 
-            this.props.unLoading()
+            this.props.removeLoading()
         }
     }
 
@@ -485,6 +484,8 @@ class ComAccTransOrder extends Component {
                 compare = false
             }
         }
+
+        console.log(arrOrder)
 
         this.clearValue('order')
     }
@@ -879,7 +880,9 @@ class ComAccTransOrder extends Component {
         if (label === 'transfer') this.setState(({data}) => data.transfer.value = value)
         if (label === 'accepted') this.setState(({data}) => data.accepted.value = value)
         if (label === 'order') this.setState(({data}) => data.order.value = value)
-        if (label === 'date') this.setState(({data}) => data.date.value = value)
+        if (label === 'date') {
+            this.setState(({data}) => data.date.value = value)
+        }
     }
 
     // отправка объекта с данными в базу
@@ -888,7 +891,7 @@ class ComAccTransOrder extends Component {
         const {form, orders, data} = this.state
         let newOrders = []
 
-        this.props.loading()
+        this.props.setLoading()
 
         orders.map(order => {
             let obj = {}
@@ -930,7 +933,7 @@ class ComAccTransOrder extends Component {
                 this.setState(({submit}) => submit.disable = false)
             })
 
-        this.props.unLoading()
+        this.props.removeLoading()
 
     }
 
@@ -1231,4 +1234,4 @@ class ComAccTransOrder extends Component {
     }
 }
 
-export default connect(null, {setError, loading: setLoading, unLoading: removeLoading})(ComAccTransOrder)
+export default connect(null, {setError, setLoading, removeLoading})(ComAccTransOrder)

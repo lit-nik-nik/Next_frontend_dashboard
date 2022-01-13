@@ -39,7 +39,10 @@ function CustomError (props: {error: {errors: [], message: string}, removeError:
                         variant='warning'
                         className='w-100 text-center text-uppercase'
                         disabled={disabled}
-                        onClick={() => props.removeError()}
+                        onClick={() => {
+                            props.removeError()
+                            setDisabled(true)
+                        }}
                     >
                         Я подтверждаю, что ознакомился(ась) с ошибкой
                     </Button>

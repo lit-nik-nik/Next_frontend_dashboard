@@ -123,7 +123,7 @@ export const globalState = {
             name: 'Статус'
         },
         {
-            label: ['ORDER_SQUARE', 'ORDER_FASADSQ', 'fasadSquare'],
+            label: ['ORDER_SQUARE', 'ORDER_FASADSQ', 'generalSquare'],
             name: 'S сборки'
         },
         {
@@ -155,7 +155,7 @@ export const globalState = {
             name: 'Зарплата'
         },
         {
-            label: ['workingTime'],
+            label: ['workingTime', 'workTime'],
             name: 'Время'
         }
     ]

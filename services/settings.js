@@ -14,6 +14,14 @@ export const myAxios = axios.create(
     }
 )
 
+export const connectAxios = axios.create(
+    {
+        baseURL: API_URI,
+        headers: {
+            'Authorization': token
+        }
+    }
+)
 
 export const myOptions = (token) => {
     return {

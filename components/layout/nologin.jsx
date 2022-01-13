@@ -26,7 +26,7 @@ export class NologinLayout extends Component {
 
     render() {
 
-        const {children, title, link, error} = this.props
+        const {children, title, link} = this.props
         const {nav} = this.state
 
         return (
@@ -54,7 +54,7 @@ export class NologinLayout extends Component {
                             {children}
                         </Col>
 
-                        {error ? <CustomError error={error} /> : null}
+                        <CustomError />
 
                         <Version />
                     </Row>

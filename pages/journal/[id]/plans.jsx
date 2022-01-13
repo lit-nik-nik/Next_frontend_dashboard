@@ -5,12 +5,12 @@ import {withRouter} from "next/router";
 import Thead from "../../../modules/tables/thead";
 import Tbody from "../../../modules/tables/tbody";
 import {globalState} from "../../../data/globalState";
-import {getCommentsOrder, getOrderJournal, getOrdersSector, getSectors} from "../../../services/journals/get";
+import {getCommentsOrder, getOrdersSector, getSectors} from "../../../services/journals/get";
+import {connectCommentsOrder} from "../../../services/journals/post";
 import MainLayout from "../../../components/layout/main";
 import JournalLayout from "../../../components/layout/journals";
-import {postCommentJournal} from "../../../services/journals/post";
 import {MyInput, MySelect} from "../../../components/elements";
-import {setLoading, removeLoading} from "../../../redux/actions/actionsApp";
+import {setLoading, removeLoading, setError, setTokenTimer, setFullscreen} from "../../../redux/actions/actionsApp";
 import {
     setOrdersSector,
     setSectors,
@@ -22,6 +22,7 @@ import {
 } from "../../../redux/actions/actionsJournals";
 import MyChat from "../../../modules/chat/chat";
 import {IconPrint, printPage} from "../../../modules/print";
+import exitApp from "../../../modules/exit";
 
 
 class PlansJournal extends Component {
@@ -100,7 +101,6 @@ class PlansJournal extends Component {
 
         this.setState({isOwner: this.props.user.isOwner})
 
-        // this.setState({updatePage: setInterval(this.getPlans, 300000)})
     }
 
     async componentDidUpdate(prevProps, prevState, snapshot) {
@@ -112,16 +112,19 @@ class PlansJournal extends Component {
 
         if (this.state.journalID !== prevState.journalID) {
             if (this.state.journalID) {
+                // clearTimeout(this.props.timerID)
                 this.props.removeOrders()
                 this.clearFilters()
 
                 await this.getSectors()
+                // this.props.setTokenTimer(setTimeout(() => exitApp(), 900000))
             }
         }
 
         if (this.state.activeSectorId !== prevState.activeSectorId) {
             this.props.removeOrders()
             this.clearFilters()
+            // clearTimeout(this.props.timerID)
 
             this.props.setLoading()
 
@@ -129,6 +132,7 @@ class PlansJournal extends Component {
             this.createHeaderAndParams()
 
             this.props.removeLoading()
+            // this.props.setTokenTimer(setTimeout(() => exitApp(), 900000))
         }
 
         if (this.state.activeFilterButtons !== prevState.activeFilterButtons) {
@@ -143,28 +147,11 @@ class PlansJournal extends Component {
             this.countOrders()
             this.countSquare()
         }
-
-        // if (this.state.changeComment.view) this.commentInput.current.focus()
-
-        // if (this.state.activeSectorId !== prevState.activeSectorId) await this.getOrdersSector()
     }
 
     componentWillUnmount() {
-        clearInterval(this.state.updatePage)
         this.props.removeOrders()
     }
-
-    // // старая вформа получения заказов
-    // oldGetOrdersJournals = async (id, filter = '') => {
-    //     let journal
-    //
-    //     await getOrderJournal(id, filter, this.props.token)
-    //         .then(res => {
-    //             journal = res
-    //         })
-    //
-    //     this.setState({journal})
-    // }
 
     // + получение секторов и размещение их в редакс
     getSectors = async () => {
@@ -209,20 +196,18 @@ class PlansJournal extends Component {
         const addEditButton = (obj, arr) => {
             obj.map(item => {
                 item.data.edit =
-                    <Button
-                        variant='info'
-                        size='sm'
-                        className='position-relative'
-                        style={{fontSize: 12}}
+                    <i
+                        className='position-relative bi bi-chat-square-text-fill text-dark'
+                        style={{fontSize: 18}}
                         onClick={() => this.viewChatComments(item)}
                     >
-                        Чат
                         <span
-                            className='position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary'
+                            className='position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark ms-1'
+                            style={{fontSize: 10}}
                         >
                             {item.data.comments.length !== 0 ? item.data.comments.length : null}
                         </span>
-                    </Button>
+                    </i>
                 arr.push(item)
             })
         }
@@ -348,30 +333,6 @@ class PlansJournal extends Component {
         else if (activeFilterButtons === 'forFuture') this.setState({squareOrders: futureSquare})
     }
 
-    // формирование секторов в плане
-    // addSectors = () => {
-    //     let sectors = []
-    //
-    //     journal.map(sector => {
-    //         sectors.push(sector.name)
-    //     })
-    //
-    //     this.setState({numbersSectors: journal.length})
-    //     this.setState({sectors})
-    //     this.setState({activeSector: sectors[0]})
-    // }
-
-    // выбор заказов плана в соответствии с выбраным сектором
-    // addOrderPlan = (journal) => {
-    //     const {activeSector} = this.state
-    //
-    //     journal.map(sector => {
-    //         if (activeSector === sector.name) {
-    //             this.setState({ordersPlan: sector})
-    //         }
-    //     })
-    // }
-
     // открытие чата комментариев
     viewChatComments = async (item) => {
         const newViewComment = {
@@ -388,40 +349,13 @@ class PlansJournal extends Component {
     // получение комментариев заказа
     getComments = async (id) => {
         await getCommentsOrder(this.props.token, id)
-            .then(res => {
+            .then(async res => {
                 this.props.setCommentsOrder(res.data.comments)
+                // await connectCommentsOrder()
             })
-    }
-
-    // формирования выбора пользователя и комментария
-    renderOption = () => {
-        const {changeComment} = this.state
-        const user = {
-            userId: this.props.userId,
-            userName: this.props.user.userName,
-        }
-        let option = [], count = 0
-
-        if (changeComment.data.length < 1) {
-            option.push(<option id={1} value={changeComment.userId}>{changeComment.userId}: {changeComment.userName}</option>)
-        } else {
-            // changeComment.data.map(comment => {
-            //     if (+comment.userId === +user.userId) count = 1
-            // })
-            //
-            // changeComment.data.map(comment => {
-            //     if (+comment.userId !== +user.userId && !count) {
-            //         option.push(<option id={2} value={user.userId} key={user.userId}>{user.userId}: {user.userName}</option>)
-            //         count = 1
-            //     }
-            // })
-
-            changeComment.data.map(comment => {
-                option.push(<option id={3} value={comment.employeeId} key={comment.id}>{comment.employeeId}: {comment.userName}</option>)
+            .catch(e => {
+                this.props.setError(e.response?.data)
             })
-        }
-
-        return option
     }
 
     // выбор комментария пользователя
@@ -436,8 +370,6 @@ class PlansJournal extends Component {
             }
         })
 
-        console.log(search)
-
         if (search) {
             this.setState(({changeComment}) => {
                 return (
@@ -448,16 +380,6 @@ class PlansJournal extends Component {
                 )
             })
         }
-        // else {
-        //     this.setState(({changeComment}) => {
-        //         return (
-        //             changeComment.userId = this.props.userId,
-        //             changeComment.userName = userName,
-        //             changeComment.dataId = 0,
-        //             changeComment.comment = ''
-        //         )
-        //     })
-        // }
     }
 
     // закрытие чата комментариев
@@ -472,131 +394,6 @@ class PlansJournal extends Component {
 
         this.props.removeCommentsOrder()
     }
-
-
-    // // отправка комментария в базу
-    // submitComment = async (comment) => {
-    //     const {token} = this.props
-    //     let data = {}, error
-    //
-    //     data.orderId = comment.id
-    //     data.dataId = comment.dataId
-    //     data.text = comment.comment
-    //
-    //     await postCommentJournal(data, token)
-    //         .then(res => {
-    //             if (res.status === 201 || res.status === 200) {
-    //                 this.getPlans()
-    //             }
-    //         })
-    //         .catch(err => {
-    //             error = err.response?.data
-    //         })
-    //
-    //     if (error) {
-    //         await this.setState({error})
-    //     }
-    // }
-
-
-    // формирование таблицы заказов
-    // filterOrder = async (filter = 'all') => {
-    //     // console.time('orders')
-    //
-    //     const {ordersPlan} = this.state
-    //
-    //     let overdue = [], today = [], future = [],
-    //         newActiveOrders = {
-    //             overdueOrders: [],
-    //             todayOrders: [],
-    //             futureOrders: [],
-    //         }
-    //
-    //     const addEditButton = (obj, arr) => {
-    //         obj.map(item => {
-    //             item.data.edit = <i
-    //                 className='bi bi-pencil-square btn text-primary p-0'
-    //                 style={{fontSize: 16}}
-    //                 onClick={() => this.changeComment(item)}
-    //             />
-    //             arr.push(item)
-    //         })
-    //     }
-    //
-    //     if (ordersPlan) {
-    //         addEditButton(ordersPlan.overdue, overdue)
-    //         addEditButton(ordersPlan.forToday, today)
-    //         addEditButton(ordersPlan.forFuture, future)
-    //     }
-    //
-    //     newActiveOrders.overdueOrders = overdue
-    //     newActiveOrders.todayOrders = today
-    //     newActiveOrders.futureOrders = future
-    //
-    //     this.setState({activeOrders: newActiveOrders})
-    //
-    //     // console.timeEnd('orders')
-    // }
-
-
-    // // получение плана с сервера
-    // getPlans = async () => {
-    //     const {journalID} = this.state
-    //     const {token} = this.props
-    //     let journal, error
-    //
-    //     await getOrderJournal(journalID, '', token)
-    //         .then(res  => journal = res.data.journal)
-    //         .catch(err => error = err.response?.data)
-    //
-    //     if(journal) {
-    //         await this.addSectors(journal)
-    //         await this.addOrderPlan(journal)
-    //     }
-    //
-    //     if(error) {
-    //         this.setState({error})
-    //     }
-    // }
-
-
-    // // поиск заказов
-    // searchOrder = () => {
-    //     const {search, ordersPlan} = this.state
-    //     let overdue = [], today = [], future = [],
-    //         newActiveOrders = {
-    //             overdueOrders: [],
-    //             todayOrders: [],
-    //             futureOrders: [],
-    //         }
-    //
-    //     const ordersMap = (obj, newObj) => {
-    //         obj.map(order => {
-    //             const itmOrder = order.itmOrderNum.toUpperCase(),
-    //                 upperSearch = search.toUpperCase()
-    //
-    //             if (itmOrder.includes(upperSearch)) newObj.push(order)
-    //         })
-    //     }
-    //
-    //     if (search) {
-    //         ordersMap(ordersPlan.overdue, overdue)
-    //         ordersMap(ordersPlan.forToday, today)
-    //         ordersMap(ordersPlan.forFuture, future)
-    //
-    //         newActiveOrders.overdueOrders = overdue
-    //         newActiveOrders.todayOrders = today
-    //         newActiveOrders.futureOrders = future
-    //
-    //         this.setState({activeOrders: newActiveOrders})
-    //     } else {
-    //         newActiveOrders.overdueOrders = ordersPlan.overdue
-    //         newActiveOrders.todayOrders = ordersPlan.forToday
-    //         newActiveOrders.futureOrders = ordersPlan.forFuture
-    //
-    //         this.setState({activeOrders: newActiveOrders})
-    //     }
-    // }
 
     // изменение кнопок фильтрации заказов
     changeButtonFilter = (value) => {
@@ -634,7 +431,7 @@ class PlansJournal extends Component {
         const {journalID, filtersButtons, activeFilterButtons, headerTable,
             viewComment, paramsTable, activeFilter, filters, link, activeSector,
             title, squareOrders} = this.state
-        const {todayOrders, overdueOrders, futureOrders, sectors} = this.props
+        const {todayOrders, overdueOrders, futureOrders, sectors, fullscreen, setFullscreen} = this.props
 
         let optionSector = []
 
@@ -689,12 +486,17 @@ class PlansJournal extends Component {
                             <Button
                                 type='button'
                                 variant='outline-dark'
-                                className='me-3 shadow'
+                                className={`bi ${fullscreen ? 'bi-fullscreen-exit' : 'bi-fullscreen'} me-3 shadow border-0`}
+                                onClick={() => setFullscreen()}
+                            />
+
+                            <Button
+                                type='button'
+                                variant='outline-dark'
+                                className='bi bi-funnel-fill me-3 shadow border-0'
                                 active={activeFilter}
                                 onClick={() => this.setState({activeFilter: !this.state.activeFilter})}
-                            >
-                                {activeFilter ? 'Скрыть фильтры' : 'Открыть фильтры'}
-                            </Button>
+                            />
 
                             <IconPrint onClickPrint={() => printPage('doc-print')} />
                         </Col>
@@ -704,7 +506,7 @@ class PlansJournal extends Component {
                         <Col className='text-muted text-center'>Данных не существует...</Col>
                     ) : (
                         <Row>
-                            <Col id='doc-print' style={{height: '75vh', overflow: "auto"}}>
+                            <Col id='doc-print' style={fullscreen ? {height: '80vh', overflow: "auto", fontSize: '30px'} : {height: '75vh', overflow: "auto"}}>
                                 <Table variant={'dark'} size='sm'>
                                     <Thead title={headerTable}/>
 
@@ -797,19 +599,19 @@ class PlansJournal extends Component {
     }
 }
 
-const mapSTP = state => {
-    return {
-        user: state.app.user,
-        sectors: state.journal.sectors,
-        orders: state.journal.orders,
-        todayOrders: state.journal.todayOrders,
-        overdueOrders: state.journal.overdueOrders,
-        futureOrders: state.journal.futureOrders
-    }
-}
+const mapSTP = state => ({
+    timerID: state.app.activeTimer,
+    user: state.app.user,
+    sectors: state.journal.sectors,
+    orders: state.journal.orders,
+    todayOrders: state.journal.todayOrders,
+    overdueOrders: state.journal.overdueOrders,
+    futureOrders: state.journal.futureOrders,
+    fullscreen: state.app.fullscreen
+})
 
 export default connect(mapSTP, {
-    setLoading, removeLoading, setSectors, setOrdersSector, setTodayOrders,
+    setLoading, removeLoading, setError, setSectors, setOrdersSector, setTodayOrders,
     setFutureOrders, setOverdueOrders, removeOrders, setCommentsOrder,
-    removeCommentsOrder
+    removeCommentsOrder, setTokenTimer, setFullscreen
 })(withRouter(PlansJournal))

@@ -1,5 +1,15 @@
 import { Action } from "../../type-scrypt/types/appTypes";
-import {ERROR, LOADING, SET_TOKEN_TIMER, SET_USER, SUCCESS, UN_ERROR, UN_LOADING, UN_SUCCESS} from "../types/typesApp";
+import {
+    ERROR,
+    FULLSCREEN,
+    LOADING,
+    SET_TOKEN_TIMER,
+    SET_USER,
+    SUCCESS,
+    UN_ERROR,
+    UN_LOADING,
+    UN_SUCCESS
+} from "../types/typesApp";
 
 export const setUser:Action = (user) => ({
     type: SET_USER,
@@ -8,6 +18,10 @@ export const setUser:Action = (user) => ({
 
 export const setLoading:Action = () => ({
     type: LOADING
+})
+
+export const setFullscreen:Action = () => ({
+    type: FULLSCREEN
 })
 
 export const removeLoading:Action = () => ({

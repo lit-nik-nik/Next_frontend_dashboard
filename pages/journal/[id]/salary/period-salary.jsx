@@ -1,5 +1,6 @@
 import React, {Component} from "react";
-import {Col, Form, InputGroup, ListGroup, Row, Table} from "react-bootstrap";
+import {Button, Col, ListGroup, Row, Table} from "react-bootstrap";
+import {connect} from 'react-redux';
 import Thead from "../../../../modules/tables/thead";
 import Link from "next/link";
 import MainLayout from "../../../../components/layout/main";
@@ -8,6 +9,8 @@ import {getTokenCookies} from "../../../../modules/cookie";
 import {getWeekSalary} from "../../../../services/journals/get";
 import JournalLayout from "../../../../components/layout/journals";
 import {MySelect} from "../../../../components/elements/";
+import {IconPrint, printPage} from "../../../../modules/print";
+import {setFullscreen} from "../../../../redux/actions/actionsApp";
 
 class PeriodSalary extends Component {
 
@@ -385,7 +388,7 @@ class PeriodSalary extends Component {
 
     render() {
         const {headerTable, total, link, journalID, activeSalary, sector, allSectors} = this.state
-        const {sectors} = this.props
+        const {sectors, fullscreen, setFullscreen} = this.props
 
         return (
             <MainLayout title={`Предварительный расчет`} link={link} token={this.props.token} error={this.props.error}>
@@ -395,7 +398,7 @@ class PeriodSalary extends Component {
                     activeSalary={activeSalary}
                     title={`Предварительный расчет`}
                 >
-                    <Row>
+                    <Row className='align-items-end'>
                         <Col lg={3}>
                             <MySelect
                                 name={'Выберите участок'}
@@ -406,10 +409,23 @@ class PeriodSalary extends Component {
                                 option={allSectors}
                             />
                         </Col>
+
+                        <Col />
+
+                        <Col lg={2} className='mt-2 text-end'>
+                            <Button
+                                type='button'
+                                variant='outline-dark'
+                                className={`bi ${fullscreen ? 'bi-fullscreen-exit' : 'bi-fullscreen'} me-3 shadow border-0`}
+                                onClick={() => setFullscreen()}
+                            />
+
+                            <IconPrint onClickPrint={() => printPage('doc-print')} />
+                        </Col>
                     </Row>
 
                     {sector ? (
-                        <>
+                        <div id='doc-print'>
                             <Row className='my-3'>
                                 <Col>
                                     <h3 className='fw-bold text-center'>Предварительный расчет для сектора {sector}</h3>
@@ -490,7 +506,7 @@ class PeriodSalary extends Component {
                                     </p>
                                 </Col>
                             </Row>
-                        </>
+                        </div>
                         ) : null}
                 </JournalLayout>
             </MainLayout>
@@ -498,7 +514,11 @@ class PeriodSalary extends Component {
     }
 }
 
-export default withRouter(PeriodSalary)
+const mapSTP = state => ({
+    fullscreen: state.app.fullscreen
+})
+
+export default connect(mapSTP, {setFullscreen})(withRouter(PeriodSalary))
 
 export async function getServerSideProps({req,query}) {
 

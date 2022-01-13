@@ -1,4 +1,14 @@
-import {ERROR, LOADING, SET_TOKEN_TIMER, SET_USER, SUCCESS, UN_ERROR, UN_LOADING, UN_SUCCESS} from "../types/typesApp";
+import {
+    ERROR,
+    FULLSCREEN,
+    LOADING,
+    SET_TOKEN_TIMER,
+    SET_USER,
+    SUCCESS,
+    UN_ERROR,
+    UN_LOADING,
+    UN_SUCCESS
+} from "../types/typesApp";
 
 const initialState = {
     loading: false,
@@ -6,7 +16,8 @@ const initialState = {
     app_success: null,
     mainMenu: [],
     activeTimer: null,
-    user: {}
+    user: {},
+    fullscreen: false
 }
 
 export const appReducer = (state = initialState, action) => {
@@ -27,6 +38,8 @@ export const appReducer = (state = initialState, action) => {
             return {...state, activeTimer: action.payload}
         case SET_USER:
             return {...state, user: action.payload}
+        case FULLSCREEN:
+            return {...state, fullscreen: !state.fullscreen}
         default:
             return state
     }

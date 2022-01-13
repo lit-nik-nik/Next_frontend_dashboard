@@ -18,8 +18,13 @@ class Order extends Component {
         headTitle: [
             {
                 id: 1,
-                label: '№ заказа на производстве',
+                label: 'Название заказа',
                 params: ['itmOrderNum']
+            },
+            {
+                id: 1,
+                label: 'Площадь',
+                params: ['squareFasad', 'square']
             },
             {
                 id: 2,
@@ -73,7 +78,7 @@ class Order extends Component {
             },
             {
                 id: 14,
-                label: 'Комментарий к заказу',
+                label: 'Комментарий',
                 params: ['comment']
             }
         ],
@@ -123,11 +128,23 @@ class Order extends Component {
 
         headTitle.map(item => {
             const dataOne = obj[`${item.params[0]}`] ? obj[`${item.params[0]}`] : '',
-                dataTwo = obj[`${item.params[1]}`] ? ' (' + obj[`${item.params[1]}`] + ')' : '',
-                dataAll = item.params[1] ? dataOne + dataTwo : dataOne
+                dataTwo = obj[`${item.params[1]}`] ? obj[`${item.params[1]}`] : '',
+                dataAll = item.params[1] ? `${dataOne} (${dataTwo})` : dataOne
 
             if (obj[`${item.params[0]}`]) {
-                if (item.params.includes('itmOrderNum') || item.params.includes('comment')) {
+                if (item.params.includes('itmOrderNum')) {
+                    header.push(
+                        <>
+                            <Col lg={2} className='text-end fw-bold'>
+                                {item.label}:
+                            </Col>
+                            <Col lg={4} className='border-bottom text-start'>
+                                {dataAll}
+                            </Col>
+                        </>
+                    )
+                }
+                else if (item.params.includes('comment')) {
                     header.push(
                         <>
                             <Col lg={2} className='text-end fw-bold'>
@@ -142,11 +159,10 @@ class Order extends Component {
                 else if (item.params.includes('squareFasad') || item.params.includes('square')) {
                     header.push(
                         <>
-                            <Col lg={2} className='text-end fw-bold'>
-                                {item.label}:
-                            </Col>
+                            <Col lg={2}/>
                             <Col lg={4} className='border-bottom text-start'>
-                                {Math.round(dataAll * 1000) / 1000} м2
+                                <b>S сборки: </b>{Math.round(dataOne * 1000) / 1000} м²;
+                                <b> S покраски: </b>{Math.round(dataTwo * 1000) / 1000} м²
                             </Col>
                         </>
                     )
@@ -297,75 +313,64 @@ class Order extends Component {
                 {order ? (
                     <>
                         <Row id='doc-print' className='my-2'>
-                            <Col lg={9}>
+                            <Col lg={12}>
                                 <Row>
-                                    <Col lg={3}>
+                                    <Col lg={2}>
                                         <Button variant='outline-dark' onClick={() => this.props.router.back()}>
                                             Вернуться назад
                                         </Button>
                                     </Col>
-                                    <Col lg={6} className='mt-2'>
+                                    <Col lg={5} className='mt-2'>
                                         <h4 className='text-center fw-bold text-uppercase fst-italic m-0'>
                                             Заказ № {header.id}
                                         </h4>
                                     </Col>
-                                    <Col lg={3}>
-                                        <Alert variant='light' className='p-2 text-end m-0 float-start'>
+                                    <Col lg={2}>
+                                        <Alert variant='light' className='p-2 text-end m-0'>
                                             <b>Менеджер: </b>{header.manager}
+                                        </Alert>
+                                    </Col>
+
+                                    <Col lg={3}>
+                                        <Alert variant='light' className='p-0 py-2 m-0 float-start'>
+                                            Статуса заказа: <b>{header.status}</b>
                                         </Alert>
 
                                         <IconPrint onClickPrint={() => printPage('doc-print')} />
                                     </Col>
                                 </Row>
 
-                                <hr/>
+                                <hr className='mt-0' />
 
+                            </Col>
+
+                            <Col lg={9}>
                                 <Row>
                                     <Col lg={12}>
                                         {this.headerRender(header)}
                                     </Col>
 
-                                    <hr/>
-
-                                    <Col>
-                                        {header.totalCost ? (
-                                            <Alert variant='success' className='p-0 py-2 text-center'>
-                                                Общая стоимость: <b>{header.totalCost} ₽</b>
-                                            </Alert>
-                                        ) : null}
-                                    </Col>
-
-                                    <Col>
-                                        <Alert variant='success' className='p-0 py-2 text-center'>
-                                            Статуса заказа: <b>{header.status}</b>
-                                        </Alert>
-                                    </Col>
-
-                                    <hr/>
-
                                     <Col lg={12}>
                                         {this.bodyRender(body)}
+                                    </Col>
+
+                                    <Col lg={12} className='text-end'>
+                                        {header.totalCost ? (
+                                            <Alert variant='light' className='m-0 p-0 py-1 text-end'>
+                                                <b>Общая стоимость:</b> <i>{header.totalCost} ₽</i>
+                                            </Alert>
+                                        ) : null}
+
+                                        {header.debt ? (
+                                            <Alert variant='light' className='m-0 p-0 py-1 text-end'>
+                                                <b>Долг:</b> <i>{header.debt} ₽</i>
+                                            </Alert>
+                                        ) : null}
                                     </Col>
                                 </Row>
                             </Col>
 
                             <Col lg={3}>
-                                {order ? (
-                                    <Row className='text-center'>
-                                        <Col lg={6}>
-                                            <Alert variant='secondary' className='p-0 py-2'>
-                                                <p className='mb-1' style={{fontSize: '14px'}}>Площадь сборки</p>
-                                                <b>{Math.round(header.squareFasad * 1000) / 1000} м2</b>
-                                            </Alert>
-                                        </Col>
-                                        <Col lg={6}>
-                                            <Alert variant='secondary' className='p-0 py-2'>
-                                                <p className='mb-1' style={{fontSize: '14px'}}>Площадь покраски</p>
-                                                <b>{Math.round(header.square * 1000) / 1000} м2</b>
-                                            </Alert>
-                                        </Col>
-                                    </Row>
-                                ) : null}
                                 <h4 className='text-center fw-bold'>План изготовления заказа:</h4>
                                 {order ? this.planRender(plans) : null}
                                 {image ? (
@@ -382,9 +387,6 @@ class Order extends Component {
                                 ) : null}
                             </Col>
                         </Row>
-
-
-
 
                         <ModalImage
                             show={this.state.modalView}

@@ -135,9 +135,12 @@ function Tbody (props) {
                         </td>
                     )
                 }
-                else if (param === 'nameSectorInOrder') {
+                else if (
+                    param === 'nameSectorInOrder' ||
+                    param === 'status'
+                ) {
                     cell.push(
-                        <td className='align-middle text-center' style={{width: '18%', backgroundColor: 'transparent'}} key={index}>
+                        <td className='align-middle text-center' style={{width: '14%', backgroundColor: 'transparent'}} key={index}>
                             <Row>
                                 <Col>
                                     {order[param]}
@@ -149,6 +152,7 @@ function Tbody (props) {
                 else if (
                     param === 'ORDER_SQUARE' ||
                     param === 'fasadSquare' ||
+                    param === 'generalSquare' ||
                     param === 'ORDER_FASADSQ') {
                     cell.push(
                         <td className='align-middle text-center' style={{width: '8%', backgroundColor: 'transparent'}} key={index}>
@@ -161,17 +165,17 @@ function Tbody (props) {
                         cell.push(
                             <td className='align-middle text-center' style={{width: '18%', backgroundColor: 'transparent'}} key={index}>
                                 <Row className='w-100 align-items-center'>
-                                    <Col>
+                                    <Col lg={10} className='p-0'>
                                         <div className='m-0' style={{fontSize: '12px'}}>
                                             <b>
                                                 {order.data.comments[order.data.comments.length - 1].userName} </b>
                                             <i className='text-muted'>
                                                 ({order.data.comments[order.data.comments.length - 1].sector}): </i>
                                             <i className='text-decoration-underline'>
-                                                {order.data.comments[order.data.comments.length - 1].data}</i>
+                                                {order.data.comments[order.data.comments.length - 1].data.slice(0, 13)}...</i>
                                         </div>
                                     </Col>
-                                    <Col lg={2}>
+                                    <Col lg={2} className='p-0'>
                                         {order.data.edit}
                                     </Col>
                                 </Row>
@@ -180,9 +184,9 @@ function Tbody (props) {
                     } else {
                         cell.push(
                             <td className='align-middle text-center' style={{width: 'auto', backgroundColor: 'transparent'}} key={index}>
-                                <Row  className='w-100'>
-                                    <Col />
-                                    <Col lg={2}>
+                                <Row className='w-100 align-items-center'>
+                                    <Col lg={10} className='p-0' />
+                                    <Col lg={2} className='p-0'>
                                         {order.data.edit}
                                     </Col>
                                 </Row>
@@ -204,7 +208,7 @@ function Tbody (props) {
                         </td>
                     )
                 }
-                else if (param === 'workingTime') {
+                else if (param === 'workingTime' || param === 'workTime') {
                     if (order[param]) {
                         cell.push(
                             <td className='align-middle text-center' style={{width: 'auto', backgroundColor: 'transparent'}} key={index}>

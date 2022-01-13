@@ -3,14 +3,14 @@ import {Component} from "react";
 import {Row, Col, Form, Button, FormGroup} from "react-bootstrap";
 import Link from "next/link";
 import {getUsers} from "../services/auth/get";
-import Head from "next/head";
 import {regUser} from "../services/reg/post";
 import Router, {withRouter} from "next/router";
 import ModalWindow from "../modules/modals/modal";
 import Image from "next/image";
 import logo from "../public/logo.png";
-import CustomError from "../modules/error";
 import {NologinLayout} from "../components/layout/nologin";
+import {connect} from "react-redux";
+import {setError} from "../redux/actions/actionsApp";
 
 class Reg extends Component {
 
@@ -69,7 +69,25 @@ class Reg extends Component {
             message: ''
         },
         errorData: null,
-        disabled: false
+        disabled: false,
+        css: {
+            body: {
+                display: 'flex',
+                alignItems: 'center',
+                height: '85vh',
+                paddingTop: '40px',
+                paddingBottom: '40px'
+            },
+            formSign: {
+                width: '100%',
+                maxWidth: '450px',
+                padding: '15px',
+                margin: 'auto',
+                backgroundColor: '#f5f5f5',
+                boxShadow: '0 0 10px 10px #ccc',
+                borderRadius: '15px'
+            }
+        }
     }
 
     componentDidMount() {
@@ -277,32 +295,30 @@ class Reg extends Component {
                         })
                         setTimeout(redirect, 2000)
                     }
-                    else this.setState({errorData: res.data})
+                    else this.props.setError(res.data)
                 })
-                .catch(err => {
-                    this.setState({errorData: err.response.data})
-                })
+                .catch(err => this.props.setError(err.response.data))
         }
         else {
-            this.setState({errorData: {
+            this.props.setError({
                     errors: [''],
                     message: 'Не все поля заполнены верно'
-                }})
+                })
         }
 
     }
 
 
     render() {
-        const {inputs, disabled, errorData, reg, link} = this.state
+        const {inputs, disabled, reg, link, css} = this.state
 
         return (
             <>
                 <NologinLayout title='Регистрация пользователя' link={link}>
                     <Row>
                         <Col lg={12}>
-                            <div className={style.authBody}>
-                                <main className={`form-signin bg-dark ${style.formSign}`}>
+                            <div style={css.body}>
+                                <main style={css.formSign} className={`form-signin bg-dark ${style.formSign}`}>
                                     <Row>
                                         <Col className='text-center'>
                                             <Image src={logo} alt="Массив-Юг" />
@@ -330,7 +346,6 @@ class Reg extends Component {
                                         message={reg.message}
                                     />
 
-                                    <CustomError error={errorData ? errorData : this.props.error} />
                                 </main>
                             </div>
                         </Col>
@@ -341,7 +356,7 @@ class Reg extends Component {
     }
 }
 
-export default withRouter(Reg)
+export default connect(null, {setError})(withRouter(Reg))
 
 export async function getServerSideProps() {
 

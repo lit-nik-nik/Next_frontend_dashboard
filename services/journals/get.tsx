@@ -1,4 +1,5 @@
 import {myAxios, myOptions} from "../settings";
+import {ExtraData} from "../../type-scrypt/types/journalsTypes";
 
 export const getJournals = async (token) => {
     return await myAxios.get(`/api/journals/get-journals`, myOptions(token))
@@ -58,8 +59,9 @@ export const getOrdersSector = async (token: string, id: number, idSector: numbe
 }
 
 export const getCommentsOrder = async (token: string, id: number) => {
-    return await myAxios(`/api/extra-data/comments/${id}`, myOptions(token))
+    return await myAxios.get(`/api/extra-data/comments/order/${id}`, myOptions(token))
 }
+
 
 
 
