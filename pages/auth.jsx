@@ -12,7 +12,9 @@ import Image from "next/image";
 import {changeKeyboard} from "../modules/change-keyboard";
 import Cookies from 'js-cookie'
 import {NologinLayout} from "../components/layout/nologin";
-import {setError} from "../redux/actions/actionsApp";
+import {setError, setMainMenu, setUser} from "../redux/actions/actionsApp";
+import {getJournals} from "../services/journals/get";
+import {addMenu} from "../modules/menu/add-menu";
 
 class Auth extends Component {
 
@@ -112,11 +114,18 @@ class Auth extends Component {
         }
 
         await authUser(user, hash, newBarcode)
-            .then(res => {
+            .then(async res => {
                 if (res.status === 200) {
                     Cookies.set('token', res.data.token, {expires: 10/24})
                     Cookies.set('userId', res.data.userId, {expires: 10/24})
                     localStorage.setItem('user', JSON.stringify(res.data.user))
+                    this.props.setUser(res.data.user)
+
+                    await getJournals(res.data.token)
+                        .then(result => {
+                            this.props.setMainMenu(addMenu(result.data.journals))
+                        })
+                        .catch(err => this.props.setError(err.response?.data))
 
                     setTimeout(redirect, 1000)
                 } else {
@@ -256,7 +265,7 @@ class Auth extends Component {
 
 }
 
-export default connect(null, {setError})(withRouter(Auth))
+export default connect(null, {setError, setUser, setMainMenu})(withRouter(Auth))
 
 export async function getServerSideProps() {
 

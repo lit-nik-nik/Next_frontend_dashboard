@@ -1,49 +1,4 @@
 export const globalState = {
-    menu: [
-        {
-            label: 'Панель управления',
-            link: '/',
-            icon: 'bi-house-door-fill'
-        },
-        {
-            label: 'Все заказы',
-            link: '/orders',
-            icon: 'bi-table'
-        },
-        {
-            id: 'bookkeeping',
-            label: 'Бухгалтерия',
-            link: '/bookkeeping',
-            icon: 'bi-cash-coin',
-            submenu: [
-                {
-                    label: 'Расчет запрлаты',
-                    link: '/bookkeeping/period-calculation'
-                },
-                {
-                    label: 'Все транзакции',
-                    link: '/bookkeeping/all-transaction'
-                }
-            ]
-        },
-        {
-            label: 'Прием-передача заказа',
-            link: '/at-order',
-            icon: 'bi-grid'
-        },
-        {
-            label: 'Добавить заказ',
-            link: '/order/create',
-            icon: 'bi-plus-circle-fill'
-        },
-        {
-            id: 'journals',
-            label: 'Журналы',
-            link: '',
-            icon: 'bi-journal-text',
-            submenu: []
-        }
-    ],
     headersTables: [
         {
             label: ['NUMBER'],

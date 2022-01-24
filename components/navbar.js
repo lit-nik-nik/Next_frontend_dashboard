@@ -44,7 +44,10 @@ class Navbar extends Component {
                         if (item.id === 'journals') {
                             subItem.push(
                                 <Link href={`${sub.link}`} key={iS}>
-                                    <a className={`nav-link py-1 ${link === sub.link ? 'active bg-dark link-light' : 'link-dark'}`} style={{fontSize: 18}}>
+                                    <a
+                                        className={`nav-link py-1 ${link === sub.link ? 'active bg-dark link-light' : 'link-dark'}`}
+                                        style={{fontSize: 18}}
+                                    >
                                         <i className={`me-2 bi ${sub.icon}`} />
                                         {sub.label}
                                     </a>
@@ -55,7 +58,10 @@ class Navbar extends Component {
                                 if (perm.link === sub.link) {
                                     subItem.push(
                                         <Link href={`${sub.link}`} key={iS}>
-                                            <a className={`nav-link py-1 ${link === sub.link ? 'active bg-dark link-light' : 'link-dark'}`} style={{fontSize: 18}}>
+                                            <a
+                                                className={`nav-link py-1 ${link === sub.link ? 'active bg-dark link-light' : 'link-dark'}`}
+                                                style={{fontSize: 18}}
+                                            >
                                                 <i className={`me-2 bi ${sub.icon}`} />
                                                 {sub.label}
                                             </a>
@@ -68,7 +74,7 @@ class Navbar extends Component {
 
                     if (subItem[0]) {
                         menuItem =
-                            <Dropdown drop='end' autoClose key={i}>
+                            <Dropdown drop='end' key={i}>
                                 <Dropdown.Toggle variant='light' className='text-start px-3 w-100' style={{fontSize: 18}}>
                                     <i className={`me-2 bi ${item.icon}`} />
                                     {item.label}

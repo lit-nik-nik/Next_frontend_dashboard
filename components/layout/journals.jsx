@@ -46,7 +46,7 @@ export default class JournalLayout extends Component {
 
         return (
             <>
-                <Row className='bg-white py-2 border border-end-0 border-start-0 border-top-0 align-items-center' style={{zIndex: 5}}>
+                <Row className='bg-white py-2 border border-end-0 border-start-0 border-top-0 align-items-center me-1' style={{zIndex: 5}}>
                     <Col lg={4}>
                         {pages.map((page, i) => {
                             return (

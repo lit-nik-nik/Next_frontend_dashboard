@@ -663,7 +663,7 @@ class BookkeepingCalc extends Component {
 
         return (
             <MainLayout title={`Предварительный расчет`} link={link} token={this.props.token} error={this.props.error}>
-                    <Row className='sticky-top bg-white pt-3 border border-start-0 border-end-0 border-top-0' style={{top: '60px', zIndex: 1}}>
+                    <Row className='sticky-top bg-white pt-3 border border-start-0 border-end-0 border-top-0' style={{zIndex: 1}}>
                         <Col lg={4}>
                             <InputGroup className="mb-3">
                                 <InputGroup.Text>Выберите участок</InputGroup.Text>

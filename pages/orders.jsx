@@ -136,11 +136,11 @@ class AllOrders extends Component {
     }
 
     render() {
-        const {headerTable, paramsTable, allOrders, activePage, pages, error, link, title, loading, noSearch} = this.state
+        const {headerTable, paramsTable, allOrders, activePage, pages, link, title, noSearch} = this.state
 
         return (
             <MainLayout title={title} link={link} token={this.props.token} error={this.props.error} search={this.props.filter}>
-                <Row className='align-items-center'>
+                <Row className='align-items-center me-2'>
                     <Col lg={1} />
                     <Col lg={10} className='mt-3 text-center text-uppercase fw-bold'>
                         <h3>{title}</h3>
@@ -171,15 +171,6 @@ class AllOrders extends Component {
                         </Col>
                     )}
                 </Row>
-
-
-
-                <Row>
-
-                </Row>
-
-
-
             </MainLayout>
         )
     }

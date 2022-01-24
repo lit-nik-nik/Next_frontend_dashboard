@@ -165,19 +165,27 @@ function Tbody (props) {
                         cell.push(
                             <td className='align-middle text-center' style={{width: '18%', backgroundColor: 'transparent'}} key={index}>
                                 <Row className='w-100 align-items-center'>
-                                    <Col lg={10} className='p-0'>
+                                    <Col lg={order.data.edit ? 10 : 12} className='p-0'>
                                         <div className='m-0' style={{fontSize: '12px'}}>
                                             <b>
                                                 {order.data.comments[order.data.comments.length - 1].userName} </b>
                                             <i className='text-muted'>
                                                 ({order.data.comments[order.data.comments.length - 1].sector}): </i>
                                             <i className='text-decoration-underline'>
-                                                {order.data.comments[order.data.comments.length - 1].data.slice(0, 13)}...</i>
+                                                {order.data.comments[order.data.comments.length - 1].data ?
+                                                    order.data.comments[order.data.comments.length - 1].data.length > 13 ?
+                                                        `${order.data.comments[order.data.comments.length - 1].data.slice(0, 13)}...` :
+                                                        `${order.data.comments[order.data.comments.length - 1].data}`
+                                                    : null
+                                                }
+                                            </i>
                                         </div>
                                     </Col>
-                                    <Col lg={2} className='p-0'>
-                                        {order.data.edit}
-                                    </Col>
+                                    {order.data.edit ? (
+                                        <Col lg={2} className='p-0'>
+                                            {order.data.edit}
+                                        </Col>
+                                    ) : null}
                                 </Row>
                             </td>
                         )

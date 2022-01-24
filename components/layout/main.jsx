@@ -9,22 +9,31 @@ import {globalState} from "../../data/globalState";
 import {getJournals} from "../../services/journals/get";
 import exitApp from "../../modules/exit";
 import CustomError from "../../modules/error";
-import {setError, setTokenTimer, setUser} from "../../redux/actions/actionsApp";
+import {setError, setMainMenu, setTokenTimer, setUser} from "../../redux/actions/actionsApp";
 import Loading from "../../modules/loading";
 import MyToast from "../../modules/toast/toast";
+import {addMenu} from "../../modules/menu/add-menu";
 
 class MainLayout extends Component {
 
     state = {
         collapse: false,
-        screenMode: null,
-        menu: globalState.menu
+        screenMode: null
     }
 
     async componentDidMount() {
         if (!this.props.token) exitApp()
-        if (localStorage.getItem('user')) {
-            this.props.setUser(JSON.parse(localStorage.getItem('user')))
+
+        if (!this.props.user) {
+            if (localStorage.getItem('user')) {
+                this.props.setUser(JSON.parse(localStorage.getItem('user')))
+                await getJournals(this.props.token)
+                    .then(result => {
+                        this.props.setMainMenu(addMenu(result.data.journals))
+                    })
+                    .catch(err => this.props.setError(err.response?.data))
+
+            }
         }
 
         if (localStorage.getItem('collapse')) {
@@ -38,11 +47,7 @@ class MainLayout extends Component {
         // this.props.setTokenTimer(setTimeout(() => exitApp(), 900000))
     }
 
-    async componentDidUpdate(prevProps, prevState, snapshot) {
-        if (this.props.user !== prevProps.user) {
-            await this.addMenu()
-        }
-    }
+    async componentDidUpdate(prevProps, prevState, snapshot) {}
 
     componentWillUnmount() {
         window.removeEventListener('resize', this.onResize)
@@ -68,41 +73,10 @@ class MainLayout extends Component {
         }
     }
 
-    addMenu = async () => {
-        const {token} = this.props
-        let journals, menu = [...globalState.menu]
-        let submenu = []
-
-        await getJournals(token)
-            .then(res => {
-                journals = res.data.journals
-            })
-            .catch(({response}) => {
-                this.props.setError(response.data)
-            })
-
-        if (journals) journals.map(item => {
-            let objMenu = {
-                label: item.name,
-                link: `/journal/${item.id}/plans`
-            }
-
-            submenu.push(objMenu)
-        })
-
-        menu.map(item => {
-            if (item.id === 'journals') {
-                item.submenu = submenu
-            }
-        })
-
-        await this.setState({menu})
-    }
-
     render() {
-        const {collapse, screenMode, menu} = this.state
+        const {collapse, screenMode} = this.state
 
-        const {children, title, link, token, search, success, user, fullscreen} = this.props
+        const {children, title, link, token, search, success, user, fullscreen, mainMenu} = this.props
 
         return (
             <>
@@ -119,15 +93,18 @@ class MainLayout extends Component {
                             ) : null
                         }
 
-                        <Row>
+                        <Row style={{overflowX: "hidden"}}>
                             {fullscreen ?
-                                null :
+                                <Col lg={1} className='nav-menu' style={{width: '4%'}}>
+                                    <NavbarMini link={link} menu={mainMenu} />
+                                </Col>
+                                :
                                 <Col lg={collapse ? 1 : 2} className='nav-menu' style={collapse ? {width: '4%'} : {}}>
-                                    {collapse ? <NavbarMini link={link} menu={menu} /> : <Navbar link={link} menu={menu} />}
+                                    {collapse ? <NavbarMini link={link} menu={mainMenu} /> : <Navbar link={link} menu={mainMenu} />}
                                 </Col>
                             }
 
-                            <Col lg={fullscreen ? 12 : collapse ? 11 : 10} className='py-1 px-4' style={collapse ? {width: '96%'} : {}}>
+                            <Col lg={fullscreen || collapse ? 11 : 10} className='py-1 px-4' style={fullscreen || collapse ? {width: '96%'} : {}}>
                                 {children}
 
                                 <Loading />
@@ -151,7 +128,8 @@ const mapSTP = state => ({
     timerID: state.app.activeTimer,
     errorRedux: state.app.app_error,
     success: state.app.app_success,
-    user: state.app.user
+    user: state.app.user,
+    mainMenu: state.app.mainMenu
 })
 
-export default connect(mapSTP, {setTokenTimer, setUser, setError})(MainLayout)
+export default connect(mapSTP, {setTokenTimer, setUser, setError, setMainMenu})(MainLayout)

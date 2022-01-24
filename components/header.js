@@ -82,11 +82,20 @@ const Header = (props) => {
                             className='text-end p-0 ps-1 pe-4 w-100 my-dropdown-user'
                             style={{fontSize: 16}}
                         >
-                            <Dropdown.Item eventKey="1">Настройки</Dropdown.Item>
-                            <Dropdown.Item eventKey="2">Полномочия</Dropdown.Item>
+                            <Dropdown.Item
+                                eventKey="1"
+                            >
+                                <Link href='/constructor'>
+                                    <a className='text-decoration-none text-light'>
+                                        Конструктор
+                                    </a>
+                                </Link>
+                            </Dropdown.Item>
+                            <Dropdown.Item eventKey="2">Настройки</Dropdown.Item>
+                            <Dropdown.Item eventKey="3">Полномочия</Dropdown.Item>
                             {props.user.isOwner ? (
                                 <Dropdown.Item
-                                    eventKey="3"
+                                    eventKey="4"
                                     onClick={() => reboot()}
                                 >
                                     Перезагрузка

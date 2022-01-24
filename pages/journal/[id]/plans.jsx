@@ -6,7 +6,6 @@ import Thead from "../../../modules/tables/thead";
 import Tbody from "../../../modules/tables/tbody";
 import {globalState} from "../../../data/globalState";
 import {getCommentsOrder, getOrdersSector, getSectors} from "../../../services/journals/get";
-import {connectCommentsOrder} from "../../../services/journals/post";
 import MainLayout from "../../../components/layout/main";
 import JournalLayout from "../../../components/layout/journals";
 import {MyInput, MySelect} from "../../../components/elements";
@@ -22,8 +21,6 @@ import {
 } from "../../../redux/actions/actionsJournals";
 import MyChat from "../../../modules/chat/chat";
 import {IconPrint, printPage} from "../../../modules/print";
-import exitApp from "../../../modules/exit";
-
 
 class PlansJournal extends Component {
     constructor(props) {
@@ -112,27 +109,23 @@ class PlansJournal extends Component {
 
         if (this.state.journalID !== prevState.journalID) {
             if (this.state.journalID) {
-                // clearTimeout(this.props.timerID)
                 this.props.removeOrders()
                 this.clearFilters()
 
                 await this.getSectors()
-                // this.props.setTokenTimer(setTimeout(() => exitApp(), 900000))
             }
         }
 
         if (this.state.activeSectorId !== prevState.activeSectorId) {
-            this.props.removeOrders()
-            this.clearFilters()
-            // clearTimeout(this.props.timerID)
-
             this.props.setLoading()
+
+            this.clearFilters()
+            this.props.removeOrders()
 
             await this.getOrdersSector()
             this.createHeaderAndParams()
 
             this.props.removeLoading()
-            // this.props.setTokenTimer(setTimeout(() => exitApp(), 900000))
         }
 
         if (this.state.activeFilterButtons !== prevState.activeFilterButtons) {
@@ -176,11 +169,11 @@ class PlansJournal extends Component {
     }
 
     // + получение заказов и размещение в редакс
-    getOrdersSector = async (search = '') => {
-        const {activeSectorId, journalID} = this.state,
+    getOrdersSector = async () => {
+        const {activeSectorId, journalID, filters} = this.state,
             allFilters = ['сегодня', 'будущие', 'просроченные'],
             promises = allFilters.map(async filter => {
-                let newFilter = filter + ' + ' + search
+                let newFilter = filter + ' + ' + `${filters.search ? filters.search : ''}`
 
                 await getOrdersSector(this.props.token, journalID, activeSectorId, newFilter)
                     .then(res => this.changeOrder(res.data, filter))
@@ -402,14 +395,14 @@ class PlansJournal extends Component {
 
     // + фильтр с задержкой
     filterTimeout = async (param, value) => {
-        const {timer, filters} = this.state
+        const {timer} = this.state
 
         clearTimeout(timer)
 
         await this.setState(({filters}) => filters[param] = value)
 
         this.setState({timer: setTimeout(() => {
-                this.getOrdersSector(filters.search)
+                this.getOrdersSector()
             }, 2000)})
 
     }
@@ -423,8 +416,6 @@ class PlansJournal extends Component {
         }
 
         this.setState({filters: clearFilters})
-
-        this.getOrdersSector()
     }
 
     render() {
@@ -506,7 +497,7 @@ class PlansJournal extends Component {
                         <Col className='text-muted text-center'>Данных не существует...</Col>
                     ) : (
                         <Row>
-                            <Col id='doc-print' style={fullscreen ? {height: '80vh', overflow: "auto", fontSize: '30px'} : {height: '75vh', overflow: "auto"}}>
+                            <Col id='doc-print' style={fullscreen ? {height: '80vh', overflow: "auto", fontSize: '24px'} : {height: '75vh', overflow: "auto"}}>
                                 <Table variant={'dark'} size='sm'>
                                     <Thead title={headerTable}/>
 
@@ -583,8 +574,9 @@ class PlansJournal extends Component {
                                     <Button
                                         variant={"outline-danger"}
                                         className={'w-100'}
-                                        onClick={() => {
-                                            this.clearFilters()
+                                        onClick={async () => {
+                                            await this.clearFilters()
+                                            await this.getOrdersSector()
                                         }}
                                     >
                                         Сбросить фильтры

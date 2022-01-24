@@ -7,7 +7,7 @@ const token = Cookies.get('token') ? Cookies.get('token') : ''
 export const myAxios = axios.create(
     {
         baseURL: API_URI,
-        timeout: 10000,
+        timeout: 60000,
         headers: {
             'Authorization': token
         }

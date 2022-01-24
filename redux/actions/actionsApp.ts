@@ -2,7 +2,7 @@ import { Action } from "../../type-scrypt/types/appTypes";
 import {
     ERROR,
     FULLSCREEN,
-    LOADING,
+    LOADING, SET_MAIN_MENU,
     SET_TOKEN_TIMER,
     SET_USER,
     SUCCESS,
@@ -49,4 +49,9 @@ export const unSuccess:Action = () => ({
 export const setTokenTimer:Action = (timerId) => ({
     type: SET_TOKEN_TIMER,
     payload: timerId
+})
+
+export const setMainMenu:Action = (menu) => ({
+    type: SET_MAIN_MENU,
+    payload: menu
 })

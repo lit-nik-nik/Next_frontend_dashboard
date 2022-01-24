@@ -84,7 +84,7 @@ class NavbarMini extends Component {
                                     </Dropdown.Toggle>
                                 </OverlayTrigger>
 
-                                <Dropdown.Menu>
+                                <Dropdown.Menu style={{width: '240px'}}>
                                     {subItem}
                                 </Dropdown.Menu>
                             </Dropdown>
@@ -127,7 +127,7 @@ class NavbarMini extends Component {
     render() {
 
         return (
-            <div className={`d-flex flex-column flex-shrink-0 bg-light position-fixed border-end`} style={{height: '95vh', zIndex: 15}}>
+            <div className={`d-flex flex-column flex-shrink-0 bg-light position-fixed border-end`} style={this.props.fullscreen ? {height: '100vh', zIndex: 15} : {height: '95vh', zIndex: 15}}>
                 <Nav className="flex-column">
                     {this.createMenu()}
                 </Nav>
@@ -139,7 +139,8 @@ class NavbarMini extends Component {
 }
 
 const mapSTP = state => ({
-    user: state.app.user
+    user: state.app.user,
+    fullscreen: state.app.fullscreen
 })
 
 export default connect(mapSTP)(NavbarMini)
