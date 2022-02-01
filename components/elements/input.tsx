@@ -1,5 +1,5 @@
 import {Alert, Form} from "react-bootstrap";
-import React from "react";
+import React, {ReactElement} from "react";
 
 type Input = {
     name: string,
@@ -12,9 +12,9 @@ type Input = {
 
 type Select = {
     name: string,
-    value: string,
+    value?: string,
     onChange: any,
-    option: []
+    option: Array<ReactElement> | null
 }
 
 export const MyInput = ({name, type, value, onChange, onKeyPress, disabled}: Input) => {

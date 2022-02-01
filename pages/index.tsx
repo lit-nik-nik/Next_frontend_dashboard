@@ -1,17 +1,16 @@
-import {Col, Row,} from "react-bootstrap"
+import {Button, Col, Row} from "react-bootstrap"
 import MainLayout from '../components/layout/main'
 import {useRouter} from "next/router";
 import React, {useCallback, useEffect, useState} from "react";
 import {connect} from 'react-redux';
 import {setLoading, removeLoading} from "../redux/actions/actionsApp";
-import {ConnectWS} from "../services/WebSocket/test"
-import {millisecondsToHours, millisecondsToMinutes, millisecondsToSeconds} from "date-fns";
+import {ConnectWS} from "../services/WebSocket/connectWS"
 
 const Home:React.FC<{token: string}> = ({token}) => {
     const router = useRouter()
 
     const [wsInstance, setWsInstance] = useState(null)
-    const [link, setLink] = useState(router.pathname)
+    const [wsState, setWsState] = useState(3)
     const [seconds, setSeconds] = useState(0)
     const [minutes, setMinutes] = useState(0)
     const [hours, setHours] = useState(0)
@@ -19,21 +18,23 @@ const Home:React.FC<{token: string}> = ({token}) => {
     // Call when updating the ws connection
     const updateWs = useCallback(() => {
         // Close the old connection
-        if(wsInstance?.readyState !== 3)
+        if(wsInstance?.readyState !== 3) {
             wsInstance.close(1000)
+        }
 
-        // Create a new connectio
+        // Create a new connection
         const newWs = ConnectWS()
         setWsInstance(newWs);
     }, [wsInstance])
 
     useEffect(() => {
         const ws = ConnectWS()
+        setWsInstance(ws)
 
         ws.onmessage = (e) => {
-            const hours = millisecondsToHours(e.data),
-                minutes = millisecondsToMinutes(e.data) - hours*60,
-                seconds = millisecondsToSeconds(e.data) - minutes*60 - hours*60
+            const hours = Math.trunc(e.data/360000),
+                minutes = Math.trunc(e.data/6000) - hours*60,
+                seconds = Math.trunc(e.data/100) - minutes*60 - hours*60
 
             setSeconds(seconds)
             setMinutes(minutes)
@@ -48,8 +49,40 @@ const Home:React.FC<{token: string}> = ({token}) => {
         }
     }, [])
 
+    useEffect(() => setWsState(wsInstance?.readyState), [wsInstance?.readyState])
+
+    const color = () => {
+        switch (wsState) {
+            case 0:
+                return 'green'
+            case 1:
+                return 'blue'
+            case 2:
+                return 'orange'
+            case 3:
+                return 'red'
+            default:
+                return 'red'
+        }
+    }
+
+    const text = () => {
+        switch (wsState) {
+            case 0:
+                return 'WS - Соединено'
+            case 1:
+                return 'WS - Передача данных'
+            case 2:
+                return 'WS - Соединение закрывается'
+            case 3:
+                return 'WS - Соединение разорвано'
+            default:
+                return 'WS - Соединение разорвано'
+        }
+    }
+
     return (
-        <MainLayout title='Панель управления' link={link} token={token}>
+        <MainLayout title='Панель управления' link={router.pathname} token={token}>
             <Row className='my-3 text-center'>
                 <Col lg={12}>
                     <h2>Панель управления</h2>
@@ -57,11 +90,31 @@ const Home:React.FC<{token: string}> = ({token}) => {
                 </Col>
 
                 <Col lg={4}>
+                    <div
+                        className='mx-auto'
+                        style={{
+                            width: '20px',
+                            height: '20px',
+                            borderRadius: '10px',
+                            backgroundColor: `${color()}`
+                        }}
+                    />
+                    {text()}
                 </Col>
                 <Col lg={4}>
-                    WebSocket Timer: {hours} ч. {minutes} мин. {seconds} сек.
+                    WebSocket Timer: {`${hours}`.length < 2 ? `0${hours}` : hours} : {`${minutes}`.length < 2 ? `0${minutes}` : minutes} : {`${seconds}`.length < 2 ? `0${seconds}` : seconds}
                 </Col>
                 <Col lg={4}>
+                    <Button
+                        variant='danger'
+                        onClick={() => {
+                            wsInstance.close(1000)
+                            setWsState(wsInstance?.readyState)
+                            setTimeout(() => setWsState(wsInstance?.readyState), 1000)
+                        }}
+                    >
+                        Закрыть соединение WS
+                    </Button>
                 </Col>
             </Row>
         </MainLayout>

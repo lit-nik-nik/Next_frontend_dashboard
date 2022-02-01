@@ -1,10 +1,10 @@
-import {Row, Col} from "react-bootstrap";
+import React from "react";
 import Link from "next/link";
 import Router from "next/router";
+import {Row, Col} from "react-bootstrap";
 
-export default function Custom500() {
-
-    const redirect = () => {
+const Custom500:React.FC = () => {
+    const redirect:Function = () => {
         typeof window !== 'undefined' && Router.push('/')
     }
 
@@ -31,3 +31,5 @@ export default function Custom500() {
         </>
     )
 }
+
+export default Custom500

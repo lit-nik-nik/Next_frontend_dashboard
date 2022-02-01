@@ -1,5 +1,5 @@
 import React, {Component} from "react";
-import {Row, Col, Table, Modal, Form, Alert, Button, Toast} from "react-bootstrap";
+import {Row, Col, Table, Button, Toast} from "react-bootstrap";
 import {connect} from 'react-redux';
 import {withRouter} from "next/router";
 import Thead from "../../../modules/tables/thead";
@@ -220,8 +220,8 @@ class PlansJournal extends Component {
         let header = [],
             params = []
 
-        if (overdueOrders) {
-            for (let key in overdueOrders[0]) {
+        const createHeader = (orders) => {
+            for (let key in orders[0]) {
                 headersTables.map(item => {
                     item.label.map(label => {
                         if (label === key) {
@@ -235,38 +235,16 @@ class PlansJournal extends Component {
                     header.push('Комментарии')
                 }
             }
+        }
+
+        if (overdueOrders) {
+            createHeader(overdueOrders)
         }
         else if (futureOrders) {
-            for (let key in futureOrders[0]) {
-                headersTables.map(item => {
-                    item.label.map(label => {
-                        if (label === key) {
-                            params.push(key)
-                            header.push(item.name)
-                        }
-                    })
-                })
-                if (key === 'data') {
-                    params.push('comments')
-                    header.push('Комментарии')
-                }
-            }
+            createHeader(futureOrders)
         }
         else if (todayOrders) {
-            for (let key in todayOrders[0]) {
-                headersTables.map(item => {
-                    item.label.map(label => {
-                        if (label === key) {
-                            params.push(key)
-                            header.push(item.name)
-                        }
-                    })
-                })
-                if (key === 'data') {
-                    params.push('comments')
-                    header.push('Комментарии')
-                }
-            }
+            createHeader(todayOrders)
         }
 
         this.setState({headerTable: header})
@@ -283,7 +261,7 @@ class PlansJournal extends Component {
             allCounts = overdueCounts + todayCounts + futureCounts,
             newFilters = [...filtersButtons]
 
-        newFilters.map((filter, i) => {
+        newFilters.map((filter) => {
             if (filter.type === 'all') filter.number = allCounts
             if (filter.type === 'overdue') filter.number = overdueCounts
             if (filter.type === 'forToday') filter.number = todayCounts
@@ -354,7 +332,6 @@ class PlansJournal extends Component {
     // выбор комментария пользователя
     selectComment = (value) => {
         const {changeComment} = this.state
-        const userName = this.props.user.userName
         let search
 
         changeComment.data.map(comment => {
@@ -364,14 +341,7 @@ class PlansJournal extends Component {
         })
 
         if (search) {
-            this.setState(({changeComment}) => {
-                return (
-                    changeComment.userId = search.employeeId,
-                    changeComment.userName = search.userName,
-                    changeComment.dataId = search.id,
-                    changeComment.comment = search.data
-                )
-            })
+            this.setState({changeComment: {...this.state.changeComment, userId: search.employeeId, userName: search.userName, dataId: search.id, comment: search.data}})
         }
     }
 
@@ -397,9 +367,12 @@ class PlansJournal extends Component {
     filterTimeout = async (param, value) => {
         const {timer} = this.state
 
+        let newFilters = this.state.filters
+        newFilters[param] = value
+
         clearTimeout(timer)
 
-        await this.setState(({filters}) => filters[param] = value)
+        await this.setState({filters: newFilters})
 
         this.setState({timer: setTimeout(() => {
                 this.getOrdersSector()
@@ -541,8 +514,9 @@ class PlansJournal extends Component {
                                     <Button
                                         variant={"outline-dark"}
                                         className={'w-100'}
-                                        onClick={() => {
-                                            this.getOrdersSector('принятые')
+                                        onClick={async () => {
+                                            await this.setState({filters: {...this.state.filters, search: 'принятые'}})
+                                            await this.getOrdersSector()
                                         }}
                                     >
                                         Принятые
