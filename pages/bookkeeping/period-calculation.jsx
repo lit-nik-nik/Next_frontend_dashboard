@@ -4,9 +4,9 @@ import Link from "next/link";
 import MainLayout from "../../components/layout/main";
 import Router, {withRouter} from "next/router";
 import {getTokenCookies} from "../../modules/cookie";
-import {getWeekSalary} from "../../services/journals/get";
+import {getWeekSalary} from "../../api/journals/get";
 import ModalBookkeeping from "../../modules/modals/modal-bookkeeping";
-import {patchTransaction} from "../../services/journals/patch";
+import {patchTransaction} from "../../api/journals/patch";
 
 class BookkeepingCalc extends Component {
 

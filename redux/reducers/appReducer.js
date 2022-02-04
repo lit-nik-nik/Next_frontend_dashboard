@@ -3,7 +3,7 @@ import {
     FULLSCREEN,
     LOADING, SET_MAIN_MENU,
     SET_TOKEN_TIMER,
-    SET_USER,
+    SET_USER, SET_USERS,
     SUCCESS,
     UN_ERROR,
     UN_LOADING,
@@ -17,7 +17,8 @@ const initialState = {
     mainMenu: [],
     activeTimer: null,
     user: null,
-    fullscreen: false
+    fullscreen: false,
+    users: []
 }
 
 export const appReducer = (state = initialState, action) => {
@@ -42,6 +43,8 @@ export const appReducer = (state = initialState, action) => {
             return {...state, fullscreen: !state.fullscreen}
         case SET_MAIN_MENU:
             return {...state, mainMenu: action.payload}
+        case SET_USERS:
+            return {...state, users: action.payload}
         default:
             return state
     }

@@ -7,9 +7,9 @@ import send from '../../public/send.png'
 import success from '../../public/success.png'
 import error from '../../public/error.png'
 import {Chat, ExtraData} from '../../type-scrypt/types/journalsTypes'
-import {postCommentOrder} from '../../services/journals/post'
-import {patchCommentOrder} from '../../services/journals/patch'
-import {deleteCommentOrder} from '../../services/journals/delete'
+import {postCommentOrder} from '../../api/journals/post'
+import {patchCommentOrder} from '../../api/journals/patch'
+import {deleteCommentOrder} from '../../api/journals/delete'
 import {setError} from "../../redux/actions/actionsApp";
 import { format } from "date-fns";
 

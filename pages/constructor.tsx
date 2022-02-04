@@ -7,7 +7,7 @@ import Engine from "yug-entity-system";
 const engine = new Engine()
 const creator = engine.nomenclatureCreator();
 
-const Constructor:React.FC<{token: string}> = ({token}) => {
+const ConstructorPage:React.FC<{token: string}> = ({token}) => {
 
     const [title, setTitle] = useState('Конструктор')
 
@@ -49,4 +49,4 @@ const FirstSelect = () => {
     )
 }
 
-export default Constructor;
+export default ConstructorPage;

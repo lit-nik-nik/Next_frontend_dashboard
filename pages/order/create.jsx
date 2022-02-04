@@ -1,7 +1,7 @@
 import MainLayout from "../../components/layout/main";
 import {Form, Row, Col, Button, InputGroup} from 'react-bootstrap'
 import {Component} from "react";
-import {getListsOrder} from "../../services/order/create/get";
+import {getListsOrder} from "../../api/order/create/get";
 import {withRouter} from "next/router";
 import {getTokenCookies} from "../../modules/cookie";
 

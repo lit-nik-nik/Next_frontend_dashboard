@@ -6,7 +6,7 @@ import Link from "next/link";
 import MainLayout from "../../../../components/layout/main";
 import {withRouter} from "next/router";
 import {getTokenCookies} from "../../../../modules/cookie";
-import {getWeekSalary} from "../../../../services/journals/get";
+import {getWeekSalary} from "../../../../api/journals/get";
 import JournalLayout from "../../../../components/layout/journals";
 import {MySelect} from "../../../../components/elements/";
 import {IconPrint, printPage} from "../../../../modules/print";

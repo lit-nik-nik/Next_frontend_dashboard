@@ -5,7 +5,7 @@ import {withRouter} from "next/router";
 import Thead from "../../../modules/tables/thead";
 import Tbody from "../../../modules/tables/tbody";
 import {globalState} from "../../../data/globalState";
-import {getCommentsOrder, getOrdersSector, getSectors} from "../../../services/journals/get";
+import {getCommentsOrder, getOrdersSector, getSectors} from "../../../api/journals/get";
 import MainLayout from "../../../components/layout/main";
 import JournalLayout from "../../../components/layout/journals";
 import {MyInput, MySelect} from "../../../components/elements";

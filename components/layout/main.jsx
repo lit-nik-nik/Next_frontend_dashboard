@@ -6,7 +6,7 @@ import React, {Component} from "react";
 import Head from "next/head";
 import NavbarMini from "../navbar-mini";
 import {globalState} from "../../data/globalState";
-import {getJournals} from "../../services/journals/get";
+import {getJournals} from "../../api/journals/get";
 import exitApp from "../../modules/exit";
 import CustomError from "../../modules/error";
 import {setError, setMainMenu, setTokenTimer, setUser} from "../../redux/actions/actionsApp";
@@ -93,16 +93,10 @@ class MainLayout extends Component {
                             ) : null
                         }
 
-                        <Row style={{overflowX: "hidden"}}>
-                            {fullscreen ?
-                                <Col lg={1} className='nav-menu' style={{width: '4%'}}>
-                                    <NavbarMini link={link} menu={mainMenu} />
-                                </Col>
-                                :
-                                <Col lg={collapse ? 1 : 2} className='nav-menu' style={collapse ? {width: '4%'} : {}}>
-                                    {collapse ? <NavbarMini link={link} menu={mainMenu} /> : <Navbar link={link} menu={mainMenu} />}
-                                </Col>
-                            }
+                        <Row className='m-0 w-100'>
+                            <Col lg={collapse || fullscreen ? 1 : 2} className='nav-menu p-0' style={collapse || fullscreen ? {width: '4%'} : {}}>
+                                {collapse || fullscreen ? <NavbarMini link={link} menu={mainMenu} /> : <Navbar link={link} menu={mainMenu} />}
+                            </Col>
 
                             <Col lg={fullscreen || collapse ? 11 : 10} className='py-1 px-4' style={fullscreen || collapse ? {width: '96%'} : {}}>
                                 {children}

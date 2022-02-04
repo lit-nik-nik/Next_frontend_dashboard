@@ -1,3 +1,7 @@
+body {
+    overflow-x: hidden;
+}
+
 .hide-input {
     position: fixed !important;
     left: -2500px;

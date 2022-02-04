@@ -1,6 +1,8 @@
 import { Component } from "react"
 import {Button, Pagination} from "react-bootstrap"
 
+
+
 export default class PaginationTable extends Component {
 
     state = {

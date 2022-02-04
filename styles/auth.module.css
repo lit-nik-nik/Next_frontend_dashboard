@@ -1,4 +1,12 @@
-.formSign {}
+.formSign {
+    width: 100%;
+    max-width: 450px;
+    padding: 15px;
+    margin: auto;
+    background-color: #f5f5f5;
+    box-shadow: 0 0 10px 10px #ccc;
+    border-radius: 15px;
+}
 
 .formSign .checkbox {
     font-weight: 400;
@@ -16,5 +24,12 @@
     content: url(https://i.stack.imgur.com/i9WFO.png);
     margin-left: -20px;
     padding: .1em;
-    pointer-events:none;
+    pointer-events: none;
+}
+
+.body {
+    display: flex;
+    align-items: center;
+    height: 85vh;
+    padding: 40px 0;
 }

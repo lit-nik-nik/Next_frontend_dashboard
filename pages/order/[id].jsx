@@ -1,5 +1,5 @@
 import {Button, Col, Row, Alert, Table, ListGroup} from "react-bootstrap"
-import {getImageOrder, getOrder} from "../../services/order/get"
+import {getImageOrder, getOrder} from "../../api/order/get"
 import MainLayout from "../../components/layout/main"
 import { withRouter } from 'next/router'
 import {Component } from 'react'

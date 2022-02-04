@@ -1,6 +1,6 @@
 import React, {Component} from "react";
 import {connect} from 'react-redux';
-import {getAdoptedOrderJournal} from "../../../services/journals/get";
+import {getAdoptedOrderJournal} from "../../../api/journals/get";
 import {globalState} from "../../../data/globalState";
 import Thead from "../../../modules/tables/thead";
 import Tbody from "../../../modules/tables/tbody";
@@ -13,7 +13,7 @@ import MainLayout from "../../../components/layout/main";
 import JournalLayout from "../../../components/layout/journals";
 import {format, previousMonday, previousSunday, startOfWeek, endOfWeek} from 'date-fns'
 import {MyInput} from "../../../components/elements";
-import {getServerTime} from "../../../services/at-order/get";
+import {getServerTime} from "../../../api/at-order/get";
 import {setLoading, removeLoading, setFullscreen} from "../../../redux/actions/actionsApp";
 import {IconPrint, printPage} from "../../../modules/print";
 

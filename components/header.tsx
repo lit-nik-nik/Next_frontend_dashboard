@@ -8,7 +8,7 @@ import logo from '../public/logo.png'
 import Image from "next/image";
 import exitApp from "../modules/exit";
 import ava from '../public/avatar.png'
-import {getReboot} from "../services/app/get";
+import {getReboot} from "../api/app/get";
 import {success, unSuccess} from "../redux/actions/actionsApp";
 
 type UserType = {
@@ -42,8 +42,8 @@ const Header:React.FC<HeaderPropsType> = (props) => {
 
     return (
         <>
-            <Row className="bg-dark p-0 shadow sticky-top" style={{fontSize: 16}}>
-                <Col lg={2}>
+            <Row className="bg-dark p-0 shadow sticky-top w-100 m-0" style={{fontSize: 16}}>
+                <Col lg={2} className='p-0'>
                     <Row>
                         <Col lg={2} className='text-center'>
                             <Button
@@ -63,16 +63,17 @@ const Header:React.FC<HeaderPropsType> = (props) => {
                         </Col>
                     </Row>
                 </Col>
-                <Col lg={8}>
-                    <Form onSubmit={e => searchOrder(e)}>
-                        <input
-                            className={`w-100 text-white fw-bold ${style.searchPanel}`}
-                            type="text"
-                            placeholder="Поиск по заказам"
-                            value={value}
-                            onChange={e => setValue(e.target.value)}
-                        />
-                    </Form>
+                <Col lg={8} className='p-0'>
+                    <Form.Control
+                        className={`w-100 text-white fw-bold ${style.searchPanel}`}
+                        type="text"
+                        placeholder="Поиск по заказам"
+                        value={value}
+                        onChange={e => setValue(e.target.value)}
+                        onKeyPress={e => {
+                            if (e.key === 'Enter') Router.push(`/orders?filter=${value}`)
+                        }}
+                    />
                 </Col>
                 <Col lg={2} className='bg-dark pt-1 p-0 text-center text-white'>
                     <UserMenu user={props.user} success={props.success} unSuccess={props.unSuccess}/>
@@ -122,11 +123,20 @@ const UserMenu:React.FC<UserMenuType> = ({user, unSuccess, success}) => {
                         </a>
                     </Link>
                 </Dropdown.Item>
-                <Dropdown.Item eventKey="2">Настройки</Dropdown.Item>
-                <Dropdown.Item eventKey="3">Полномочия</Dropdown.Item>
+                <Dropdown.Item
+                    eventKey="2"
+                >
+                    <Link href='/web-socket'>
+                        <a className='text-decoration-none text-light'>
+                            WebSocket
+                        </a>
+                    </Link>
+                </Dropdown.Item>
+                <Dropdown.Item eventKey="3">Настройки</Dropdown.Item>
+                <Dropdown.Item eventKey="4">Полномочия</Dropdown.Item>
                 {user.isOwner ? (
                     <Dropdown.Item
-                        eventKey="4"
+                        eventKey="5"
                         onClick={() => reboot()}
                     >
                         Перезагрузка

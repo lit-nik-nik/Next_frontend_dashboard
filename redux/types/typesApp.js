@@ -9,6 +9,7 @@ export const FULLSCREEN = 'APP/FULLSCREEN'
 export const SET_USER = 'APP/SET_USER'
 export const SET_MAIN_MENU = 'APP/SET_MAIN_MENU'
 export const SET_TOKEN_TIMER = 'APP/SET_TOKEN_TIMER'
+export const SET_USERS = 'APP/SET_USERS'
 
 //JournalReducer
 export const SET_SECTORS = 'JOURNAL/SET_SECTORS'

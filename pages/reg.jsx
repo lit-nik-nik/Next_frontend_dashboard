@@ -2,8 +2,8 @@ import style from '../styles/auth.module.css'
 import {Component} from "react";
 import {Row, Col, Form, Button, FormGroup} from "react-bootstrap";
 import Link from "next/link";
-import {getUsers} from "../services/auth/get";
-import {regUser} from "../services/reg/post";
+import {getUsers} from "../api/auth/get";
+import {regUser} from "../api/reg/post";
 import Router, {withRouter} from "next/router";
 import ModalWindow from "../modules/modals/modal";
 import Image from "next/image";
@@ -358,27 +358,27 @@ class Reg extends Component {
 
 export default connect(null, {setError})(withRouter(Reg))
 
-export async function getServerSideProps() {
-
-    let users, error
-
-    await getUsers()
-        .then(res  => users = res.data.lists.employers)
-        .catch(err => error = err.response.data)
-
-    if (users) {
-        return {
-            props: {
-                users
-            }
-        }
-    }
-
-    if (error) {
-        return {
-            props: {
-                error
-            }
-        }
-    }
-}
+// export async function getServerSideProps() {
+//
+//     let users, error
+//
+//     await getUsers()
+//         .then(res  => users = res.data.lists.employers)
+//         .catch(err => error = err.response.data)
+//
+//     if (users) {
+//         return {
+//             props: {
+//                 users
+//             }
+//         }
+//     }
+//
+//     if (error) {
+//         return {
+//             props: {
+//                 error
+//             }
+//         }
+//     }
+// }

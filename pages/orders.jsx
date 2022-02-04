@@ -6,7 +6,7 @@ import {Table, Row, Col, Alert} from "react-bootstrap";
 import PaginationTable from "../modules/pagination";
 import Router, {withRouter} from "next/router";
 import MainLayout from "../components/layout/main";
-import {getOrders} from "../services/orders/get";
+import {getOrders} from "../api/orders/get";
 import {connect} from "react-redux";
 import {setLoading, removeLoading} from "../redux/actions/actionsApp";
 import {IconPrint, printPage} from "../modules/print";

@@ -13,7 +13,7 @@ class MyDocument extends Document {
             <meta name="description" content="Система управления заказами" />
             <link rel="shortcut icon" href={"/favicon.ico"} />
         </Head>
-        <body style={{overflowX: "hidden"}}>
+        <body>
           <Main />
           <NextScript />
         </body>

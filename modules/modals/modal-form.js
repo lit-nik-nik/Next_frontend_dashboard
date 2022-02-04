@@ -1,9 +1,9 @@
 import {Button, Col, Form, Modal, Row} from "react-bootstrap"
 import style from '../styles/modal.module.css'
 import {Component} from "react";
-import {getOrder} from "../services/packages/get";
+import {getOrder} from "../api/packages/get";
 import {changeDate} from "./change-data";
-import {patchOrder} from "../services/packages/patch";
+import {patchOrder} from "../api/packages/patch";
 
 export default class ModalForm extends Component {
 

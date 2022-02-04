@@ -4,7 +4,7 @@ import Link from "next/link";
 import MainLayout from "../../components/layout/main";
 import {withRouter} from "next/router";
 import {getTokenCookies} from "../../modules/cookie";
-import {getTransactionSalary} from "../../services/journals/get";
+import {getTransactionSalary} from "../../api/journals/get";
 
 class BookkeepingAllTransaction extends Component {
 

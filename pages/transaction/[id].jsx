@@ -3,7 +3,7 @@ import {Button, Col, ListGroup, Row, Table} from "react-bootstrap";
 import Thead from "../../modules/tables/thead";
 import Link from "next/link";
 import {withRouter} from "next/router";
-import {getTransaction} from "../../services/journals/get";
+import {getTransaction} from "../../api/journals/get";
 import MainLayout from "../../components/layout/main";
 import {getTokenCookies} from "../../modules/cookie";
 import {IconPrint, printPage} from "../../modules/print";
