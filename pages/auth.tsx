@@ -1,22 +1,19 @@
 import style from '../styles/auth.module.css'
-import React, {Component, useEffect, useRef, useState} from "react";
+import React, {Component, ReactElement, useEffect, useRef, useState} from "react";
 import {connect} from 'react-redux';
 import {Row, Col, FloatingLabel, Form, Button} from "react-bootstrap";
 import bcrypt from 'bcryptjs';
-import Router, {useRouter, withRouter} from "next/router";
+import {useRouter} from "next/router";
 import Link from "next/link";
 import logo from "../public/logo.png"
 import Image from "next/image";
 import {changeKeyboard} from "../modules/change-keyboard";
 import Cookies from 'js-cookie'
 import {NologinLayout} from "../components/layout/nologin";
-import {getUsers, setError, setLoading, setMainMenu, setUser} from "../redux/actions/actionsApp";
+import {authUser, getUsers, setError, setLoading, setMainMenu, setUser} from "../redux/actions/actionsApp";
 import {getJournals} from "../api/journals/get";
 import {addMenu} from "../modules/menu/add-menu";
 import {PropsType} from "../type-scrypt/types/appTypes";
-import {AuthAPI} from "../api/authApi"
-import {returnStatement} from "@babel/types";
-import {use} from "ast-types";
 
 type LoginType = {
     user: string,
@@ -29,7 +26,9 @@ type AuthPagePostType = {
     setMainMenu: Function,
     setError: Function,
     getUsers: Function,
-    users: []
+    authUser: Function,
+    users: [],
+    error: any
 }
 
 type ButtonAuthPropsType = {
@@ -43,7 +42,7 @@ type ButtonAuthPropsType = {
 type LoginAuthPropsType = {
     login: LoginType,
     setLogin: Function,
-    renderListUser: Function
+    users: []
 }
 
 type BarcodesAuthPropsType = {
@@ -54,9 +53,15 @@ type BarcodesAuthPropsType = {
 const AuthPage:React.FC<AuthPagePostType> = (props) => {
     const router = useRouter()
 
+    const [users, setUsers] = useState<string[]>([])
     const [variable, setVariable] = useState<string>('login')
     const [login, setLogin] = useState<LoginType>({user: '', pass: '', barcode: ''})
     const [disabled, setDisabled] = useState<boolean>(true)
+
+    useEffect(() => {
+        props.getUsers()
+        setUsers(props.users)
+    }, [users])
 
     useEffect(() => {
         if (localStorage.getItem('variable')) setVariable(localStorage.getItem('variable'))
@@ -70,61 +75,23 @@ const AuthPage:React.FC<AuthPagePostType> = (props) => {
     }, [login.user, login.pass, login.barcode])
 
     useEffect(() => {
-        if (!Cookies.get('token')) localStorage.setItem('user', '')
+        if (!Cookies.get('token')) {
+            localStorage.setItem('user', '')
+        }
     })
+
+    useEffect(() => {
+        setLogin({...login, pass: '', barcode: ''})
+    }, [props.error])
 
     const clearInput = (value) => {
         if (value === 'barcode') setLogin({...login, barcode: ''})
         else if (value === 'login') setLogin({...login, user: '', pass: '' })
     }
 
-    const renderListUser = () => {
-        props.getUsers()
-
-        return props.users?.map((user, i) => {
-            return (
-                <option key={i}>
-                    {user}
-                </option>
-            )
-        })
-    }
-
     const setAuth = async (e) => {
         e.preventDefault()
-        const {user, pass, barcode} = login,
-            redirect = () => Router.push('/')
-
-        let newBarcode = changeKeyboard(barcode)
-
-        let salt = bcrypt.genSaltSync(10),
-            hash = null
-
-        if (pass) {
-            hash = bcrypt.hashSync(pass, salt)
-        }
-
-        await AuthAPI.authUser(user, hash, newBarcode)
-            .then(async res => {
-                if (res.status === 200) {
-                    Cookies.set('token', res.data.token, {expires: 10 / 24})
-                    Cookies.set('userId', res.data.userId, {expires: 10 / 24})
-                    localStorage.setItem('user', JSON.stringify(res.data.user))
-                    props.setUser(res.data.user)
-
-                    await getJournals(res.data.token)
-                        .then(result => {
-                            props.setMainMenu(addMenu(result.data.journals))
-                        })
-                        .catch(err => props.setError(err.response?.data))
-
-                    setTimeout(redirect, 1000)
-                } else {
-                    props.setError(res.data)
-                    setLogin({user, pass: '', barcode: newBarcode})
-                }
-            })
-            .catch(err => props.setError(err.response?.data))
+        props.authUser(login)
     }
 
     return (
@@ -143,7 +110,7 @@ const AuthPage:React.FC<AuthPagePostType> = (props) => {
 
                                 {variable === 'barcode' ?
                                     <BarcodesAuth login={login} setLogin={setLogin} /> :
-                                    <LoginAuth login={login} setLogin={setLogin} renderListUser={renderListUser} />
+                                    <LoginAuth login={login} setLogin={setLogin} users={props.users}/>
                                 }
 
                                 <Row>
@@ -204,7 +171,11 @@ const BarcodesAuth:React.FC<BarcodesAuthPropsType> = (props) => {
                     required
                     isValid={!!props.login.barcode}
                     ref={barcodeInput}
-                    onBlur={() => barcodeInput.current.focus()}
+                    onBlur={() => {
+                        // @ts-ignore
+                        barcodeInput.current.focus()
+                    }
+                    }
                     autoFocus
                     type="password"
                     placeholder="Штрих-код"
@@ -219,6 +190,15 @@ const BarcodesAuth:React.FC<BarcodesAuthPropsType> = (props) => {
 }
 
 const LoginAuth:React.FC<LoginAuthPropsType> = (props) => {
+
+    const renderListUser = () => {
+        return props.users.map((user, i) => {
+            return (
+                <option key={i}>{user}</option>
+            )
+        })
+    }
+
     return (
         <>
             <span className='my-arrow'>
@@ -241,7 +221,7 @@ const LoginAuth:React.FC<LoginAuthPropsType> = (props) => {
                 </FloatingLabel>
             </span>
             <datalist id='users'>
-                {props.renderListUser()}
+                {props.users.length > 0 && renderListUser()}
             </datalist>
 
             <FloatingLabel
@@ -283,7 +263,8 @@ const ButtonAuth: React.FC<ButtonAuthPropsType> = (props) => {
 
 const mapSTP = state => ({
     users: state.app.users,
+    error: state.app.app_error,
     loading: state.app.loading
 })
 
-export default connect(mapSTP, {setError, setUser, setMainMenu, getUsers})(AuthPage)
+export default connect(mapSTP, {getUsers, authUser})(AuthPage)
