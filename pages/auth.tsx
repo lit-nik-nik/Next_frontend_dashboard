@@ -1,19 +1,14 @@
 import style from '../styles/auth.module.css'
-import React, {Component, ReactElement, useEffect, useRef, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {connect} from 'react-redux';
 import {Row, Col, FloatingLabel, Form, Button} from "react-bootstrap";
-import bcrypt from 'bcryptjs';
 import {useRouter} from "next/router";
 import Link from "next/link";
 import logo from "../public/logo.png"
 import Image from "next/image";
-import {changeKeyboard} from "../modules/change-keyboard";
 import Cookies from 'js-cookie'
 import {NologinLayout} from "../components/layout/nologin";
-import {authUser, getUsers, setError, setLoading, setMainMenu, setUser} from "../redux/actions/actionsApp";
-import {getJournals} from "../api/journals/get";
-import {addMenu} from "../modules/menu/add-menu";
-import {PropsType} from "../type-scrypt/types/appTypes";
+import {authUser, getUsers} from "../redux/actions/actionsApp";
 
 type LoginType = {
     user: string,

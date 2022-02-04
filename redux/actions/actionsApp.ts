@@ -84,9 +84,8 @@ export const authUser = (login) => {
 
                     dispatch(removeLoading())
                     setTimeout(redirect, 1000)
-                } else {
-                    dispatch(setError(res.data))
                 }
+                else dispatch(setError(res.data))
             })
             .catch(err => dispatch(setError(err.response?.data)))
     }
